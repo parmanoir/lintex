@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>content editable</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+		div
+		{
+			white-space: pre;
+		}
+		span
+		{
+			color: rgba(255, 0, 0, 0.5);
+		}
+</style>
+</head>
+<body>
+
+	<div contentEditable='true'>
+		
+<span>The <b>result <i>rapidly</i> bec</b>omes an unmaintainable mess
+</span><span>The <b>result <i>rapidly</i> bec</b>omes an unmaintainable <span contentEditable='false'>NO</span>mess
+</span><span>The <b>result <i>rapidly</i> bec</b>omes an unmaintainable mess
+</span>
+
+function a(b, c)
+{
+	if (b)			<span contentEditable='true'>l</span>
+<span contentEditable='true'>l</span>	c()
+}
+		
+<span>I am working on <span>a systems <span>integration</span> project</span> that has gotten itself into what I call a SpaghettiArchitecture? - a bunch of (generally small) programs that connect one database to another, or one app to another, and so on. This has been a result of DoTheSimplestThingThatCouldPossiblyWork. "Well, we need to get this data over there." "Oh, just write a little batch transfer program." The result rapidly becomes an unmaintainable mess - everything depends on everything else, the business logic is scattered, and there's not even a single codebase to RefactorMercilessly.</span>
+
+So perhaps we can say that DoTheSimplestThingThatCouldPossiblyWork is a reasonable approach within a single program or codebase (provided, of course, that we RefactorMercilessly and UnitTest to keep it from becoming FlimsyAndBarelyFunctional). But on an architectural level, it is absolutely necessary to do a BigDesignUpFront (or at least a SmallDesignUpFront?) - put the right architectural components in place, plan for future expansion, decide how we're going to let our different apps and programs be loosely coupled, and so on. -- RobertEikel
+
+This doesn't sound like DoTheSimplestThingThatCouldPossiblyWork at all to me. It sounds a lot more like DoTheQuickestThingThatMightWorkForAWhile. Programs were simply plugged in without any particular thought to the overall picture. I've never read or heard of anything in XP that says this is a good idea.
+	</div>
+
+
+	<script>
+		function	f()
+		{
+			document.getElementsByTagName('DIV')[0].focus()
+		}
+		setTimeout(f, 10)
+	</script>
+
+
+
+</body>
+</html>

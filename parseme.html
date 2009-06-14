@@ -1,0 +1,756 @@
+
+<body>
+	<pre>
+
+/*
+
+	forum : includ possibilité de run JSCocoa code
+
+
+*/
+
+
+	JSCocoa.hazardReport()
+
+			this.sidebarItemsList.delegate = this
+			
+			var cell = ImageAndTextCell.instance()
+			this.sidebarItemsList.tableColumns[0].dataCell = cell
+			
+			//
+			// Icons
+			//
+			var images = {	 'Mac' : NSImage.imageNamed('NSComputer')
+							,'Console' : NSImage.imageNamed('Console')
+							,'iPhoneSimulator' : NSImage.imageNamed('iPhoneSimulator') 
+							,'GoogleGroups' : NSImage.imageNamed('GoogleGroups') 
+							,'URL' : NSImage.imageNamed('URL') 
+							}
+			images['Mac'].size = new NSSize(16, 16)
+			images['URL'].size = new NSSize(16, 16)
+			
+			//
+			// Sidebar items
+			//
+			this.willChangeValueForKey('sidebarItems')
+			this.items = [	 { name : 'SAMPLES', isGroupItem : true
+							,children : [ { name : 'Mac OS', image : images['Mac'] }
+										,{ name : 'iPhone Simulator', image : images['iPhoneSimulator'] }
+										,{ name : 'Console', image : images['Console'] } ] }
+						,{ name : 'TRADE', isGroupItem : true
+							,children : [ { name : 'Download samples' }, { name : 'Upload a sample' } ] }
+						,{ name : 'DISCUSS', isGroupItem : true
+							,children : [ { name : 'Report Bug' }, { name : 'Request Feature' }, { name : 'Google Group', image : images['GoogleGroups'] } ] }
+						,{ name : 'VISIT', isGroupItem : true
+							,children : [ { name : 'Source', image : images['URL'], id : 'source' }, { name : 'Homepage', image : images['URL'], id : 'home' } ] }
+					]
+			this.didChangeValueForKey('sidebarItems')
+
+			// Expand
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(3))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(2))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(1))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(0))
+			// Select
+			this.sidebarItemsList.select({rowIndexes:NSIndexSet.indexSetWithIndex(1), byExtendingSelection:NO })
+			
+			
+			//
+			// Position window
+			//
+			var windowFrame = this.window.frame
+			var screenFrame = NSScreen.mainScreen.visibleFrame
+			this.window.setFrameOrigin(new NSPoint((screenFrame.size.width-windowFrame.size.width)/2, (screenFrame.size.height-windowFrame.size.height)*2/3))
+			
+
+			//
+			// Hash of views, holding name : NSView
+			//
+			this.views = {}
+			
+				var query = NSMetadataQuery.instance()
+//				var descriptors = NSArray.arrayWithObject(NSSortDescriptor.instance({withKey:'kMDItemFSName', ascending:true}))
+//				query.setSortDescriptors(descriptors)
+				
+				
+				NSNotificationCenter.defaultCenter.add({observer:this, selector:'notified:', name:null, object:query})
+				
+				
+//				mdfind "(kMDItemDisplayName = 'jscocoa*'cdw) && (kMDItemFSName = '*.jscocoa'c)"
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like [cd]'*\.jscocoa')"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like[cdw] '*jscocoa*') and (kMDItemFSName like[c] \"*\.jscocoa\")"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like[cdw] '*jscocoa*')"))
+				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like '*\.jscocoa')"))
+				query.startQuery
+				this.query = query
+//				log('QUERY========' + query)
+				
+
+			//
+			// Set ourselves as jscocoa items list delegate
+			//
+			this.jscocoaItemsList.delegate = this
+			
+			//
+			// Load source code view
+			//
+			this.jscocoaSourceCodeView.mainFrameURL = (NSBundle.mainBundle.pathFor({ resource : 'source code view', ofType : 'html' }))
+
+
+/*
+
+	forum : includ possibilité de run JSCocoa code
+
+
+*/
+
+
+	JSCocoa.hazardReport()
+
+			this.sidebarItemsList.delegate = this
+			
+			var cell = ImageAndTextCell.instance()
+			this.sidebarItemsList.tableColumns[0].dataCell = cell
+			
+			//
+			// Icons
+			//
+			var images = {	 'Mac' : NSImage.imageNamed('NSComputer')
+							,'Console' : NSImage.imageNamed('Console')
+							,'iPhoneSimulator' : NSImage.imageNamed('iPhoneSimulator') 
+							,'GoogleGroups' : NSImage.imageNamed('GoogleGroups') 
+							,'URL' : NSImage.imageNamed('URL') 
+							}
+			images['Mac'].size = new NSSize(16, 16)
+			images['URL'].size = new NSSize(16, 16)
+			
+			//
+			// Sidebar items
+			//
+			this.willChangeValueForKey('sidebarItems')
+			this.items = [	 { name : 'SAMPLES', isGroupItem : true
+							,children : [ { name : 'Mac OS', image : images['Mac'] }
+										,{ name : 'iPhone Simulator', image : images['iPhoneSimulator'] }
+										,{ name : 'Console', image : images['Console'] } ] }
+						,{ name : 'TRADE', isGroupItem : true
+							,children : [ { name : 'Download samples' }, { name : 'Upload a sample' } ] }
+						,{ name : 'DISCUSS', isGroupItem : true
+							,children : [ { name : 'Report Bug' }, { name : 'Request Feature' }, { name : 'Google Group', image : images['GoogleGroups'] } ] }
+						,{ name : 'VISIT', isGroupItem : true
+							,children : [ { name : 'Source', image : images['URL'], id : 'source' }, { name : 'Homepage', image : images['URL'], id : 'home' } ] }
+					]
+			this.didChangeValueForKey('sidebarItems')
+
+			// Expand
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(3))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(2))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(1))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(0))
+			// Select
+			this.sidebarItemsList.select({rowIndexes:NSIndexSet.indexSetWithIndex(1), byExtendingSelection:NO })
+			
+			
+			//
+			// Position window
+			//
+			var windowFrame = this.window.frame
+			var screenFrame = NSScreen.mainScreen.visibleFrame
+			this.window.setFrameOrigin(new NSPoint((screenFrame.size.width-windowFrame.size.width)/2, (screenFrame.size.height-windowFrame.size.height)*2/3))
+			
+
+			//
+			// Hash of views, holding name : NSView
+			//
+			this.views = {}
+			
+				var query = NSMetadataQuery.instance()
+//				var descriptors = NSArray.arrayWithObject(NSSortDescriptor.instance({withKey:'kMDItemFSName', ascending:true}))
+//				query.setSortDescriptors(descriptors)
+				
+				
+				NSNotificationCenter.defaultCenter.add({observer:this, selector:'notified:', name:null, object:query})
+				
+				
+//				mdfind "(kMDItemDisplayName = 'jscocoa*'cdw) && (kMDItemFSName = '*.jscocoa'c)"
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like [cd]'*\.jscocoa')"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like[cdw] '*jscocoa*') and (kMDItemFSName like[c] \"*\.jscocoa\")"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like[cdw] '*jscocoa*')"))
+				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like '*\.jscocoa')"))
+				query.startQuery
+				this.query = query
+//				log('QUERY========' + query)
+				
+
+			//
+			// Set ourselves as jscocoa items list delegate
+			//
+			this.jscocoaItemsList.delegate = this
+			
+			//
+			// Load source code view
+			//
+			this.jscocoaSourceCodeView.mainFrameURL = (NSBundle.mainBundle.pathFor({ resource : 'source code view', ofType : 'html' }))
+
+/*
+
+	forum : includ possibilité de run JSCocoa code
+
+
+*/
+
+
+	JSCocoa.hazardReport()
+
+			this.sidebarItemsList.delegate = this
+			
+			var cell = ImageAndTextCell.instance()
+			this.sidebarItemsList.tableColumns[0].dataCell = cell
+			
+			//
+			// Icons
+			//
+			var images = {	 'Mac' : NSImage.imageNamed('NSComputer')
+							,'Console' : NSImage.imageNamed('Console')
+							,'iPhoneSimulator' : NSImage.imageNamed('iPhoneSimulator') 
+							,'GoogleGroups' : NSImage.imageNamed('GoogleGroups') 
+							,'URL' : NSImage.imageNamed('URL') 
+							}
+			images['Mac'].size = new NSSize(16, 16)
+			images['URL'].size = new NSSize(16, 16)
+			
+			//
+			// Sidebar items
+			//
+			this.willChangeValueForKey('sidebarItems')
+			this.items = [	 { name : 'SAMPLES', isGroupItem : true
+							,children : [ { name : 'Mac OS', image : images['Mac'] }
+										,{ name : 'iPhone Simulator', image : images['iPhoneSimulator'] }
+										,{ name : 'Console', image : images['Console'] } ] }
+						,{ name : 'TRADE', isGroupItem : true
+							,children : [ { name : 'Download samples' }, { name : 'Upload a sample' } ] }
+						,{ name : 'DISCUSS', isGroupItem : true
+							,children : [ { name : 'Report Bug' }, { name : 'Request Feature' }, { name : 'Google Group', image : images['GoogleGroups'] } ] }
+						,{ name : 'VISIT', isGroupItem : true
+							,children : [ { name : 'Source', image : images['URL'], id : 'source' }, { name : 'Homepage', image : images['URL'], id : 'home' } ] }
+					]
+			this.didChangeValueForKey('sidebarItems')
+
+			// Expand
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(3))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(2))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(1))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(0))
+			// Select
+			this.sidebarItemsList.select({rowIndexes:NSIndexSet.indexSetWithIndex(1), byExtendingSelection:NO })
+			
+			
+			//
+			// Position window
+			//
+			var windowFrame = this.window.frame
+			var screenFrame = NSScreen.mainScreen.visibleFrame
+			this.window.setFrameOrigin(new NSPoint((screenFrame.size.width-windowFrame.size.width)/2, (screenFrame.size.height-windowFrame.size.height)*2/3))
+			
+
+			//
+			// Hash of views, holding name : NSView
+			//
+			this.views = {}
+			
+				var query = NSMetadataQuery.instance()
+//				var descriptors = NSArray.arrayWithObject(NSSortDescriptor.instance({withKey:'kMDItemFSName', ascending:true}))
+//				query.setSortDescriptors(descriptors)
+				
+				
+				NSNotificationCenter.defaultCenter.add({observer:this, selector:'notified:', name:null, object:query})
+				
+				
+//				mdfind "(kMDItemDisplayName = 'jscocoa*'cdw) && (kMDItemFSName = '*.jscocoa'c)"
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like [cd]'*\.jscocoa')"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like[cdw] '*jscocoa*') and (kMDItemFSName like[c] \"*\.jscocoa\")"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like[cdw] '*jscocoa*')"))
+				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like '*\.jscocoa')"))
+				query.startQuery
+				this.query = query
+//				log('QUERY========' + query)
+				
+
+			//
+			// Set ourselves as jscocoa items list delegate
+			//
+			this.jscocoaItemsList.delegate = this
+			
+			//
+			// Load source code view
+			//
+			this.jscocoaSourceCodeView.mainFrameURL = (NSBundle.mainBundle.pathFor({ resource : 'source code view', ofType : 'html' }))
+
+/*
+
+	forum : includ possibilité de run JSCocoa code
+
+
+*/
+
+
+	JSCocoa.hazardReport()
+
+			this.sidebarItemsList.delegate = this
+			
+			var cell = ImageAndTextCell.instance()
+			this.sidebarItemsList.tableColumns[0].dataCell = cell
+			
+			//
+			// Icons
+			//
+			var images = {	 'Mac' : NSImage.imageNamed('NSComputer')
+							,'Console' : NSImage.imageNamed('Console')
+							,'iPhoneSimulator' : NSImage.imageNamed('iPhoneSimulator') 
+							,'GoogleGroups' : NSImage.imageNamed('GoogleGroups') 
+							,'URL' : NSImage.imageNamed('URL') 
+							}
+			images['Mac'].size = new NSSize(16, 16)
+			images['URL'].size = new NSSize(16, 16)
+			
+			//
+			// Sidebar items
+			//
+			this.willChangeValueForKey('sidebarItems')
+			this.items = [	 { name : 'SAMPLES', isGroupItem : true
+							,children : [ { name : 'Mac OS', image : images['Mac'] }
+										,{ name : 'iPhone Simulator', image : images['iPhoneSimulator'] }
+										,{ name : 'Console', image : images['Console'] } ] }
+						,{ name : 'TRADE', isGroupItem : true
+							,children : [ { name : 'Download samples' }, { name : 'Upload a sample' } ] }
+						,{ name : 'DISCUSS', isGroupItem : true
+							,children : [ { name : 'Report Bug' }, { name : 'Request Feature' }, { name : 'Google Group', image : images['GoogleGroups'] } ] }
+						,{ name : 'VISIT', isGroupItem : true
+							,children : [ { name : 'Source', image : images['URL'], id : 'source' }, { name : 'Homepage', image : images['URL'], id : 'home' } ] }
+					]
+			this.didChangeValueForKey('sidebarItems')
+
+			// Expand
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(3))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(2))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(1))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(0))
+			// Select
+			this.sidebarItemsList.select({rowIndexes:NSIndexSet.indexSetWithIndex(1), byExtendingSelection:NO })
+			
+			
+			//
+			// Position window
+			//
+			var windowFrame = this.window.frame
+			var screenFrame = NSScreen.mainScreen.visibleFrame
+			this.window.setFrameOrigin(new NSPoint((screenFrame.size.width-windowFrame.size.width)/2, (screenFrame.size.height-windowFrame.size.height)*2/3))
+			
+
+			//
+			// Hash of views, holding name : NSView
+			//
+			this.views = {}
+			
+				var query = NSMetadataQuery.instance()
+//				var descriptors = NSArray.arrayWithObject(NSSortDescriptor.instance({withKey:'kMDItemFSName', ascending:true}))
+//				query.setSortDescriptors(descriptors)
+				
+				
+				NSNotificationCenter.defaultCenter.add({observer:this, selector:'notified:', name:null, object:query})
+				
+				
+//				mdfind "(kMDItemDisplayName = 'jscocoa*'cdw) && (kMDItemFSName = '*.jscocoa'c)"
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like [cd]'*\.jscocoa')"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like[cdw] '*jscocoa*') and (kMDItemFSName like[c] \"*\.jscocoa\")"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like[cdw] '*jscocoa*')"))
+				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like '*\.jscocoa')"))
+				query.startQuery
+				this.query = query
+//				log('QUERY========' + query)
+				
+
+			//
+			// Set ourselves as jscocoa items list delegate
+			//
+			this.jscocoaItemsList.delegate = this
+			
+			//
+			// Load source code view
+			//
+			this.jscocoaSourceCodeView.mainFrameURL = (NSBundle.mainBundle.pathFor({ resource : 'source code view', ofType : 'html' }))
+
+/*
+
+	forum : includ possibilité de run JSCocoa code
+
+
+*/
+
+
+	JSCocoa.hazardReport()
+
+			this.sidebarItemsList.delegate = this
+			
+			var cell = ImageAndTextCell.instance()
+			this.sidebarItemsList.tableColumns[0].dataCell = cell
+			
+			//
+			// Icons
+			//
+			var images = {	 'Mac' : NSImage.imageNamed('NSComputer')
+							,'Console' : NSImage.imageNamed('Console')
+							,'iPhoneSimulator' : NSImage.imageNamed('iPhoneSimulator') 
+							,'GoogleGroups' : NSImage.imageNamed('GoogleGroups') 
+							,'URL' : NSImage.imageNamed('URL') 
+							}
+			images['Mac'].size = new NSSize(16, 16)
+			images['URL'].size = new NSSize(16, 16)
+			
+			//
+			// Sidebar items
+			//
+			this.willChangeValueForKey('sidebarItems')
+			this.items = [	 { name : 'SAMPLES', isGroupItem : true
+							,children : [ { name : 'Mac OS', image : images['Mac'] }
+										,{ name : 'iPhone Simulator', image : images['iPhoneSimulator'] }
+										,{ name : 'Console', image : images['Console'] } ] }
+						,{ name : 'TRADE', isGroupItem : true
+							,children : [ { name : 'Download samples' }, { name : 'Upload a sample' } ] }
+						,{ name : 'DISCUSS', isGroupItem : true
+							,children : [ { name : 'Report Bug' }, { name : 'Request Feature' }, { name : 'Google Group', image : images['GoogleGroups'] } ] }
+						,{ name : 'VISIT', isGroupItem : true
+							,children : [ { name : 'Source', image : images['URL'], id : 'source' }, { name : 'Homepage', image : images['URL'], id : 'home' } ] }
+					]
+			this.didChangeValueForKey('sidebarItems')
+
+			// Expand
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(3))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(2))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(1))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(0))
+			// Select
+			this.sidebarItemsList.select({rowIndexes:NSIndexSet.indexSetWithIndex(1), byExtendingSelection:NO })
+			
+			
+			//
+			// Position window
+			//
+			var windowFrame = this.window.frame
+			var screenFrame = NSScreen.mainScreen.visibleFrame
+			this.window.setFrameOrigin(new NSPoint((screenFrame.size.width-windowFrame.size.width)/2, (screenFrame.size.height-windowFrame.size.height)*2/3))
+			
+
+			//
+			// Hash of views, holding name : NSView
+			//
+			this.views = {}
+			
+				var query = NSMetadataQuery.instance()
+//				var descriptors = NSArray.arrayWithObject(NSSortDescriptor.instance({withKey:'kMDItemFSName', ascending:true}))
+//				query.setSortDescriptors(descriptors)
+				
+				
+				NSNotificationCenter.defaultCenter.add({observer:this, selector:'notified:', name:null, object:query})
+				
+				
+//				mdfind "(kMDItemDisplayName = 'jscocoa*'cdw) && (kMDItemFSName = '*.jscocoa'c)"
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like [cd]'*\.jscocoa')"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like[cdw] '*jscocoa*') and (kMDItemFSName like[c] \"*\.jscocoa\")"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like[cdw] '*jscocoa*')"))
+				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like '*\.jscocoa')"))
+				query.startQuery
+				this.query = query
+//				log('QUERY========' + query)
+				
+
+			//
+			// Set ourselves as jscocoa items list delegate
+			//
+			this.jscocoaItemsList.delegate = this
+			
+			//
+			// Load source code view
+			//
+			this.jscocoaSourceCodeView.mainFrameURL = (NSBundle.mainBundle.pathFor({ resource : 'source code view', ofType : 'html' }))
+
+/*
+
+	forum : includ possibilité de run JSCocoa code
+
+
+*/
+
+
+	JSCocoa.hazardReport()
+
+			this.sidebarItemsList.delegate = this
+			
+			var cell = ImageAndTextCell.instance()
+			this.sidebarItemsList.tableColumns[0].dataCell = cell
+			
+			//
+			// Icons
+			//
+			var images = {	 'Mac' : NSImage.imageNamed('NSComputer')
+							,'Console' : NSImage.imageNamed('Console')
+							,'iPhoneSimulator' : NSImage.imageNamed('iPhoneSimulator') 
+							,'GoogleGroups' : NSImage.imageNamed('GoogleGroups') 
+							,'URL' : NSImage.imageNamed('URL') 
+							}
+			images['Mac'].size = new NSSize(16, 16)
+			images['URL'].size = new NSSize(16, 16)
+			
+			//
+			// Sidebar items
+			//
+			this.willChangeValueForKey('sidebarItems')
+			this.items = [	 { name : 'SAMPLES', isGroupItem : true
+							,children : [ { name : 'Mac OS', image : images['Mac'] }
+										,{ name : 'iPhone Simulator', image : images['iPhoneSimulator'] }
+										,{ name : 'Console', image : images['Console'] } ] }
+						,{ name : 'TRADE', isGroupItem : true
+							,children : [ { name : 'Download samples' }, { name : 'Upload a sample' } ] }
+						,{ name : 'DISCUSS', isGroupItem : true
+							,children : [ { name : 'Report Bug' }, { name : 'Request Feature' }, { name : 'Google Group', image : images['GoogleGroups'] } ] }
+						,{ name : 'VISIT', isGroupItem : true
+							,children : [ { name : 'Source', image : images['URL'], id : 'source' }, { name : 'Homepage', image : images['URL'], id : 'home' } ] }
+					]
+			this.didChangeValueForKey('sidebarItems')
+
+			// Expand
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(3))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(2))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(1))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(0))
+			// Select
+			this.sidebarItemsList.select({rowIndexes:NSIndexSet.indexSetWithIndex(1), byExtendingSelection:NO })
+			
+			
+			//
+			// Position window
+			//
+			var windowFrame = this.window.frame
+			var screenFrame = NSScreen.mainScreen.visibleFrame
+			this.window.setFrameOrigin(new NSPoint((screenFrame.size.width-windowFrame.size.width)/2, (screenFrame.size.height-windowFrame.size.height)*2/3))
+			
+
+			//
+			// Hash of views, holding name : NSView
+			//
+			this.views = {}
+			
+				var query = NSMetadataQuery.instance()
+//				var descriptors = NSArray.arrayWithObject(NSSortDescriptor.instance({withKey:'kMDItemFSName', ascending:true}))
+//				query.setSortDescriptors(descriptors)
+				
+				
+				NSNotificationCenter.defaultCenter.add({observer:this, selector:'notified:', name:null, object:query})
+				
+				
+//				mdfind "(kMDItemDisplayName = 'jscocoa*'cdw) && (kMDItemFSName = '*.jscocoa'c)"
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like [cd]'*\.jscocoa')"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like[cdw] '*jscocoa*') and (kMDItemFSName like[c] \"*\.jscocoa\")"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like[cdw] '*jscocoa*')"))
+				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like '*\.jscocoa')"))
+				query.startQuery
+				this.query = query
+//				log('QUERY========' + query)
+				
+
+			//
+			// Set ourselves as jscocoa items list delegate
+			//
+			this.jscocoaItemsList.delegate = this
+			
+			//
+			// Load source code view
+			//
+			this.jscocoaSourceCodeView.mainFrameURL = (NSBundle.mainBundle.pathFor({ resource : 'source code view', ofType : 'html' }))
+
+/*
+
+	forum : includ possibilité de run JSCocoa code
+
+
+*/
+
+
+	JSCocoa.hazardReport()
+
+			this.sidebarItemsList.delegate = this
+			
+			var cell = ImageAndTextCell.instance()
+			this.sidebarItemsList.tableColumns[0].dataCell = cell
+			
+			//
+			// Icons
+			//
+			var images = {	 'Mac' : NSImage.imageNamed('NSComputer')
+							,'Console' : NSImage.imageNamed('Console')
+							,'iPhoneSimulator' : NSImage.imageNamed('iPhoneSimulator') 
+							,'GoogleGroups' : NSImage.imageNamed('GoogleGroups') 
+							,'URL' : NSImage.imageNamed('URL') 
+							}
+			images['Mac'].size = new NSSize(16, 16)
+			images['URL'].size = new NSSize(16, 16)
+			
+			//
+			// Sidebar items
+			//
+			this.willChangeValueForKey('sidebarItems')
+			this.items = [	 { name : 'SAMPLES', isGroupItem : true
+							,children : [ { name : 'Mac OS', image : images['Mac'] }
+										,{ name : 'iPhone Simulator', image : images['iPhoneSimulator'] }
+										,{ name : 'Console', image : images['Console'] } ] }
+						,{ name : 'TRADE', isGroupItem : true
+							,children : [ { name : 'Download samples' }, { name : 'Upload a sample' } ] }
+						,{ name : 'DISCUSS', isGroupItem : true
+							,children : [ { name : 'Report Bug' }, { name : 'Request Feature' }, { name : 'Google Group', image : images['GoogleGroups'] } ] }
+						,{ name : 'VISIT', isGroupItem : true
+							,children : [ { name : 'Source', image : images['URL'], id : 'source' }, { name : 'Homepage', image : images['URL'], id : 'home' } ] }
+					]
+			this.didChangeValueForKey('sidebarItems')
+
+			// Expand
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(3))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(2))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(1))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(0))
+			// Select
+			this.sidebarItemsList.select({rowIndexes:NSIndexSet.indexSetWithIndex(1), byExtendingSelection:NO })
+			
+			
+			//
+			// Position window
+			//
+			var windowFrame = this.window.frame
+			var screenFrame = NSScreen.mainScreen.visibleFrame
+			this.window.setFrameOrigin(new NSPoint((screenFrame.size.width-windowFrame.size.width)/2, (screenFrame.size.height-windowFrame.size.height)*2/3))
+			
+
+			//
+			// Hash of views, holding name : NSView
+			//
+			this.views = {}
+			
+				var query = NSMetadataQuery.instance()
+//				var descriptors = NSArray.arrayWithObject(NSSortDescriptor.instance({withKey:'kMDItemFSName', ascending:true}))
+//				query.setSortDescriptors(descriptors)
+				
+				
+				NSNotificationCenter.defaultCenter.add({observer:this, selector:'notified:', name:null, object:query})
+				
+				
+//				mdfind "(kMDItemDisplayName = 'jscocoa*'cdw) && (kMDItemFSName = '*.jscocoa'c)"
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like [cd]'*\.jscocoa')"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like[cdw] '*jscocoa*') and (kMDItemFSName like[c] \"*\.jscocoa\")"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like[cdw] '*jscocoa*')"))
+				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like '*\.jscocoa')"))
+				query.startQuery
+				this.query = query
+//				log('QUERY========' + query)
+				
+
+			//
+			// Set ourselves as jscocoa items list delegate
+			//
+			this.jscocoaItemsList.delegate = this
+			
+			//
+			// Load source code view
+			//
+			this.jscocoaSourceCodeView.mainFrameURL = (NSBundle.mainBundle.pathFor({ resource : 'source code view', ofType : 'html' }))
+
+/*
+
+	forum : includ possibilité de run JSCocoa code
+
+
+*/
+
+
+	JSCocoa.hazardReport()
+
+			this.sidebarItemsList.delegate = this
+			
+			var cell = ImageAndTextCell.instance()
+			this.sidebarItemsList.tableColumns[0].dataCell = cell
+			
+			//
+			// Icons
+			//
+			var images = {	 'Mac' : NSImage.imageNamed('NSComputer')
+							,'Console' : NSImage.imageNamed('Console')
+							,'iPhoneSimulator' : NSImage.imageNamed('iPhoneSimulator') 
+							,'GoogleGroups' : NSImage.imageNamed('GoogleGroups') 
+							,'URL' : NSImage.imageNamed('URL') 
+							}
+			images['Mac'].size = new NSSize(16, 16)
+			images['URL'].size = new NSSize(16, 16)
+			
+			//
+			// Sidebar items
+			//
+			this.willChangeValueForKey('sidebarItems')
+			this.items = [	 { name : 'SAMPLES', isGroupItem : true
+							,children : [ { name : 'Mac OS', image : images['Mac'] }
+										,{ name : 'iPhone Simulator', image : images['iPhoneSimulator'] }
+										,{ name : 'Console', image : images['Console'] } ] }
+						,{ name : 'TRADE', isGroupItem : true
+							,children : [ { name : 'Download samples' }, { name : 'Upload a sample' } ] }
+						,{ name : 'DISCUSS', isGroupItem : true
+							,children : [ { name : 'Report Bug' }, { name : 'Request Feature' }, { name : 'Google Group', image : images['GoogleGroups'] } ] }
+						,{ name : 'VISIT', isGroupItem : true
+							,children : [ { name : 'Source', image : images['URL'], id : 'source' }, { name : 'Homepage', image : images['URL'], id : 'home' } ] }
+					]
+			this.didChangeValueForKey('sidebarItems')
+
+			// Expand
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(3))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(2))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(1))
+			this.sidebarItemsList.expandItem(this.sidebarItemsList.itemAtRow(0))
+			// Select
+			this.sidebarItemsList.select({rowIndexes:NSIndexSet.indexSetWithIndex(1), byExtendingSelection:NO })
+			
+			
+			//
+			// Position window
+			//
+			var windowFrame = this.window.frame
+			var screenFrame = NSScreen.mainScreen.visibleFrame
+			this.window.setFrameOrigin(new NSPoint((screenFrame.size.width-windowFrame.size.width)/2, (screenFrame.size.height-windowFrame.size.height)*2/3))
+			
+
+			//
+			// Hash of views, holding name : NSView
+			//
+			this.views = {}
+			
+				var query = NSMetadataQuery.instance()
+//				var descriptors = NSArray.arrayWithObject(NSSortDescriptor.instance({withKey:'kMDItemFSName', ascending:true}))
+//				query.setSortDescriptors(descriptors)
+				
+				
+				NSNotificationCenter.defaultCenter.add({observer:this, selector:'notified:', name:null, object:query})
+				
+				
+//				mdfind "(kMDItemDisplayName = 'jscocoa*'cdw) && (kMDItemFSName = '*.jscocoa'c)"
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like [cd]'*\.jscocoa')"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like[cdw] '*jscocoa*') and (kMDItemFSName like[c] \"*\.jscocoa\")"))
+//				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemFSName like[cdw] '*jscocoa*')"))
+				query.setPredicate(NSPredicate.predicateWithFormat("(kMDItemDisplayName like '*\.jscocoa')"))
+				query.startQuery
+				this.query = query
+//				log('QUERY========' + query)
+				
+
+			//
+			// Set ourselves as jscocoa items list delegate
+			//
+			this.jscocoaItemsList.delegate = this
+			
+			//
+			// Load source code view
+			//
+			this.jscocoaSourceCodeView.mainFrameURL = (NSBundle.mainBundle.pathFor({ resource : 'source code view', ofType : 'html' }))

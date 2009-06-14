@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>4 tab replacer</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+		textarea
+		{
+			width: 100%;
+			height: 350px;
+			ecolor: rgba(255, 255, 255, 0.1);
+			background-color: transparent;
+			font-family: courier;
+			font-family: Andale Mono;
+			font-family: Monaco;
+			font-size: 7pt;
+		}
+		td
+		{
+			vertical-align: top;
+			width: 50%;
+		}
+		#highlighted, .tabspaceviewer
+		{
+			white-space: pre;
+			font-family: monaco;
+		}
+		
+		.visualtab
+		{
+			background-color: red;
+			position: absolute;
+			display: inline-block;
+			border-left: solid 1px #ddd;
+			height: 300px;
+		}
+		
+		.space:before
+		{
+			content: '·';
+		}
+		.tab:before
+		{
+			content: '→';
+		}
+		.tab2:before
+		{
+			content: '!';
+		}
+		.newline, .space, .tab, .tab2
+		{
+			color: rgb(83, 180, 255);
+			position: absolute;
+		}
+		
+</style>
+</head>
+<body>
+<table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
+	<textarea>
+Voici un tab
+123456781234567812345
+1	2	3	4	5
+12	34	56	78	12
+123	456	781	234	567
+123	4	56	781234	5
+1234	5678	1234	5678	1
+12345	67812	34567	81
+123456	789123	456789
+a	b.	c	.....	.
+...	.	.	...	..	......	.
+
+
+
+The following lines have the same length
+12345678123456781
+1	2	3	4	5
+
+</textarea>
+<td style='width: 40px'>
+</td><td>
+<div class='tabspaceviewer'><span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    </div>
+	<div id='highlighted' contentEditable='true'></div>
+</td></tr></table>
+	<pre id='dump'></pre>
+	<pre id='dump2'></pre>
+	<hr>
+		<script>
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + o[i] + '\n'
+				return str
+			}
+
+			//
+			// Parse
+			// 
+			function update()
+			{
+				var textarea = document.getElementsByTagName('TEXTAREA')[0]
+				var source = textarea.value
+				
+				var lines = source.split('\n')
+				var str = ''
+				
+				var tabLength = 4
+				function	replaceTabs(a, b, c)
+				{
+//					alert(a + '*' + b + '*' + c + '*')
+//					rez()
+					
+					str2 += ' pos=' + b
+					str2 += ' delta=' + deltaTabPosition
+					str2 += ' posWithDelta=' + (b+deltaTabPosition)
+					var pos = (b+deltaTabPosition) % tabLength
+					
+					pos = tabLength - pos
+
+					str2 += ' pos=' + pos
+/*
+					str2 += ' posWdelta=' + pos
+					pos = 4-pos
+					str2 += ' adjdelta=' + pos
+*/
+					str2 += '<br>'
+
+					// Add spaces to position (minus one to 'remove' the tab)
+					deltaTabPosition += pos-1
+					
+					var str = ''
+					for (var i=0; i<pos; i++) str += ' '
+					str = '<span class="tab"></span>' + str + '<span class="tab2"></span>'
+					return str
+					return '\t'
+				}
+				
+				var deltaTabPosition
+				var str2 = getTickCount() + '<br>'
+				for (var i=0; i<lines.length; i++)
+//var i = 2
+				{
+					var line = lines[i]
+					
+					deltaTabPosition = 0
+//					space = space.replace(/ /g, '<span class="space"></span> ')
+					line = line.replace(/ /g, '_')
+					line = line.replace(/\t/g, replaceTabs)
+					line = line.replace(/_/g, '<span class="space"></span> ')
+					
+					str += line + '\n'
+				}
+				document.getElementById('highlighted').innerHTML = str
+				document.getElementById('dump').innerHTML = str2
+			}
+
+			update()
+			
+			document.body.onkeyup = update
+			//
+			// Focus textarea
+			// 
+			function	focusMe()
+			{
+				var textarea = document.getElementsByTagName('TEXTAREA')[0]
+				textarea.focus()
+			}
+			setTimeout(focusMe, 10)
+		</script>
+
+<pre>
+
+</body>
+</html>

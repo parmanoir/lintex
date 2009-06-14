@@ -1,0 +1,508 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Narcissus Parser</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+		textarea
+		{
+			width: 100%;
+			height: 100px;
+			ecolor: rgba(255, 255, 255, 0.1);
+			background-color: transparent;
+		}
+		h1
+		{
+			margin-bottom: -2em;
+			color: white;
+		}
+		td
+		{
+			vertical-align: top;
+		}
+		#parseResult
+		{
+			font-family: andale mono;
+		}
+</style>
+</head>
+<body>
+	<h1>hello world<br/>there's some background</h1>
+	<textarea>
+//3a
+		function a()
+		{
+			2+2
+			try
+			{
+				var a = 4
+				throw 'hop'
+			}
+			catch (e)
+			{
+				var c = 8
+			}
+			
+			return 'z'
+		}
+		
+		var a = b // hop !
+		/* hello */
+		-4+a
+	</textarea>
+	<iframe src='parseme.html' style='height: 50px'></iframe>
+	<pre id='dump0' style='color: #0080ff'></pre>
+	<pre id='dump'></pre>
+		<script>
+		
+			Object.prototype.__defineProperty__ = function (name, value)	{ this[name] = value }
+		</script>
+	
+		<script src='jsdefs.js'></script>
+		<script src='jsparse.js'></script>
+		<script>
+			var narcissusParse = parse
+		</script>
+
+
+<script src="crockford/tokens.js"></script>
+<script src="crockford/parse.js"></script>
+<script src="crockford/json2.js"></script>
+		
+	<hr>
+		<script>
+		
+			var statementKeywords = [	'function', 
+										'{',
+										'if',
+										'switch',
+										'for',
+										'while',
+										'do',
+										'break',
+										'continue',
+										'try',
+										'catch',
+										'finally',
+										'throw',
+										'return',
+										'with',
+										'var',
+										'const'
+										]
+										
+			var statementHash = {}
+			for (var i=0; i<statementKeywords.length; i++)	statementHash[statementKeywords[i]] = true
+//			alert(dumpHash(statementHash))
+			
+			function	parse2(str)
+			{
+//				alert(str)
+			}
+
+
+		
+			var whiteSpace = { ' ' : true, '\t' : true, '\r' : true, '\n' : true }
+		
+/*		
+			var str = '123.456'
+			var r = /[0-9]+/gi
+//			alert('r.lastIndex=' + r.lastIndex)
+			r.lastIndex = 4
+//			alert('r.lastIndex=' + r.lastIndex)
+			alert('EXP 456=' + r.exec(str) + '\n\n\n' + r.lastIndex)
+//			alert(r.exec(str) + '\n\n\n' + r.lastIndex)
+			
+			// NEED GLOBAL FLAG
+			var str = 'hello world 466 blah'
+			var r = /\w+/gi
+			r.lastIndex = 8
+//			alert('r.lastIndex=' + r.lastIndex)
+			alert(r.exec(str) + '\n\n\n' + r.lastIndex)
+*/
+
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + o[i] + '\n'
+				return str
+			}
+			
+
+
+//			var statementStartersHash = {}
+//			for (var i=0; i<statementStarters.length; i++)	statementStartersHash[statementStarters[i].charAt(0)] = true
+			
+			
+//			document.write('<pre>=>' + dumpHash(statementStartersHash) + '</pre>')
+/*		
+
+
+			var keywordMatcher = /\w+/g
+			var statementFunctions = {
+				'function' :	function (str, ctx)
+								{
+//									alert('HEY THERE')
+//									match(ctx, '(')
+									return
+									ctx.matchIdentifier()
+									ctx.match('(')
+									while (ctx.matchIdentifier())
+									{
+										
+									}
+								}
+				}
+*/				
+		
+/*
+
+	context
+		string
+		current index
+		token ?
+		returns
+			  new index
+			  matched token(s)
+			OR
+			  null
+			
+			return in ctx ?
+			
+			fn(str, ctx)
+				ctx.token = blah
+				ctx.matchCount = ...
+				ctx.idx = newIdx
+
+*/
+
+
+				function	statement(t)
+				{
+					var idx = t.idx
+//					alert(idx + '!' + str.charAt(idx) + '!' + '!')
+					var j = 0
+					var c
+					// Skip whitespace
+					while (c = str.charAt(idx))
+					{
+						if (!whiteSpace[c])	break
+						idx++
+					}
+					
+					// Known token ?
+					if (statementStartersHash[c])
+					{
+						keywordMatcher.lastIndex = idx
+						var r = keywordMatcher.exec(str)
+						
+						var fn = statementFunctions[r]
+						
+						var ctx = { idx : idx, str : str }
+						if (fn)
+						{
+							fn(str, ctx)
+						}
+//						alert('MATCH=' + r + ' fn=' + fn)
+					}
+					
+//					alert('c=' + c + 'idx=' + idx)
+					
+return	false
+//					c = str.charAt(i)
+//					alert(c + ' ' + statementStartersHash[c])
+//					return	false
+				}
+				
+				var i = 0
+				var c
+				
+				function	statements()
+				{
+					while (statement( { idx : i } ))
+					{
+						
+					}
+				}
+				
+
+
+var logged = ''
+
+			//
+			// New parser
+			//
+			function	parse2a(str)
+			{
+
+				var l = str.length
+				var rule = 'statement'
+//				for (i=0; i<l; i++)
+				var fakeCounter = 0
+				var idx = 0
+				
+				var currentChar = str.charAt(0)
+				function	getNonWhiteChar()
+				{
+					while (currentChar.length && currentChar.match(/\s/))
+					{
+						idx++
+						currentChar = str.charAt(idx)
+					}
+					return currentChar
+				}
+
+				var regexWord = /\w+/gi
+//				r.lastIndex = 8
+				
+				while (fakeCounter < 5)
+				{
+blah:					
+					fakeCounter++
+					var c = str.charAt(idx)
+//					alert(c)
+					
+					function	matchIdentifier()
+					{
+						alert('GO')
+						continue blah
+					}
+					
+					
+					switch (rule)
+					{
+						case 'statement' :
+						{
+							getNonWhiteChar()
+							if (statementStartersHash[currentChar])
+							{
+								regexWord.lastIndex = idx
+								var statementKeyword = String(regexWord.exec(str))
+								
+								switch (statementKeyword)
+								{
+									case 'function' :
+									{
+//										matchIdentifier()
+									}
+								}
+							}
+//							document.write(statementStartersHash[currentChar])
+						}
+					}
+					
+				}
+				
+				document.getElementById('dump0').innerHTML = '****************' + ('l=' + i)
+				
+//				throw 'BLAH'
+				
+			}
+			
+			/*
+				Script
+				Statements
+				Statement
+				
+			*/
+		</script>
+		
+		
+		
+		
+		
+		
+		<script>
+		
+/*		
+			var	originalStatements = Statements
+			var originalBlock = Block
+			var originalStatement = Statement
+			var originalFunctionDefinition = FunctionDefinition
+			var originalVariables = Variables
+			var originalParenExpression = ParenExpression
+			var originalExpression = Expression
+*/			
+			var replaceFunctions = ['Statements', 'Block', 'Statement', 'FunctionDefinition', 'Variables', 'ParenExpression', 'Expression']
+
+
+			var timers = {}
+			for (var i=0; i<replaceFunctions.length; i++)
+			{
+				var fn = replaceFunctions[i]
+				this['original' + fn] = this[fn]
+				timers[fn] = { time : 0, callCount : 0 }
+//				this[fn] = new Function('var t0 = getTickCount(); var r = original' + fn + '.apply(this, arguments); var t = getTickCount()-t0; timers["' + fn + '"].callCount++; timers["' + fn + '"].time += t; return r ')
+			}
+//			alert(originalStatements), alert(Statements)
+
+		
+		
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+		
+			function update()
+			{
+				var textarea = document.getElementsByTagName('TEXTAREA')[0]
+				var src = textarea.value
+				var str = src
+//				try	{	var str = document.getElementsByTagName('IFRAME')[0].contentWindow.document.body.innerText		}		catch(e)	{}
+//				alert(str)
+				var t0 = 0
+				var t1 = 0
+//				try
+				{
+					t0 = getTickCount()
+					try
+					{
+					var t = narcissusParse(str)
+					}
+					catch(e)
+					{
+						t = e
+					}
+					var parsed = t
+					t1 = getTickCount()
+					var s = str.length
+					s = Math.round(100*s/1024)/100
+					var str = ''
+					str += getTickCount() + '<br>' + 'TIME=' + (t1-t0) + ' ms to parse ' + s + 'k chars<br>'
+
+					t0 = getTickCount()
+					var l = str.length
+					for (var i=0; i<l; i++)
+					{
+						var c = str.charAt(i)
+					}
+					t1 = getTickCount()
+					str += 'TIME=' + (t1-t0) + ' ms to GRAMMAR parse ' + s + 'k chars<br>'
+/*
+					str += '<div style="color: green">TIME DUMP</div>'
+					str += '<table border="1" cellSpacing="0" style="border-color: #eee"><tr><td></td><td>Time</td><td>Call Count</td></tr>'
+					for (var i=0; i<replaceFunctions.length; i++)
+					{
+						var fn = replaceFunctions[i]
+						str += '<tr><td>' + fn + ' </td><td>' + timers[fn].time + ' </td><td>' + timers[fn].callCount + '</td></tr>'
+					}
+					str += '</table>'
+*/					
+					var t2 = parse2(src)
+
+var aString = src
+// ex ObjJ
+var match = (aString + '\n').match(/\/\/.*(\r|\n)?|\/\*(?:.|\n|\r)*?\*\/|\w+\b|[+-]?\d+(([.]\d+)*([eE][+-]?\d+))?|"[^"\\]*(\\[\s\S][^"\\]*)*"|'[^'\\]*(\\[\s\S][^'\\]*)*'|\s+|./g);
+//alert(match)
+//t2 = '<pre>' + match
+
+					t2 += '<pre>' + logged
+					
+					t3 = ''
+					try
+					{
+try {
+
+// Make a new object that inherits members from an existing object.
+
+if (typeof Object.create !== 'function') {
+    Object.create = function (o) {
+        function F() {}
+        F.prototype = o;
+        return new F();
+    };
+}
+
+// Transform a token object into an exception object and throw it.
+
+Object.prototype.error = function (message, t) {
+    t = t || this;
+    t.name = "SyntaxError";
+    t.message = message;
+    throw t;
+};
+
+    parse = make_parse();
+
+// We are going to make the parse function parse itself.
+
+    source = make_parse.toSource ?
+            make_parse.toSource() : make_parse.toString();
+source = src
+//    source = "var make_parse = " + source + ";";
+//alert(source.length + ' ' + source)
+var t0 = getTickCount()
+    tree = parse(source);
+var t1 = getTickCount()
+
+
+    if (tree) {
+//        document.write(JSON.stringify(tree, ['key', 'name', 'message',
+//            'value', 'arity', 'first', 'second', 'third', 'fourth'], 4));
+
+        var tree = JSON.stringify(tree, ['key', 'name', 'message', 'value', 'arity', 'first', 'second', 'third', 'fourth'], 4)
+
+		t3 = (t1-t0) + 'ms<br>' + tree
+    }
+
+} catch (e) {
+	var t1 = getTickCount()
+//    document.write(JSON.stringify(e, ['name', 'message', 'from', 'to', 'key',
+//            'value', 'arity', 'first', 'second', 'third', 'fourth'], 4));
+t3 = (t1-t0) + 'ms FAIL3<br>'  + dumpHash(e)
+}
+					}
+					catch(e)
+					{
+						t3 = 'FAIL'
+					}
+					t3 = 'ORIGINAL PARSER SOURCE, <span style="color: red">not textarea source</span><br>' + t3
+					
+					str += '<table border="1" id="parseResult"><tr><td>' + parsed + '</td><td>' + t2 + '</td><td>' + t3 + '</td></tr></table>'
+
+//alert(match)
+
+				}
+/*
+				catch (e)
+				{
+					var str = ''
+					str += '<span style="color:red">' + e + '</span><br>'
+					str += typeof e
+					str += e.lineno
+				}
+*/
+				document.getElementById('dump').innerHTML = str
+			}
+			update()
+			
+			document.body.onkeyup = update
+			
+			function	focusMe()
+			{
+				var textarea = document.getElementsByTagName('TEXTAREA')[0]
+				textarea.focus()
+			}
+			setTimeout(focusMe, 10)
+		</script>
+
+<pre>
+	coalesce single line comments
+	// a
+	// b
+	// c
+	
+	
+	fex TOUT la source en textarea, + un feuy CSS rier.
+	
+	parse jsparse !
+	
+	tests http://mxr.mozilla.org/mozilla/source/js/tests/
+	+ exec
+	
+</body>
+</html>

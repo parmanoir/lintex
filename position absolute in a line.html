@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>position absolute in a line</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+		#source
+		{
+			white-space: pre;
+			margin-left: 20px;
+			font-family: monaco;
+			font-size: 7pt;
+			border: solid 1px #888;
+		}
+		#dump
+		{
+			white-space: pre;			
+		}
+		#escaped
+		{
+			white-space: normal;
+			color: #888;
+			font-family: helvetica neue;
+			position: absolute;
+			z-index: 1;
+			color: red;
+		}
+		span
+		{
+			position: relative;
+			z-index: 2;
+		}
+		
+		#line-3, #line-4, #line-5
+		{
+			opacity: 0.1;
+		}
+		#line-6
+		{
+			edisplay: inline-block;
+			margin-top: -4em;
+		}
+		
+		#line-6, #line-15
+		{
+			border: solid 1px lime;
+			background-color: rgba(255, 255, 255, 0.9);
+		}
+		#offseter
+		{
+			margin-top: 40px;
+		}
+		#offseter2
+		{
+			margin-top: -20px;
+		}
+</style>
+</head>
+<body>
+	
+	<h1>position absolute in a line</h1>
+	
+
+<pre>	
+
+	have multiple lines
+	line1
+	line2
+	line3 ESCAPE
+	line4 ESCAPE
+	line5 ESCAPE
+	line6
+	
+	the last line serving as margin-top offseter / downsetter
+	
+	<script>
+	
+		var i = 5
+		switch (i)
+		{
+			case 2 : document.write('2\n')
+			case 5 : document.write('5\n')
+			
+			case (i > 3) : document.write('i sup 3\n')
+			case (i > 3 && (i&0)) : document.write('sup 3 and even\n')
+			case (i > 3 && (i&1)) : document.write('sup 3 and odd\n')
+		}
+	
+		function keyup()
+		{
+			var sel = window.getSelection()
+			
+			var str = ''
+			str += '\n' + event.keyCode
+			if (sel.type == 'Caret' || sel.type == 'Range')
+			{
+				var range = sel.getRangeAt(0)
+				var n = range.startContainer
+				while (n && !n.id) n = n.parentNode
+				
+				str += '\n'
+				str += n ? ('id=' + n.id + ' offset=' + range.startOffset) : '**no parent node with an id**'
+				
+				
+			}
+			
+			document.getElementById('dump').innerHTML = str
+		}
+	
+		document.onkeyup = keyup
+	
+	</script>
+</pre>
+
+<div contentEditable='true' id='source'>
+<span id='line-1'>line 1, this is some text</span>
+<span id='line-2'>line 2, this is some text</span><div id='escaped' contentEditable='false'>
+	<h3>Hello !</h3>
+	<b>world :) Ceci est un test</b>
+</div>
+<span id='line-3'>line 3, this is some text</span>
+<span id='line-4'>line 4, this is some text</span>
+<span id='line-5'>line 5, this is some text</span>
+<div id='offseter' econtentEditable='false'></div><span id='line-6'>line 6, this is some text with a positive offset up</span>
+<span id='line-7'>line 7, this is some text</span>
+<span id='line-8'>line 8, <span contentEditable='false'><div style='position: absolute; border: solid 1px red; white-space: normal; font-family: helvetica neue'><h3>Hello absolute</h3></div></span>this is some text</span>
+<span id='line-9'>line 9, this is some text</span>
+<span id='line-10'>line 10, this is some text</span>
+<span id='line-11'>line 11, this is some text</span>
+<span id='line-12'>line 12, this is some text</span>
+<span id='line-13'>line 13, this is some text</span>
+<span id='line-14'>line 14, this is some text</span>
+<div id='offseter2' econtentEditable='false'></div><span id='line-15'>line 15, this is some text with a negative offset up</span>
+<span id='line-16'>line 16, this is some text</span>
+<span id='line-17'>line 17, this is some text</span>
+<span id='line-18'>line 18, this is some text</span>
+<span id='line-19'>line 19, this is some text</span>
+<span id='line-20'>line 20, this is some text</span>
+					
+</div>
+
+<div id='dump'></div>
+	
+</body>
+</html>

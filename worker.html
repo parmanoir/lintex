@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>worker</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+</style>
+</head>
+<body>
+	
+	<h1>worker test</h1>
+
+<script type="text/javascript">
+function findPrimes() {
+	var worker = new Worker('worker.js');
+   worker.onmessage = function (event) {
+     document.getElementById('result').textContent = '**' + event.data;
+   };
+}
+
+</script>
+ </head>
+ <body>
+	Click "Go!" to calculate prime numbers w/out hosing your browser.
+	<div style="width:768px; height:576px; border: 1px solid #000; text-align: center;">
+<input type="button" value="Go!" onClick="findPrimes()">
+  <p>The highest prime number discovered so far is:</p> <output id="result"></output>
+</div>
+Source code adapted from <a href="http://www.w3.org/TR/2009/WD-workers-20090423/">W3C working draft</a>.
+
+
+<p style='color: red'>
+WARNING — code is aggressively cached. remove cache before testing
+
+</body>
+</html>

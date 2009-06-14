@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>text drag</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+		#source
+		{
+			white-space: pre;
+			margin-left: 20px;
+			font-family: monaco;
+			font-size: 7pt;
+			border: solid 1px #888;
+		}
+		#dump
+		{
+			white-space: pre;			
+		}
+		#escaped
+		{
+			white-space: normal;
+			color: #888;
+			font-family: helvetica neue;
+			position: absolute;
+			z-index: 1;
+			color: red;
+		}
+</style>
+</head>
+<body>
+	
+	<h1>text drag</h1>
+
+	
+
+<pre>	
+</pre>
+
+<div contentEditable='true' id='source'>
+<span id='line-1'>line 1, this is some text</span>
+<span id='line-2'>line 2, this is some text</span>
+<span id='line-3'>line 3, this is some text</span>
+<span id='line-4'>line 4, this is some text</span>
+<span id='line-5'>line 5, this is some text</span>
+<span id='line-7'>line 7, this is some text</span>
+<span id='line-9'>line 9, this is some text</span>
+<span id='line-10'>line 10, this is some text</span>
+<span id='line-11'>line 11, this is some text</span>
+<span id='line-12'>line 12, this is some text</span>
+<span id='line-13'>line 13, this is some text</span>
+<span id='line-14'>line 14, this is some text</span>
+<span id='line-16'>line 16, this is some text</span>
+<span id='line-17'>line 17, this is some text</span>
+<span id='line-18'>line 18, this is some text</span>
+<span id='line-19'>line 19, this is some text</span>
+<span id='line-20'>line 20, this is some text</span>
+					
+</div>
+<p>-</p>
+<button onclick='clear2()'>Clear</button>
+<p>-</p>
+<p>-</p>
+<p>-</p>
+<div id='dump'>-</div>
+<p>-</p>
+<p>-</p>
+<p>-</p>
+<div id='dump2'>-</div>
+
+	<script>
+
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + (o[i]) + '\n'
+				return str
+			}
+
+
+		function	subtreeModified()
+		{
+			document.getElementById('dump').innerHTML = 'DOM Changed at ' + getTickCount() + ' ' + event.target + '(' + event.nodeValue + ')'
+		}
+		var n = document.getElementById('source')
+		document.addEventListener("DOMSubtreeModified", subtreeModified, false)
+
+
+
+
+			function	lineNodeFromNode(node)
+			{
+				while (node)
+				{
+					if (node.nodeType == 1 && node.className == 'line')
+						return node
+					node = node.parentNode
+				}
+			}
+			
+			function	lineNumberFromNode(node)
+			{
+				node = lineNodeFromNode(node)
+				if (!node)	return
+//				return parseFloat(node.id.match(/\d+/))
+				var i = 0
+				node = node.previousSibling
+				while (node)
+				{
+					i++
+					node = node.previousSibling
+				}
+				return i
+			}
+
+
+		function	clear2()
+		{
+			document.getElementById('dump').innerHTML = ''
+			document.getElementById('dump2').innerHTML = ''
+		}
+
+		function drag(e)
+		{
+			try
+			{
+				event.type
+			}
+			catch (ex)
+			{
+				event = e
+//				alert(dumpHash(event))
+			}
+			var str = getTickCount() + ' ' + event.type
+			
+			if (event.type == 'dragstart')	
+			{
+				clear()
+			}
+//			alert(dumpHash(event))
+			
+//			if (event.type )
+//			document.getElementById('dump2').innerHTML = str
+			
+			var str = event.type
+			if (event.type == 'dragover')
+			{
+				var sel = getSelection()
+				var t = sel.type //+ ' l=' + sel.anchorNode.nodeValue
+				str += '<span style="color: red">' + t + '</span>'
+				
+//				alert(dumpHash(event))
+			}
+			if (event.type == 'dragover')
+			{
+				var t = event.srcElement.innerHTML
+				str += '<span style="color: lime">' + t + '</span>'
+			}
+			str += ' '			
+			document.getElementById('dump2').innerHTML += str
+		}
+
+		var source = document.getElementById('source')
+
+		source.ondrag = drag
+		source.ondragenter = drag
+		source.ondragleave = drag
+		source.ondragover = drag
+		source.ondragstart = drag
+		source.ondrop = drag
+		source.onmousedown = drag
+		source.onmouseup = drag
+		source.onmousemove = drag
+		
+//		document.documentElement.ondrop = drag
+	
+	</script>
+
+
+<pre>
+
+	check selection -> not updated
+	DOMSubtreeModified is called when drop is successful
+	dragover shows CORRECT line
+	
+	
+	
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>lineindexfinder</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+			ebackground-color: rgb(255, 255, 240);
+		}
+		textarea
+		{
+			width: 100%;
+			height: 450px;
+			ecolor: rgba(255, 255, 255, 0.1);
+			background-color: transparent;
+			font-family: courier;
+			font-family: Andale Mono;
+			font-family: Monaco;
+			font-size: 7pt;
+		}
+		td
+		{
+			vertical-align: top;
+			width: 50%;
+		}
+		#highlighted
+		{
+			white-space: pre;
+			margin-left: 20px;
+			font-family: monaco;
+			font-size: 7pt;
+			outline: none;
+			border: solid 1px #aaa;
+			height: 700px;
+			overflow: auto;
+		}
+		.line
+		{
+			background-color: #ddd;
+		}
+		
+		#dumpHighlighted
+		{
+			width: 100%;
+		}
+</style>
+</head>
+<body>
+
+<table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
+	<textarea>
+var a = 'hello'
+var b = "world"
+var c = 'hello I\'m home'
+
+if ('blah'.match(/[a-zA-Z0-4]/))
+{
+	// do something
+}
+
+function doSomething(pa, pb, pc)
+{
+	function fn2(pz)
+	{
+		return z+pa
+	}
+	function fn32(tryme)
+	{
+		return tryme+pc
+	}
+	function fn4(pz)
+	{
+		return
+	}
+	var d = pb+pc+globalVar
+	return a*b+c
+}
+
+var ccc = 'hello'
+
+function somethingElse(z)
+{
+	if (!z)	return
+	if (z == 2)	return z+2
+	return z*2
+}
+
+		</textarea>
+	<pre id='dump'></pre>
+	
+</td><td>
+	<div id='highlighted' contentEditable='true'></div>
+</td></tr></table>
+<table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
+<tr><td>
+	<pre id='dump2'></pre>
+<td>
+	<pre id='dump3'></pre>
+</tr></table>
+		<script>
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+
+		
+			var textarea = document.getElementsByTagName('TEXTAREA')[0]
+
+			
+			// Add some lines
+			var l = []
+			var n = 10000
+			var start = textarea.value.split('\n').length
+			for (var i=start; i<=n; i++)
+			{
+//				var s = i + ' <b>text</b> text <b>text</b> <i>t</i>ext text <b>t</b>ext <span>te</span>xt t<span>ex</span>t text te<b>x</b>t text text text text text text text text text'
+				var s = i + ' text text text text text text text text text text text text text text text text text text text'
+				l.push(s)
+			}
+			textarea.value += '\n' + l.join('\n')
+
+
+			var source = textarea.value
+			var highlighted = document.getElementById('highlighted')
+			
+			var lines = source.split('\n')
+			
+			var src = ''
+			for (var i=0; i<lines.length; i++)
+			{
+				src += '<span class="line" id="line-' + i + '">' + lines[i] + '\n</span>'
+			}
+			highlighted.innerHTML = src
+			
+			function	dumpHighlighted()
+			{
+				var str = getTickCount() + '\n'
+				str += '<textarea id="dumpHighlighted">' + highlighted.innerHTML + '</textarea>'
+				document.getElementById('dump2').innerHTML = str
+			}
+			
+			function	dumpInternalSource()
+			{
+				document.getElementById('dump3').innerHTML = lines.join('\n')
+			}
+			
+			
+			function	lineNodeFromNode(node)
+			{
+				while (node)
+				{
+					if (node.nodeType == 1 && node.className == 'line')
+						return node
+					node = node.parentNode
+				}
+			}
+			
+			function	lineNumberFromNode(node)
+			{
+				node = lineNodeFromNode(node)
+				if (!node)	return
+				return parseFloat(node.id.match(/\d+/))
+			}
+
+			// Inner offset : counting tab as ONE character
+			function	characterOffsetFromLineAndNode(node)
+			{
+				
+			}
+			
+			function	keydown()
+			{
+//				alert(event.keyCode)
+				var keyCode = event.keyCode
+				
+				
+				var sel = getSelection()
+
+				if (sel.type == 'Caret')
+				{
+					var line = lineNodeFromNode(sel.anchorNode)
+					var lineCount = line.parentNode.childNodes.length
+					var i = 0
+					while (line)
+					{
+						i++
+						line = line.previousSibling
+					}
+					var str = getTickCount()
+					str += '\nline=' + i
+					str += '\nlineCount=' + lineCount
+//					str += '\nlength=' + highlighted.innerText.length
+					document.getElementById('dump2').innerHTML = str
+				}
+
+				
+				// Insert new line
+				// Check enter and CTRL+O
+				if (keyCode == 13 || (keyCode == 79 && event.ctrlKey))
+				{
+					event.preventDefault()
+					
+					if (sel.type == 'Caret')
+					{
+//						alert(sel.anchorNode.nodeValue)
+						var l = lineNumberFromNode(sel.anchorNode)
+						
+						var line = lineNodeFromNode(sel.anchorNode)
+						
+						sel.setBaseAndExtent(line, 0, sel.anchorNode, sel.anchorOffset)
+//						alert(line.innerText + '\n' + l)
+//						var c = characterOffsetFromLineAndNode(sel.anchorNode, sel.anchorOffset)
+						
+//						sel.modify('extend', 'left', 'line')
+						
+						
+						
+						var leftLength = sel.toString().length
+//						var newLine = line.innerText.substr(leftLength)
+						
+//						alert(l)
+//						alert(lines[l])
+//						alert(sel.toString().length + '\n' + line.innerText.length)
+						
+						var n = document.createElement('SPAN')
+						n.className = 'line'
+						n.id = 'line-' + (l+1)
+						
+						// Add \n if it's not here (happens on one-line documents)
+						var rightText = line.innerText.substr(leftLength)
+						if (!rightText.match(/\n/)) rightText += '\n'
+						n.innerHTML = rightText
+						
+//-> COUNT line number with a LOOP						
+						line.insertAdjacentElement('afterEnd', n)
+//						line.innerHTML = line.innerText.substr(0, leftLength)
+						line.innerHTML = line.innerText.substr(0, leftLength) + '\n'
+
+						if (keyCode == 13)
+							sel.setPosition(n, 0)
+						else
+							sel.setPosition(sel.extentNode, sel.extentOffset)
+					}
+					else
+					{
+						alert('enter selection TODO')
+					}
+				}
+			}
+			function	keyup()
+			{
+//				alert(event.keyCode)
+//				dumpHighlighted()
+//				dumpInternalSource()
+			}
+			
+			
+			
+			highlighted.onkeyup = keyup
+			highlighted.onkeydown = keydown
+			
+			function	focusHighlighted()
+			{
+				highlighted.focus()
+
+				var s = getSelection()
+				s.collapseToStart()
+			}
+			setTimeout(focusHighlighted, 10)
+
+		</script>
+
+<pre>
+
+	When keyuping / downing, find the line index by looping up previousSibling.
+	-> VERY FAST, even for 10000 lines.
+
+	lineCount : highlighted.childNodes.length
+	-> VERY FAST
+
+	text length : highlighted.innerText.length
+	-> <b>VERY SLOW</b>
+	
+	
+</body>
+</html>

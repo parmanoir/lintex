@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+		textarea
+		{
+			width: 100%;
+			height: 100px;
+			ecolor: rgba(255, 255, 255, 0.1);
+			background-color: transparent;
+		}
+		h1
+		{
+			margin-bottom: -2em;
+			color: white;
+		}
+		td
+		{
+			vertical-align: top;
+		}
+		#parseResult
+		{
+			font-family: andale mono;
+		}
+</style>
+</head>
+<body>
+	<h1>hello world<br/>there's some background</h1>
+	<textarea>
+		
+		var a = b // hop !
+		/* hello */
+		-4+a
+	</textarea>
+	<iframe src='parseme.html' style='height: 50px'></iframe>
+	<pre id='dump'></pre>
+		
+	<hr>
+		<script>
+		
+			Object.prototype.__defineProperty__ = function (name, value)	{ this[name] = value }
+		</script>
+	
+		<script src='jsdefs.js'></script>
+		<script src='jsparse.js'></script>
+		<script>
+		
+		
+			function	parse2(str)
+			{
+			}
+			
+			/*
+				Script
+				Statements
+				Statement
+				
+			*/
+		</script>
+		
+		
+		
+		
+		
+		
+		<script>
+		
+/*		
+			var	originalStatements = Statements
+			var originalBlock = Block
+			var originalStatement = Statement
+			var originalFunctionDefinition = FunctionDefinition
+			var originalVariables = Variables
+			var originalParenExpression = ParenExpression
+			var originalExpression = Expression
+*/			
+			var replaceFunctions = ['Statements', 'Block', 'Statement', 'FunctionDefinition', 'Variables', 'ParenExpression', 'Expression']
+
+
+			var timers = {}
+			for (var i=0; i<replaceFunctions.length; i++)
+			{
+				var fn = replaceFunctions[i]
+				this['original' + fn] = this[fn]
+				timers[fn] = { time : 0, callCount : 0 }
+//				this[fn] = new Function('var t0 = getTickCount(); var r = original' + fn + '.apply(this, arguments); var t = getTickCount()-t0; timers["' + fn + '"].callCount++; timers["' + fn + '"].time += t; return r ')
+			}
+//			alert(originalStatements), alert(Statements)
+
+		
+		
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+		
+			function update()
+			{
+				var textarea = document.getElementsByTagName('TEXTAREA')[0]
+				var src = textarea.value
+				var str = src
+//				try	{	var str = document.getElementsByTagName('IFRAME')[0].contentWindow.document.body.innerText		}		catch(e)	{}
+//				alert(str)
+				var t0 = 0
+				var t1 = 0
+				try
+				{
+					t0 = getTickCount()
+					var t = parse(str)
+					t1 = getTickCount()
+					var s = str.length
+					s = Math.round(100*s/1024)/100
+					var str = ''
+					str += 'TIME=' + (t1-t0) + ' ms to parse ' + s + 'k chars<br>'
+
+					t0 = getTickCount()
+					var l = str.length
+					for (var i=0; i<l; i++)
+					{
+						var c = str.charAt(i)
+					}
+					t1 = getTickCount()
+					str += 'TIME=' + (t1-t0) + ' ms to GRAMMAR parse ' + s + 'k chars<br>'
+/*
+					str += '<div style="color: green">TIME DUMP</div>'
+					str += '<table border="1" cellSpacing="0" style="border-color: #eee"><tr><td></td><td>Time</td><td>Call Count</td></tr>'
+					for (var i=0; i<replaceFunctions.length; i++)
+					{
+						var fn = replaceFunctions[i]
+						str += '<tr><td>' + fn + ' </td><td>' + timers[fn].time + ' </td><td>' + timers[fn].callCount + '</td></tr>'
+					}
+					str += '</table>'
+*/					
+					var t2 = parse2(src)
+					str += '<table border="1" id="parseResult"><tr><td>' + t + '</td><td>' + t2 + '</td></tr></table>'
+				}
+				catch (e)
+				{
+					var str = ''
+					str += '<span style="color:red">' + e + '</span><br>'
+					str += typeof e
+					str += e.lineno
+//					t += e.t.tokens
+//					t += e.t.tokens[0].type
+				}
+				document.getElementById('dump').innerHTML = str
+			}
+			
+//			alert(Tokenizer)
+/*			
+			var t = new Tokenizer(str)
+//			alert(t.done)
+//			alert(t.input)
+//			alert(t.get())
+			
+			var str = ''
+			var i = 0
+			while (i < 50 && !t.done)
+			{
+//				str += t.get()
+				var token = t.get()
+				document.write(token + '<br>')
+				i++
+			}
+			document.write('<pre>' + t)
+*/
+			update()
+			
+			document.body.onkeyup = update
+			
+			function	focusMe()
+			{
+				var textarea = document.getElementsByTagName('TEXTAREA')[0]
+				textarea.focus()
+			}
+			setTimeout(focusMe, 10)
+		</script>
+
+<pre>
+	coalesce single line comments
+	// a
+	// b
+	// c
+	
+	
+	fex TOUT la source en textarea, + un feuy CSS rier.
+	
+	parse jsparse !
+	
+</body>
+</html>

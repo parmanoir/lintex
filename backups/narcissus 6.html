@@ -1,0 +1,1237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Highlighter</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+			ebackground-color: rgb(255, 255, 240);
+		}
+		textarea
+		{
+			width: 100%;
+			height: 450px;
+			ecolor: rgba(255, 255, 255, 0.1);
+			background-color: transparent;
+			font-family: courier;
+			font-family: Andale Mono;
+			font-family: Monaco;
+			font-size: 7pt;
+		}
+		td
+		{
+			vertical-align: top;
+			width: 50%;
+		}
+		#parseResult
+		{
+			font-family: andale mono;
+		}
+		.ms
+		{
+			color: blue;
+			font-weight: bold;
+		}
+		.value
+		{
+			color: blue;
+			border-left: solid 1px red;
+			border-right: solid 1px red;
+		}
+		#highlighted
+		{
+			white-space: pre;
+			margin-left: 20px;
+			font-family: monaco;
+			font-size: 7pt;
+			outline: none;
+		}
+		#highlighted2
+		{
+			border-top: solid 1px #888;
+			white-space: pre;
+			margin-left: 20px;
+			font-family: monaco;
+			font-size: 5pt;
+			outline: none;
+		}
+/*
+		.newline:before
+		{
+			content: '¶';
+		}
+		.space:before
+		{
+			content: '·';
+		}
+		.tab:before
+		{
+			content: '→';
+		}
+*/
+		.newline, .space, .tab
+		{
+			color: rgb(83, 180, 255);
+			eposition: absolute;
+		}
+		.tokenSeparator
+		{
+			color: rgb(83, 180, 255);
+		}
+		.keyword
+		{
+			color: rgba(51, 28, 255, 1);
+			text-shadow: rgba(51, 28, 255, 0.9) 0px 0px 1px, rgba(51, 28, 255, 1) 0px 0px 0px;
+		}
+		.exps
+		{
+			color: red;
+		}
+		.number
+		{
+			color: green;
+		}
+		.string
+		{
+			color: purple;
+		}
+		.comment
+		{
+			color: rgb(83, 180, 255);
+		}
+
+		.identifier-YES
+		{
+			color: white;
+			text-shadow: white 0px 0px 0px;
+			-webkit-border-radius: 3px;
+			padding: 1px 2px;
+			margin-left: -2px;
+			margin-right: -2px;
+			background: -webkit-gradient(linear, left top, left bottom, from(#00dd00), to(#00aa00));
+			display: inline-box;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 6px;
+		}
+
+		.identifier-NO
+		{
+			color: white;
+			text-shadow: white 0px 0px 0px;
+			-webkit-border-radius: 3px;
+			padding: 1px 2px;
+			margin-left: -2px;
+			margin-right: -2px;
+			background: -webkit-gradient(linear, left top, left bottom, from(#dd0000), to(#aa0000));
+			-webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 6px;
+		}
+		
+		.markdown
+		{
+			font-family: helvetica neue;
+			color: rgb(83, 180, 255);
+			font-size: 1.2em;
+			white-space: normal;
+			ebackground-color: #fdd;
+			padding: 0.2em 0;
+		}
+		.markdown a
+		{
+			color: rgb(83, 180, 255);
+			text-shadow: rgb(83, 180, 255) 0px 0px 0px;
+			text-decoration: none;
+			border: solid 1px rgba(83, 180, 255, 0.5);
+			padding: 0 7px;
+			-webkit-border-radius: 7px;
+			ebackground: -webkit-gradient(linear, left top, left bottom, from(white), to(rgba(83, 180, 255, 0)));
+			ebackground: -webkit-gradient(linear, left top, left bottom, from(white), to(rgb(213, 245, 255)), colorstop(0.5, red));
+			background: -webkit-gradient(linear, left top, left bottom, from(white), to(white), color-stop(0.6	, rgb(220, 240, 255)));
+
+
+			e-webkit-box-shadow: 0px 1px 2px rgba(83, 180, 255, 0.5);
+			
+			
+			
+		}
+		.markdown code, .markdown pre
+		{
+			font-size: 0.9em;
+		}
+		
+		/* Remove top margin of first-child titles and paragraphs */
+		 .markdown h1:first-child, .markdown h2:first-child, .markdown h3:first-child, .markdown h4:first-child, .markdown h5:first-child, .markdown h6:first-child, .markdown p:first-child
+		{
+			margin-top: 0;
+		}
+		/* Remove bottom margin of last-child titles and paragraphs */
+		 .markdown h1:last-child, .markdown h2:last-child, .markdown h3:last-child, .markdown h4:last-child, .markdown h5:last-child, .markdown h6:last-child, .markdown p:last-child
+		{
+			margin-bottom: 0;
+		}
+		/* Remove margin between titles (save h1) and paragraphs */
+		.markdown p
+		{
+			margin-top: 0;
+		}
+		.markdown h2, .markdown h3, .markdown h4, .markdown h5, .markdown h6
+		{
+			margin-bottom: 0;
+		}
+		.comment-container
+		{
+			position: relative;
+			z-index: 4;
+			display: inline;
+		}
+		.markdown-container
+		{
+			position: absolute;
+		}
+		.markdown-singleline-container
+		{
+			position: relative;
+		}
+		.markdown-singleline
+		{
+			font-family: helvetica neue;
+			color: rgb(83, 180, 255);
+			font-size: 1.2em;
+			white-space: nowrap;
+			ebackground-color: #fdd;
+			position: absolute;
+			margin-top: -2px;
+		}
+		.markdown-singleline *
+		{
+			display: inline !important;
+		}
+		.markdown h1 { font-size: 2.5em; }
+		.markdown h2 { font-size: 2.0em; }
+		.markdown h3 { font-size: 1.8em; }
+		.markdown h4 { font-size: 1.6em; }
+		.markdown h5 { font-size: 1.4em; }
+		.markdown h6 { font-size: 1.2em; }
+
+		.lineNumber
+		{
+			font-size: 80%;
+			position: absolute;
+			margin-left: -15px;
+			color: #888;
+		}
+
+		/*
+			Super Awesome Buttons with CSS3 and RGBA
+			http://www.zurb.com/article/266/super-awesome-buttons-with-css3-and-rgba
+		*/
+		.warning
+		{
+			padding: 4px 9px;
+			background: -webkit-gradient(linear, left top, left bottom, from(#ff9944), to(#ff6600));
+			text-shadow: rgba(0, 0, 0, 0.9) 0px -1px 1px, rgba(255, 255, 255, 1) 0px 1px 1px;
+			text-shadow: rgba(0, 0, 0, 0.3) 0px -1px 1px;
+			color: white;
+			font-weight: bold;
+			font-family: helvetica neue;
+			white-space: normal;
+
+
+			-webkit-border-radius: 5px;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 6px;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 5px;
+			
+			display: inline-block;
+			margin: 1em;
+			margin-bottom: 2em;
+			ewidth: 170px;
+			max-width: 170px;
+			emax-width: 70px;
+		}
+		.warningContainer
+		{
+			font-size: 9pt;
+			position: relative;
+			eborder: solid 1px lime;
+		}
+		.arrowContainer
+		{
+			overflow: hidden;
+			width: 30px;
+			height: 15px;
+			display: inline-block;
+			eposition: absolute;
+			emargin-top: 33px;
+			eborder: solid 1px red;
+			emargin-left: 20px;
+			margin-right: -30px;
+			position: relative;
+			left: 20px;
+			top: 22px;
+			font-size: 9pt;
+		}
+		.arrow
+		{
+			position: relative;
+			top: -38px;
+			font-size: 40pt;
+			eborder: solid 1px red;
+			color: #ff6600;
+			text-shadow: rgba(0, 0, 0, 0.2) 0px 4px 3px;
+		}
+		
+		.arrowContainer2
+		{
+			overflow: hidden;
+			width: 30px;
+			height: 15px;
+			display: inline-block;
+			position: absolute;
+			emargin-top: 33px;
+			eborder: solid 1px red;
+			emargin-left: 20px;
+			margin-right: -30px;
+			margin-top: -4px;
+			position: relative;
+			left: 3px;
+			top: -16px;
+			font-size: 9pt;
+			-webkit-transform: rotate(180deg);
+		}
+		.arrow2
+		{
+			position: relative;
+			top: -40px;
+			font-size: 40pt;
+			eborder: solid 1px red;
+			color: #ff9944;
+			etext-shadow: rgba(0, 0, 0, 0.2) 0px 4px 3px;
+		}
+		
+		#undostack
+		{
+			height: 200px;
+		}
+</style>
+</head>
+<body>
+	<!--
+	Refactor bouton : inline block, position: relative, vec les 2 flech en position absolute.
+	<span class='warningContainer'><span class='arrowContainer'><span class='arrow'>▾</span></span><span class='warning'><span class='arrowContainer2'><span class='arrow2'>▾</span></span>Check this out</span></span>
+<p>
+	Some text
+	<span class='warningContainer'><span class='arrowContainer'><span class='arrow'>▾</span></span><span class='warning'><span class='arrowContainer2'><span class='arrow2'>▾</span></span>Expected an assignment or function call and instead saw an expression</span></span>
+	
+	some text
+	
+	 ▼▾
+-->	
+<table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
+	<textarea>
+var a = 'hello'
+var b = "world"
+var c = 'hello I\'m home'
+
+if ('blah'.match(/[a-zA-Z0-4]/))
+{
+	// do something
+}
+
+function doSomething(pa, pb, pc)
+{
+	function fn2(pz)
+	{
+		return z+pa
+	}
+	function fn32(tryme)
+	{
+		return tryme+pc
+	}
+	function fn4(pz)
+	{
+		return
+	}
+	var d = pb+pc+globalVar
+	return a*b+c
+}
+
+var ccc = 'hello'
+
+function somethingElse(z)
+{
+	if (!z)	return
+	if (z == 2)	return z+2
+	return z*2
+}
+
+		</textarea>
+<!--
+/*md
+
+Some link [rlkez](http://mlrkezr) eazeza
+*/
+
+	function bigJump(a, b, c)
+	{
+//				if (token.id == '(endline)' || token.id == '(end)')	return
+		if (token.id == '(endline)')
+		{
+			// Allow a markdown block made from '//' comments to be coalesced
+			// No endline token will be output if it lays on the same line as the last '//' comment
+			if (currentBlock.type == 'markdown' && currentBlock.tokens[currentBlock.tokens.length-1].line == token.line-1)	return
+			token = { line : token.line-1, value : '', from : 0 }
+		}
+		tokens.push(token)
+
+		var tokenStartsMarkdown = token.type == '(comment)' && token.value.substr(2, 2) == 'md'
+//				document.getElementById('dump2').innerHTML += tokenStartsMarkdown
+		// When to open markdown
+		if (tokenStartsMarkdown)
+		{
+			var line = lines[token.line]
+//					alert(line + '\n\n' + line.match(/^\s*\//))
+			var lineStartsClear = line.match(/^\s*\//)
+			if (lineStartsClear) newBlock('markdown')
+		}
+		else
+		// When to close markdown
+		if (currentBlock.type == 'markdown')
+		{
+			if (token.type != '(comment)' || token.line != lastTokenLine+1)	newBlock('source')
+			
+		}
+		if (!currentBlock.type)	newBlock('source')
+		currentBlock.tokens.push(token)
+		lastTokenLine = token.line
+
+/*
+		if (token.type == '(comment)')
+		{
+//					document.getElementById('dump2').innerHTML += token.value + '<br>'
+//					if (token.value.substr(2, 2) == 'md')	document.getElementById('dump2').innerHTML += 'MDDDDD ' + token.lineCount + ' lastLine=' + token.lastLine + '<br>'
+		}
+		else
+		if (currentCommentBlock)
+		{
+			
+		}
+*/
+		
+
+		return
+		
+		var str = ''
+		str += '<hr>' + dumpHashNoFunction(token)
+//				str += token.value + '<span class="tokenSeparator">·</span>'
+		document.getElementById('dump2').innerHTML += str
+	}
+
+
+	var multipleLine = { hello : 'world'
+	,blah : 'HOP'
+	}
+
+		var a1 = 4
+		var a2 = 5
+		var a3 = 6
+		//md
+		// Test!
+		// =
+		// How about … not using divs ? Everything in a span ?
+		var b4 = 'hello'
+		var b5 = 'world'
+		var b6 = 'how are you ?'
+		
+		function	blah(a, b, c)
+		{
+			/*md
+			BLAH
+			-
+				
+			*/
+			return a+b*c
+		}
+		
+
+</textarea>
+-->
+	<pre id='dump'></pre>
+	
+</td><td>
+	<div id='highlighted' contentEditable='true'></div>
+</td></tr></table>
+	<div id='highlighted2'></div>
+	<pre id='dump5'></pre>
+	<pre id='dump2'></pre>
+	<pre id='dump3'></pre>
+	<pre id='dump4'></pre>
+	<pre id='dump6'></pre>
+	<pre id='dump7'></pre>
+	<pre id='dump8'></pre>
+	<textarea id='undostack'></textarea>
+	<script src="crockford/json2.js"></script>
+	<script src="crockford/fulljslint.js"></script>
+	<script src='showdown.js'></script>
+		
+	<hr>
+		<script>
+			var converter = new Showdown.converter()
+			var html = converter.makeHtml('*text*')
+			
+			//
+			// Helper functions
+			// 
+			function	htmlEncode(str)
+			{
+				return str
+//				return str + '**'
+//				return str//.replace(/</g, '&lt;')
+//				return str.replace(/</g, '&lt;')
+//				return str.replace(/</g, '&lt;')
+			}
+		
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + htmlEncode(o[i]) + '\n'
+				return str
+			}
+			function	dumpHashNoUndefined(o)
+			{
+				var str = ''
+				for (var i in o) if (o[i] !== undefined) str += i + '=' + o[i] + '\n'
+				return str
+			}
+			function	dumpHashNoFunction(o)
+			{
+				var str = ''
+				for (var i in o) if (typeof o[i] !== 'function') str += i + '=<span class="value">' + o[i] + '</span>\n'
+				return str
+			}
+			function	dumpHashNoFunctionRawText(o)
+			{
+				var str = ''
+				for (var i in o) if (typeof o[i] !== 'function') str += i + '=' + htmlEncode(o[i]) + '\n'
+				return str
+			}
+			
+
+
+			//
+			//
+			// 
+			
+			var tokens
+			var currentCommentBlock
+			
+			var blocks
+			function	startBlocks()
+			{
+				blocks = []
+				lastTokenLine = -1
+				lastToken = null
+				currentBlock = {}
+			}
+			function	endBlocks()
+			{
+			}
+
+			var currentBlock
+			var lastTokenLine 
+			var lastToken
+			function	closeCurrentBlock()
+			{
+			}
+			function	newBlock(type)
+			{
+				closeCurrentBlock()
+				var block = { tokens : [], type : type }
+				currentBlock = block
+				blocks.push(block)
+				return block
+			}
+			function	logToken(token)
+			{
+//				if (token.id == '(endline)' || token.id == '(end)')	return
+				if (token.id == '(endline)')
+				{
+					// Allow a markdown block made from '//' comments to be coalesced
+					// No endline token will be output if it lays on the same line as the last '//' comment
+					if (currentBlock.type == 'markdown' && currentBlock.tokens[currentBlock.tokens.length-1].line == token.line-1)	return
+					token = { line : token.line-1, value : '', from : 0 }
+				}
+				tokens.push(token)
+
+				var tokenStartsMarkdown = token.type == '(comment)' && token.value.substr(2, 2) == 'md'
+//				document.getElementById('dump2').innerHTML += tokenStartsMarkdown
+				// When to open markdown
+				if (tokenStartsMarkdown)
+				{
+					var line = lines[token.line]
+//					alert(line + '\n\n' + line.match(/^\s*\//))
+					var lineStartsClear = line.match(/^\s*\//)
+					if (lineStartsClear) newBlock('markdown')
+				}
+				else
+				// When to close markdown
+				if (currentBlock.type == 'markdown')
+				{
+					if (token.type != '(comment)' || token.line != lastTokenLine+1)	newBlock('source')
+					
+				}
+				if (!currentBlock.type)	newBlock('source')
+				currentBlock.tokens.push(token)
+				lastTokenLine = token.line
+
+/*
+				if (token.type == '(comment)')
+				{
+//					document.getElementById('dump2').innerHTML += token.value + '<br>'
+//					if (token.value.substr(2, 2) == 'md')	document.getElementById('dump2').innerHTML += 'MDDDDD ' + token.lineCount + ' lastLine=' + token.lastLine + '<br>'
+				}
+				else
+				if (currentCommentBlock)
+				{
+					
+				}
+*/
+				
+
+				return
+				
+				var str = ''
+				str += '<hr>' + dumpHashNoFunction(token)
+//				str += token.value + '<span class="tokenSeparator">·</span>'
+				document.getElementById('dump2').innerHTML += str
+			}
+			function	logStatement(statement)
+			{
+				statements.push(statement)
+			}
+			
+			function	logFunctionStart(startToken)
+			{
+//				functions.push( { startToken : startToken, endToken : endToken })
+//				alert(dumpHash())
+				var o = { startToken : startToken, functionToken : tokens[tokens.length-3] }
+				o.functionDepth = functionStack.length
+				functions.push(o)
+				functionStack.push(o)
+			}
+			function	logFunctionEnd(startToken, endToken)
+			{
+				var o = functionStack.pop()
+				if (!o)
+				{
+					alert('Function not closed')
+					return
+				}
+				o.endToken = endToken
+			}
+			
+		
+			//
+			// Parse
+			// 
+			var lines
+			var statements
+			var functions
+			var functionStack
+			function update()
+			{
+				var textarea = document.getElementsByTagName('TEXTAREA')[0]
+				var source = textarea.value
+				
+				document.getElementById('dump2').innerHTML = ''
+				document.getElementById('dump6').innerHTML = 'dump6'
+				
+				statements = []
+				functions = []
+				functionStack = []
+
+				var h = source
+				lines = source.split('\n')
+
+				var t0 = getTickCount()
+				startBlocks()
+				tokens = []
+				var options = { forin : true, laxbreak : true, indent : true }
+    			tree = JSLINT(lines, options)
+				endBlocks()
+				var t1 = getTickCount()
+				// Parsing failed
+				if (!tree)
+				{
+					// ...					
+				}
+
+				var k = source.length
+				if (k > 1024) 	k = Math.round(k*100/1024)/100 + 'k'
+				else 			k = k + ' chars'
+				var str = t1 + '<br>' + '<span class="ms">' + (t1-t0) + ' ms</span> to parse <span class="ms">' + k + ' </span> <br>' + String(tree) + '<br>'
+				for (var i=0; i<JSLINT.errors.length; i++)
+					str += dumpHashNoUndefined(JSLINT.errors[i]) + '<br>'
+				str += blocks.length + ' blocks<br>'
+				document.getElementById('dump').innerHTML = str
+				
+				var str = ''
+				var idx = 0
+
+				//
+				// Dump functions
+				//
+//				document.getElementById('dump5').innerHTML += '\n' + dumpHashNoFunction(statement)
+				var str = '<hr>'
+				str += functions.length + ' functions spanning ' + lines.length + ' lines'
+				for (var i=0; i<functions.length; i++)
+				{
+//					str += '\n' + dumpHashNoFunction(functions[i].startToken)
+//					str += '\n' + dumpHashNoFunction(functions[i].endToken)
+					var o = functions[i]
+					var t1 = o.startToken
+					var t2 = o.endToken
+					var t3 = o.functionToken
+					if (!t2)
+					{
+//						str += '\nFAIL'
+						str += '\n' + t1.line + ',' + t1.character + '-><span style="color: red">FAIL</span>functionDepth=' + o.functionDepth + ' name=' + t1.funct['(name)']
+						continue
+					}
+					str += '\n' + t3.line + ',' + t3.from + '->' + t2.line + ',' + t2.from + ' functionDepth=' + o.functionDepth + ' name=' + t1.funct['(name)']
+//					str += '\n' + dumpHashNoFunction(t1.funct)
+//					str += '<b>scope</b>=' + dumpHashNoFunction(t1.funct.scope) + '!'
+//					str += '\n<b>scope</b>=' + dumpHashNoFunction(t1.funct.context) + '!'
+				}
+				str += '<hr>'
+				// Dump statements
+//				str += statements.length + ' statements\n'
+//				for (var i=0; i<statements.length; i++)
+//					str += '\n' + dumpHashNoFunction(statements[i])
+				document.getElementById('dump5').innerHTML = str
+				str = ''
+
+
+				// Show source
+				function	makeWhitespaceVisible(space)
+				{
+					space = space.replace(/ /g, '<span class="space"></span> ')
+					space = space.replace(/\t/g, '<span class="tab"></span>	')
+					return	space					
+				}
+				
+				
+				function	writeLineToString(line)
+				{
+					var positions = []
+					var spaces = []
+					var s = line.replace(/ |\t/g, function (match, pos) { positions.push(pos), spaces.push(match) })
+//					alert(spacePositions)
+//					dqs()
+
+//					str += '<span class="lineNumber">' + i + '</span>'
+					var lastIndex 	= 0
+					var printEndLine = true
+
+					// Adding a blank span makes option backspace delete to front of line, no going up to the previous line — WHAT I WANT
+					
+					// Span surrounding whole line
+					// NO - kills editing
+					str += '<span class="line-' + i + '">'
+//					str += '<span class="line-' + i + '"></span>'
+					
+					
+					while (tokens[idx] && tokens[idx].line == i)
+					{
+						var token = tokens[idx]
+//						keep an index of current char, copy from source string with splice or substring if not there
+						if (token.value && token.from > lastIndex)
+						{
+							var space = line.substr(lastIndex, token.from-lastIndex)
+							str += makeWhitespaceVisible(space)
+						}
+						var c = ''
+						var v = token.value
+							v = line.substr(token.from, token.character-token.from)
+						if (token.identifier) c = 'identifier-' + token.value
+						if (token.reserved) c = 'keyword'
+//						if (token.exps) c = 'exps'
+						if (token.id && !token.reserved) 
+						{
+							c = 'exps'
+						}
+						if (token.type == '(number)') c = 'number'
+						if (token.type == '(string)') 
+						{
+							c = 'string'
+						}
+						if (token.type == '(comment)') 
+						{
+							c = 'comment'
+							// Single line markdown comment
+							if (v.match(/^\/\/md/))
+							{
+								v = v.replace(/^\/\/md\s?/, '')
+								v = MarkDownConverter.makeHtml(v)
+								v = '<span class="markdown-singleline-container"><span class="markdown-singleline">' + v + '</span></span>'
+								printEndLine = false
+							}
+						}
+						str += '<span class="' + c + '">' + v + '</span>'
+						
+						lastIndex = token.character
+						
+						idx++;
+					}
+					// Copy end of line
+					if (lastIndex < line.length)
+					{
+						var space = line.substr(lastIndex)
+						str += makeWhitespaceVisible(space)
+					}
+//					AND USE AN ARRAY JOIN INSTEAD OF A STRING !
+
+					
+//					if (printEndLine)	str += '<span class="newline"></span></span>\n'
+//					else				str += '</span>\n'
+					
+					
+					str += '\n'
+					if (printEndLine)	str += '<span class="newline"></span>'
+					else				str += ''
+					
+					str += '</span>'
+
+				}
+
+				var l = 0
+				var lineCount = lines.length
+				for (var h=0; h<blocks.length; h++)
+				{
+					var block = blocks[h]
+//					if (block.type == '')
+//					alert(block.type)
+//						alert('k' + block + ' ' + block.type + ' ' + block.tokens)
+//				document.getElementById('dump').innerHTML += '<br>****' + h
+					if (!block.tokens.length)
+					{
+						alert('block has no tokens')
+						continue
+					}
+
+					var t = block.tokens
+					var tokenCount = t.length
+					var firstLine = t[0].line
+					var lastLine = Math.min(t[tokenCount-1].line, lines.length-1)
+
+					if (block.type == 'source')
+					{
+//						alert(firstLine + ' ' + lastLine)
+
+
+						tokens = block.tokens
+						idx = 0
+
+						for (var i=firstLine; i<=lastLine; i++)
+						{
+							var line = lines[i] || ''
+							writeLineToString(line, block.tokens)
+//				document.getElementById('dump').innerHTML += '<br>' + i
+						}
+					}
+					else
+					if (block.type == 'markdown')
+					{
+						var forwardSpace 	= String(lines[firstLine].match(/^\s*/) || '')
+
+						// Check if comment starts with '//'
+						var isDoubleSlash	= block.tokens[0].value.match(/^\s*\/\//)
+
+						// Start joining up markdown text
+						var md = []
+						var rawMd = []
+						for (var i=0; i<block.tokens.length; i++)
+						{
+							var v = block.tokens[i].value
+							rawMd.push(lines[block.tokens[i].line])
+							// case '/*' : remove first and last lines if they're blank
+							if (i == 0 && v.match(/^\s*\/\*md\s*$/)) continue
+							// Just remove md if first line isn't blank
+							if (i == 0 && v.match(/\s*\/\*md\s*/))	v = v.replace(/\s*\/\*md/, '')
+							if (i == block.tokens.length-1 && v.match(/^\s*\*\/\s*$/)) continue
+							// Remove trailing '*/' if last line isn't blank
+							if (i == block.tokens.length-1 && v.match(/\*\/\s*$/))	v = v.replace(/\*\/\s*$/, '')
+							
+							// case '//' : remove first line if it's blank, remove '//' and following space for other lines
+							if (isDoubleSlash)
+							{
+								if (i == 0 && v.match(/^\s*\/\/md\s*$/)) continue
+								v = v.replace(/\s*\/\/\s?/, '')
+							}
+							else
+							{
+								// case '/*' : for each line, remove as much space as there is between the start of the first line and '/*'
+								// But make sure what we're removing is only white space
+								var f = String(v.substr(0, forwardSpace.length) || '')
+								if (f.match(/^\s*$/))	v = v.substr(forwardSpace.length)
+							}
+							md.push(v)
+						}
+						md = md.join('\n') + '\n'
+						rawMd = rawMd.join('\n') + '\n'
+						var html = MarkDownConverter.makeHtml(md)
+						var markdown = ''
+						
+						// Enclose in a TABLE to account for left spacing
+						if (forwardSpace && forwardSpace.length)
+						{
+							markdown += '<table cellPadding="0" cellSpacing="0" border="0" style="width: 100%;"><tr>'
+							markdown += '<td width="1%" style="width: 100px; ">' + makeWhitespaceVisible(forwardSpace) + '</td>'
+							markdown += '<td class="markdown" style="width: 100%">' + html + '</td></tr></table>'
+						}
+						else
+							markdown += '<div class="markdown">' + html + '</div>'
+
+						str += '<div class="markdown-container" contentEditable="false">' + markdown + '</div>'
+						str += '<div class="comment-container">' + rawMd + '</div>'
+					}
+				}
+
+				document.getElementById('dump3').innerHTML = ''
+				if (lastLine != lines.length-1)
+				{
+					document.getElementById('dump3').innerHTML = '<span style="color: red">Missing tokens ! lastLine=' + lastLine + ' lineCount=' + lines.length + '</span>'
+					for (var i=lastLine+1; i<lines.length-1; i++)
+					{
+						str += lines[i] + '\n'
+					}
+				}
+
+				document.getElementById('highlighted').innerHTML = str
+				dumpTransformedSource()
+			}
+
+
+			var MarkDownConverter = new Showdown.converter()
+
+			update()
+			document.getElementsByTagName('TEXTAREA')[0].onkeyup = update
+			
+			function	dumpTransformedSource()
+			{
+				document.getElementById('undostack').value = document.getElementById('highlighted').innerHTML
+			}
+			
+			
+			//
+			// 
+			// Keydown
+			// 
+			// 
+/*
+			function	rangeFromCurrentSelection()
+			{
+				
+			}
+*/			
+			
+			function	lineNumberFromNode(node, idx)
+			{
+				if (!node)	return
+				var startNode = node
+				var line = -1
+//				var idx = idx || -1
+				
+				while (node)
+				{
+					if (node.nodeType == 1 && node.className.match(/line\-/))
+					{
+						var n = parseFloat(node.className.split('-')[1])
+						return { line : n, idx : idx }
+					}
+					node = node.parentNode
+				}
+				
+				alert(startNode + '\nvalue=(' + startNode.nodeValue.length + ')' + startNode.nodeValue + '\nhtml=' + startNode.parentNode.id + ' \nnext=' + startNode.nextSibling.id)
+				
+				return { line : line, idx : idx }
+/*				
+				if (node.nodeType == 3 && !node.previousSibling) node = node.parentNode
+				node = node.previousSibling
+				while (node)
+				{
+					if (node.nodeType == 1 && node.firstChild && node.firstChild.nodeValue)	idx += node.firstChild.nodeValue.length
+					else
+					if (node.nodeValue) idx += node.nodeValue.length
+					
+					if (node.nodeType == 1 && node.className.match(/line\-/))
+					{
+						var n = parseFloat(node.className.split('-')[1])
+						if (typeof n == 'number')	return { line : n, idx : idx }
+						return
+					}
+					node = node.previousSibling
+				}
+*/
+			}
+			
+			function	rangeFromCurrentSelection()
+			{
+				var sel = window.getSelection()
+				var range = sel.getRangeAt(0)
+//				if (sel.type == 'C')
+				var r1 =  lineNumberFromNode(range.startContainer, range.startOffset)
+				var r2 =  lineNumberFromNode(range.endContainer, range.endOffset)
+				return { type : sel.type, line1 : r1.line, idx1 : r1.idx, line2 : r2.line, idx2 : r2.idx }
+			}
+			
+			var lastInsertionPoint = { line1 : -1, idx1 : -1 }
+			function	keydown()
+			{
+				var str = getTickCount()
+				str += '<br>' + event.keyCode
+				document.getElementById('dump4').innerHTML = str
+			}
+			function	keyup()
+			{
+				var r = rangeFromCurrentSelection()
+				var str = 'seltype=' + r.type
+				str += '\nline1=' + r.line1
+				str += '\nidx1=' + r.idx1
+				if (r.type != 'Caret')
+				{
+					str += '\nline2=' + r.line2
+					str += '\nidx2=' + r.idx2
+				}
+				
+				var keyCode = event.keyCode
+				if (keyCode >= 33 && keyCode <= 36) str += '\n<b>moving home/end/pgup/pgdn</b>'
+				if (keyCode >= 37 && keyCode <= 40) str += '\n<b>SELECTION CHANGES</b>'
+				
+				var sel = window.getSelection()
+				var range = sel.getRangeAt(0)
+//				if (sel.type == 'C')
+				str += '\nstart=' + range.startContainer.nodeValue + ' offset=' + range.startOffset
+				str += '\nend=' + range.endContainer.nodeValue + ' offset=' + range.endOffset
+				
+				document.getElementById('dump6').innerHTML = str
+
+
+				dumpTransformedSource()
+			}
+/*			
+			function	update2()
+			{
+				var str = h.innerHTML
+				str = str.replace(/</g, '&lt;')
+//				h2.innerHTML = str
+
+
+				if (!event)	return
+				var str = getTickCount()
+				str += '<br>keyCode=' + event.keyCode
+				var sel = window.getSelection()
+				str += '<br>type=' + sel.type
+//				str += '<br>sel=' + sel
+				var range = sel.getRangeAt(0)
+				str += '<br>range=(' + range.length + ')' + range
+//				str += range.anchorOffset
+				try
+				{
+				{
+				if (range.startContainer == range.endContainer && range.startOffset == range.endOffset)
+				{
+					str += '<br>collapsedRange=' + '(' + range.startOffset + ')' + range.startContainer.nodeValue.replace(/\n/g, '') + ' '
+				}
+				else
+				{
+					str += '<br>start=' + '(' + range.startOffset + ') [' + range.startContainer + ']' + range.startContainer.nodeValue.replace(/\n/g, '') + ' '
+					str += '<br>end=' + '(' + range.endOffset + ')' + range.endContainer.nodeValue.replace(/\n/g, '') + ' '
+				}
+				}
+				}
+				catch (e)
+				{
+					str += '<br/><span style="color: red">FAIL</span>'
+				}
+				str += '<br>lineCount=' + h.innerHTML.match(/\n/g).length
+				
+				document.getElementById('dump3').innerHTML = str
+			}
+*/
+			var h = document.getElementById('highlighted')
+			var h2 = document.getElementById('highlighted2')
+			h.onkeydown = keydown
+//			h.onkeyup = update2
+			h.onkeyup = keyup
+//			update2()
+
+//			var keysChangingSelection = [37, 38, 39, 40]
+			
+			function	selectstart()
+			{
+				var str = getTickCount() + ' SELECTSTART'
+				document.getElementById('dump7').innerHTML = str
+			}
+			h.onselectstart = selectstart
+//			document.body.onselect = selectstart
+			
+			var r = 'aez eez rzer ez'.replace(/ /g, function (a, b, c, d, e, f)
+			{
+//				alert(b)
+//				alert('*' + a + '*' + b + '*' + c + '*' + d + '*' + e + '*' + f + '*')
+//				alert(r.matchIndex)
+				return a
+			})
+//			alert(r)
+//			alert(r)
+//			var r = 'aez eez rzer ez'.match(/ /g)
+//			alert(typeof r[0])
+
+			//
+			// Focus textarea
+			// 
+			function	focusMe()
+			{
+//				var textarea = document.getElementsByTagName('TEXTAREA')[0]
+//				textarea.focus()
+				h.focus()
+			}
+//			setTimeout(focusMe, 10)
+			
+			function	dumpSelection()
+			{
+				var sel = window.getSelection()
+//				var range = sel.getRangeAt(0)
+				
+				var str = getTickCount()
+				str += '\nsel=' + sel.type
+//				str += '\nrange=' + range
+				document.getElementById('dump6').innerHTML = str
+				
+				var range = sel.getRangeAt(0)
+//				if (sel.type == 'C')
+				var r1 =  lineNumberFromNode(range.startContainer, range.startOffset)
+				var r2 =  lineNumberFromNode(range.endContainer, range.endOffset)
+				return { type : sel.type, line1 : r1.line, idx1 : r1.idx, line2 : r2.line, idx2 : r2.idx }
+				
+			}
+			setTimeout(dumpSelection, 1000)
+		</script>
+
+/*
+	
+	selection changed IF text is identical to itself (previous.length == current.length && previous != current)
+	AND selection actually changed (any of range.(start|end)(container|offset) differs)
+
+*/
+
+
+
+
+<pre>
+	span surrounding whole lines blocks editing !
+	^non, soy just le position: absolute de newline
+	AUTR : ctrl+a, ctrl+e : quam detex ? change selexion, donc dev register undo
+	
+	parse jslint dans un worker thread ?
+<pre style='display: none'>
+
+WRONG a++++ is noted as OK
+WRONG a b c  is noted as OK
+-> my fault, warning disabled. Need a workaround
+
+	when debugging : make an indicator blink, or light on and off smoothly
+
+// STRATEGY for live editing.
+
+	-> how will undo/redo work ?
+	hook into undo/redo.
+	-> my own undo for tab shifting.
+	-> when undoing, need to reformat.
+	
+	what are we typing ? are we in a multiple line token ?
+	retokenize whole function ? 
+	
+	
+	
+	enter ajout un div ! mal !
+	
+	
+	DISCARD BOLD and italic and stuff like that.
+
+
+	http://www.quirksmode.org/dom/range_intro.html
+
+	triple selection doesn't work ! should select line
+	quadruple click : select block if (...)
+	quintuple click : select function
+	-> fex vec clickCount dans mouseDown event
+	
+	
+	run a script : trailing whitespace
+	[line.replace(/\s*$/g)] for line in lines
+
+
+	disallow edit commands bold, italic
+	intercept enter
+
+	rename local variable or function argument
+	
+	
+	shortcut : use plugin for indent and outdent
+
+PROBLEM 
+	* '<br>' -> soy converté en line break
+	
+	* overlapping block on lines
+		eazeaz */ var a = b 
+
+	* return exp plant
+
+////
+
+	* bouton droit, insert -> list comprehension
+	var list = [x] for x in 0..4
+	doThis(y) for y in m
+
+	* call graph : hover sur un fonxion
+	called by
+		responder method
+		first responder …
+		javascript functions …
+		etc.
+
+	* unfold the method list on a right pane.
+		the same content as the popup, but clickable.
+		-> enable it for drag and drop
+	
+	* add the possibility to extra style the source page, eg
+		file:///Users/mini/Sites/mathml/MathML%20Stress%20Tests.xhtml
+		
+	* drag and drop comment start and end
+	
+	* convert spaces to tabs
+	
+	* line extending to show indentations : show a light drop shadow disappearing when approaching the edages, like on the obama website.
+	
+	* line numbers : in a custom div
+	
+	* check when dragging text with mouse
+	
+	* bordure d'indentation : just un roundrect
+	
+	* undo : typing et paste compte pour 2 commands !
+		type, type, paste -> undo : will undo only type
+		
+	* class : record all variables, allow renaming
+	
+	* script : to uppercase, to lowercase -> only identifiers, or only strings.
+
+=> parse fulljslint !
+
+</body>
+</html>

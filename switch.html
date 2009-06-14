@@ -1,0 +1,35 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>switch</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+</style>
+</head>
+<body>
+	
+	<h1>switch</h1>
+<pre>	
+	<script>
+	
+		var i = 5
+		switch (i)
+		{
+			case 2 : document.write('2\n')
+			case 5 : document.write('5\n')
+			
+			case (i > 3) : document.write('i sup 3\n')
+			case (i > 3 && (i&0)) : document.write('sup 3 and even\n')
+			case (i > 3 && (i&1)) : document.write('sup 3 and odd\n')
+		}
+	
+	</script>
+	
+	
+	
+</body>
+</html>

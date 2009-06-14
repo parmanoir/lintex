@@ -1,0 +1,536 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Highlighter</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+			ebackground-color: rgb(255, 255, 240);
+		}
+		textarea
+		{
+			width: 100%;
+			height: 450px;
+			ecolor: rgba(255, 255, 255, 0.1);
+			background-color: transparent;
+			font-family: courier;
+			font-family: Andale Mono;
+			font-family: Monaco;
+			font-size: 7pt;
+		}
+		td
+		{
+			vertical-align: top;
+			width: 50%;
+		}
+		#highlighted
+		{
+			white-space: pre;
+			margin-left: 20px;
+			font-family: monaco;
+			font-size: 7pt;
+			outline: none;
+			border: solid 1px #aaa;
+		}
+		.line
+		{
+			background-color: #ddd;
+		}
+		
+		#dumpHighlighted
+		{
+			width: 100%;
+		}
+		#dump5
+		{
+			white-space: normal;
+		}
+</style>
+</head>
+<body>
+
+<table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
+	<textarea>
+var a = 'hello'
+var b = "world"
+var c = 'hello I\'m home'
+
+if ('blah'.match(/[a-zA-Z0-4]/))
+{
+	// do something
+}
+
+function doSomething(pa, pb, pc)
+{
+	function fn2(pz)
+	{
+		return z+pa
+	}
+	function fn32(tryme)
+	{
+		return tryme+pc
+	}
+	function fn4(pz)
+	{
+		return
+	}
+	var d = pb+pc+globalVar
+	return a*b+c
+}
+
+var ccc = 'hello'
+
+function somethingElse(z)
+{
+	if (!z)	return
+	if (z == 2)	return z+2
+	return z*2
+}
+
+		</textarea>
+	<pre id='dump'></pre>
+	
+</td><td>
+	<div id='highlighted' contentEditable='true'></div>
+</td></tr></table>
+<table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
+<tr><td>
+	<pre id='dump2'></pre>
+<td>
+	<pre id='dump3'></pre>
+</tr></table>
+	<pre id='dump4'></pre>
+	<pre id='dump5'></pre>
+	<button onclick="document.getElementById('dump2').innerHTML = ' ', document.getElementById('dump3').innerHTML = ' ', document.getElementById('dump4').innerHTML = ' ', document.getElementById('dump5').innerHTML = ' '">Clear</button>
+
+	<script src="crockford/json2.js"></script>
+	<script src="crockford/fulljslint.js"></script>
+	<script src='showdown.js'></script>
+
+		<script>
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+
+		
+			var textarea = document.getElementsByTagName('TEXTAREA')[0]
+			var source = textarea.value
+			var highlighted = document.getElementById('highlighted')
+			
+			var lines = source.split('\n')
+			
+			var src = []
+
+			// Typing on an empty line deletes trailing '\n'
+			var lineElementName = 'DIV'
+			// OK
+			var lineElementName = 'SPAN'
+			var prefix = '<' + lineElementName + ' class="line">'
+			var suffix = '\n</' + lineElementName + '>'
+			for (var i=0; i<lines.length; i++)
+			{
+				src.push(prefix + lines[i] + suffix)
+			}
+			highlighted.innerHTML = src.join('')
+			
+			function	dumpHighlighted()
+			{
+				var str = getTickCount() + '\n'
+				str += '<textarea id="dumpHighlighted">' + highlighted.innerHTML + '</textarea>'
+				document.getElementById('dump2').innerHTML = str
+			}
+			
+			function	dumpInternalSource()
+			{
+				document.getElementById('dump3').innerHTML = lines.join('\n')
+			}
+			
+			
+			function	lineNodeFromNode(node)
+			{
+				while (node)
+				{
+					if (node.nodeType == 1 && node.className == 'line')
+						return node
+					node = node.parentNode
+				}
+			}
+			
+			function	lineNumberFromNode(node)
+			{
+				node = lineNodeFromNode(node)
+				if (!node)	return
+//				return parseFloat(node.id.match(/\d+/))
+				var i = 0
+				node = node.previousSibling
+				while (node)
+				{
+					i++
+					node = node.previousSibling
+				}
+				return i
+			}
+
+			// Inner offset : counting tab as ONE character
+			function	characterOffsetFromLineAndNode(node)
+			{
+				
+			}
+			
+			
+			
+			function	logToken(token)
+			{
+			}
+			function	logStatement(statement)
+			{
+			}
+			
+			function	logFunctionStart(startToken)
+			{
+			}
+			function	logFunctionEnd(startToken, endToken)
+			{
+			}
+
+			
+			function	lintLines(lines)
+			{
+				var options = { forin : true, laxbreak : true, indent : true }
+//				lines = ['var a = 4;\n', 'var b = 8;']
+    			tree = JSLINT(lines, options)
+//alert(lines + '\n********\n' + tree)
+				if (!tree)
+				{
+					return
+				}
+			}
+			
+			
+			
+			var lineCount
+			var currentLineNumber
+			var currentLineText
+//			var previousLineText
+//			var nextLineText
+			
+			function	keydown()
+			{
+//				alert(event.keyCode)
+				var keyCode = event.keyCode
+				
+				setTimeout(postKeydown, 10)
+				
+				
+				var sel = getSelection()
+				
+				if (sel.type != 'Caret' && sel.type != 'Range')	return
+				
+				var line = lineNodeFromNode(sel.anchorNode)
+				
+				if (line.innerText.length > 1)
+				{
+					var brs = line.getElementsByTagName('BR')
+					for (var i=0; i<brs.length; i++) brs[i].parentNode.removeChild(brs[i])
+				}
+//				if (sel.anchorNode == highlighted || sel.extentNode == highlighted)
+				if (!line)
+				{
+					alert('TEXT NOT IN SPAN')
+					return
+				}
+					
+				var lineNode 		= lineNodeFromNode(sel.anchorNode)
+				lineCount			= highlighted.childNodes.length
+				currentLineNumber 	= lineNumberFromNode(sel.anchorNode)
+				currentLineText 	= lineNode.innerText
+//				previousLineText	= lineNode.previousSibling ? lineNode.previousSibling.innerText : null
+//				nextLineText		= lineNode.nextSibling ? lineNode.nextSibling.innerText : null
+				
+
+				var lineNumber = lineNumberFromNode(sel.anchorNode)
+//				alert(lineNumber)
+				var str = keyCode + '(' + String.fromCharCode(keyCode) + ') line=' + lineNumber
+				document.getElementById('dump5').innerHTML += str
+				
+				// Insert new line
+				// Check enter and CTRL+O
+				if (keyCode == 13 || (keyCode == 79 && event.ctrlKey))
+				{
+					event.preventDefault()
+					
+					if (sel.type == 'Caret')
+					{
+//						alert(sel.anchorNode.nodeValue)
+						var l = lineNumberFromNode(sel.anchorNode)
+						
+						var line = lineNodeFromNode(sel.anchorNode)
+						
+						sel.setBaseAndExtent(line, 0, sel.anchorNode, sel.anchorOffset)
+//						alert(line.innerText + '\n' + l)
+//						var c = characterOffsetFromLineAndNode(sel.anchorNode, sel.anchorOffset)
+						
+//						sel.modify('extend', 'left', 'line')
+						
+						
+						
+						var leftLength = sel.toString().length
+//						var newLine = line.innerText.substr(leftLength)
+						
+//						alert(l)
+//						alert(lines[l])
+//						alert(sel.toString().length + '\n' + line.innerText.length)
+						
+						var n = document.createElement(lineElementName)
+						n.className = 'line'
+						
+						// Add \n if it's not here (happens on one-line documents)
+						var rightText = line.innerText.substr(leftLength)
+						if (!rightText.match(/\n/)) rightText += '\n'
+						n.innerHTML = rightText
+						
+//-> COUNT line number with a LOOP						
+
+//-> WARNING : may happen to have NO span left : select all, backspace -> plus rien
+// -> detex when a span no longer contains a newline
+// check selection change : if extentNode differs ?
+
+						line.insertAdjacentElement('afterEnd', n)
+//						line.innerHTML = line.innerText.substr(0, leftLength)
+						line.innerHTML = line.innerText.substr(0, leftLength) + '\n'
+
+						if (keyCode == 13)
+							sel.setPosition(n, 0)
+						else
+							sel.setPosition(sel.extentNode, sel.extentOffset)
+					}
+					else
+					{
+						alert('enter selection TODO')
+					}
+					
+				}
+				
+				/*
+					If Range selection, save all lines
+				*/
+			}
+			
+			function	postKeydown()
+			{
+				var sel = getSelection()
+//				var lineNumber = lineNumberFromNode(sel.anchorNode)
+				
+				/*
+					Maybe 
+					* deleted everything
+						-> just a text node left, or a br
+					* backspace or delete
+						-> two spans on the same line					
+				*/
+				
+				var line = lineNodeFromNode(sel.anchorNode)
+				if (!line)
+				{
+					// Will be called even after ALT-L, check if we have a selection
+					if (sel.type == 'None')	return
+					
+					var newLines = highlighted.innerText.split('\n')
+					highlighted.innerHTML = ''
+//					alert(newLines.length)
+					for (var i=0; i<newLines.length; i++)
+					{
+						var n = document.createElement(lineElementName)
+						n.className = 'line'
+						n.innerText = newLines[i] + '\n'
+						highlighted.appendChild(n)
+					}
+					// Select the text node
+					sel.setPosition(highlighted.firstChild.firstChild, 0)
+					var line = lineNodeFromNode(sel.anchorNode)
+				}
+
+
+				var lineCount2			= highlighted.childNodes.length
+				var currentLineNumber2 	= lineNumberFromNode(sel.anchorNode)
+				var currentLineText2 	= lineNodeFromNode(sel.anchorNode).innerText
+				
+				var mode = 'selecting'
+				if (lineCount2 != lineCount || (currentLineNumber2 == currentLineNumber && currentLineText2 != currentLineText))
+					mode = 'typing'
+					
+				
+				var str  = getTickCount() + ' '
+				if (mode == 'typing') 	str += '<span style="color: red">' + mode + '</span>'
+				else					str += mode
+				
+				
+				if (line.previousSibling && line.previousSibling.offsetTop == line.offsetTop)
+					str += '\n<span style="color: red">PREVIOUS SPAN ON SAME LINE</span>'
+				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
+					str += '\n<span style="color: red"><b>NEXT</b> SPAN ON SAME LINE</span>'
+
+				// While forward or backward deleting, the next line SPAN came onto the current SPAN. Remove it
+				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
+				{
+//					alert(sel.anchorNode + '\n' + sel.anchorNode.nodeValue + '\n' + sel.anchorOffset)
+					line.innerText += line.nextSibling.innerText
+					line.nextSibling.parentNode.removeChild(line.nextSibling)
+					// Selection stays the same, nice !
+				}
+
+				str += '\nchildNodesCount=' + highlighted.childNodes.length + ' \\n count=' + highlighted.innerText.match(/\n/g).length
+				
+				str += '\nlineCount=' + lineCount
+				str += '\nlineCount2=' + lineCount2
+				str += '\nlineNumber=' + currentLineNumber
+				str += '\nlineNumber2=' + currentLineNumber2
+				str += '\ncurrentLineText=' + currentLineText
+				str += '\ncurrentLineText2=' + currentLineText2
+				str += '\n!=lineCount=' + (lineCount2 != lineCount)
+				str += '\n!=currentLineNumber=' + (currentLineNumber2 != currentLineNumber)
+				str += '\n!=currentLineText=' + (currentLineText2 != currentLineText)
+				
+				document.getElementById('dump4').innerHTML = str
+				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
+				
+				
+				var lines = []
+				var f = highlighted.firstChild
+				while (f)
+				{
+					lines.push(f.innerText)
+					f = f.nextSibling
+				}
+				lintLines(lines)
+//				alert(lines)
+				
+			}
+			function	keyup()
+			{
+				dumpHighlighted()
+//				dumpInternalSource()
+			}
+			
+			highlighted.onkeyup = keyup
+			highlighted.onkeydown = keydown
+			
+			
+			function	selectstart()
+			{
+				document.getElementById('dump4').innerHTML = getTickCount() + ' selectstart'
+			}
+			highlighted.onselectstart = selectstart
+			
+			function	focusHighlighted()
+			{
+				highlighted.focus()
+
+				var s = getSelection()
+				s.collapseToStart()
+//				s.setPosition(highlighted, 5)
+//				s.setPosition(highlighted.firstChild.firstChild, 5)
+				
+//				s.setBaseAndExtent(highlighted.firstChild.firstChild, 5, highlighted.firstChild.nextSibling.firstChild, 7)
+//				s.empty()
+				
+/*
+
+	.	addRange: function addRange() {
+	.	anchorNode: Text
+	.	anchorOffset: 11
+	.	baseNode: Text
+	.	baseOffset: 11
+	.	collapse: function collapse() {
+	.	collapseToEnd: function collapseToEnd() {
+	.	collapseToStart: function collapseToStart() {
+	.	containsNode: function containsNode() {
+	.	deleteFromDocument: function deleteFromDocument() {
+	.	empty: function empty() {
+	.	extend: function extend() {
+	.	extentNode: Text
+	.	extentOffset: 11
+	.	focusNode: Text
+	.	focusOffset: 11
+	.	getRangeAt: function getRangeAt() {
+	.	isCollapsed: true
+	.	modify: function modify() {
+	.	rangeCount: 1
+	.	removeAllRanges: function removeAllRanges() {
+	.	selectAllChildren: function selectAllChildren() {
+	.	setBaseAndExtent: function setBaseAndExtent() {
+	.	setPosition: function setPosition() {
+	.	type: "Caret"
+
+
+*/
+
+//				alert(s)
+//				zea
+			}
+			setTimeout(focusHighlighted, 10)
+
+		</script>
+
+<pre>
+	Stratégie
+	* parse tout : produx
+		source :
+			{
+				lines : [ tokens : [], hash : [] ]
+			}
+	
+	* compte les elements markdown et escape &lt;? ... ?&gt;
+	* transform les et compt la hauteur
+	
+	* detect typing, and when 
+		-> typing changes TEXT
+		-> typing changes selection
+		
+	* when TEXT changes
+		-> figure out WHAT changed
+			* typing inside a function ?
+			* typing a NEW function ?
+			* DELETING a function ?
+
+			* creating a new MD comment or text escape ?
+			
+		-> save text selection (line, offset)
+		-> update html
+		-> reset selection
+
+	
+	source
+		all lines ?
+		
+		contains function list
+			-> BIRDVIEW
+				birdview xhib tout les sources
+				
+				
+	DATA OWNERSHIP ? si chac document a son fich, prqoi pas.
+	MAIS la birdview dev soy partage par tous.
+
+
+	//
+	hover variable : SHOW each assignment and usage in the function prior to it. and also the next ones.
+	
+	ATTENTION CTRL+O : insert line in place
+	
+	//
+	make file links clickable, eg include('blah.js')
+								-> click 'blah.js'
+		
+
+	autocomplete : highlight le symbol sur la page s'il exist.
+	
+	
+	special case for option-backspace : delete to back of line
+
+	design bouton : http://recaptcha.net/
+	
+</body>
+</html>
