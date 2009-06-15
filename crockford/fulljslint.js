@@ -1299,7 +1299,7 @@ JSLINT = (function () {
                                 warningAt("Dangerous comment.", line, character);
                             }
 							// ## notify of comment token
-							logToken({ type : '(comment)', line : line, from : from, value : '//' + s })
+							logToken({ type : '(comment)', line : line, from : from, value : '//' + s, character : lines[line].substr(from).length })
                             s = '';
                             token.comment = true;
                             break;
@@ -4893,7 +4893,8 @@ JSLINT = (function () {
                 JSLINT.errors.push({
                     reason    : e.message,
                     line      : e.line || nexttoken.line,
-                    character : e.character || nexttoken.from
+					// ## fails on alert('
+                    character : e.character || (nexttoken ? nexttoken.from : 0)
                 }, null);
             }
         }

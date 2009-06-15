@@ -47,6 +47,33 @@
 		{
 			white-space: normal;
 		}
+		
+		
+		/* source styling */
+		.keyword
+		{
+			color: rgba(51, 28, 255, 1);
+			text-shadow: rgba(51, 28, 255, 0.9) 0px 0px 1px, rgba(51, 28, 255, 1) 0px 0px 0px;
+		}
+		.exps
+		{
+			color: red;
+		}
+		.number
+		{
+			color: green;
+		}
+		.string
+		{
+			color: purple;
+		}
+		.comment
+		{
+			color: rgb(83, 180, 255);
+		}
+		/* source styling */
+		
+		
 </style>
 </head>
 <body>
@@ -114,6 +141,12 @@ function somethingElse(z)
 			{
 				return (new Date).getTime()
 			}
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + (o[i]) + '\n'
+				return str
+			}
 
 		
 			var textarea = document.getElementsByTagName('TEXTAREA')[0]
@@ -173,6 +206,10 @@ function somethingElse(z)
 				}
 				return i
 			}
+			function	nodeFromLineNumber(i)
+			{
+				return highlighted.childNodes[i]
+			}
 
 			// Inner offset : counting tab as ONE character
 			function	characterOffsetFromLineAndNode(node)
@@ -182,8 +219,23 @@ function somethingElse(z)
 			
 			
 			
+			function	toStringToken()
+			{
+//				return this.value + '(' + this.line + ':' + this.from + '->' + this.character + ')'
+				return this.value + '(' + this.from + '->' + this.character + ')'
+			}
+			
+			var tokens
 			function	logToken(token)
 			{
+//				alert(dumpHash(token))
+//				eaz()
+				var line = token.line
+				
+				token.toString = toStringToken
+				
+				if (!tokensByLine[line])	tokensByLine[line] = []
+				tokensByLine[line].push(token)
 			}
 			function	logStatement(statement)
 			{
@@ -200,15 +252,127 @@ function somethingElse(z)
 			function	lintLines(lines)
 			{
 				var options = { forin : true, laxbreak : true, indent : true }
-//				lines = ['var a = 4;\n', 'var b = 8;']
+				
+				tokensByLine = { }
     			tree = JSLINT(lines, options)
 //alert(lines + '\n********\n' + tree)
-				if (!tree)
+//				alert(dumpHash(tokensByLine))
+//				if (!tree)
 				{
-					return
+//					alert('FAIL')
+//					return
 				}
+				
+				return { tokens : tokensByLine, success : !!tree }
 			}
 			
+			
+			function	makeWhitespaceVisible(str)
+			{
+				return	str
+			}
+			
+			function	writeTokensToLine(node, tokens, line)
+			{
+//				node.innerHTML = '*' + lineContent
+//				alert(tokens)
+				
+				var i = 0
+				var lastIndex 	= 0
+				var str = ''
+				while (tokens[i])
+				{
+					var token = tokens[i]
+//					keep an index of current char, copy from source string with splice or substring if not there
+					if (token.value && token.from > lastIndex)
+					{
+						var space = line.substr(lastIndex, token.from-lastIndex)
+						str += makeWhitespaceVisible(space)						
+					}
+					var c = ''
+					var v = token.value
+						v = line.substr(token.from, token.character-token.from)
+					if (token.identifier) c = 'identifier-' + token.value
+					if (token.reserved) c = 'keyword'
+					if (token.id && !token.reserved) 
+					{
+						c = 'exps'
+					}
+					if (token.type == '(number)') c = 'number'
+					if (token.type == '(string)') 
+					{
+						c = 'string'
+					}
+					if (token.type == '(comment)') 
+					{
+						c = 'comment'
+/*						
+						// Single line markdown comment
+						if (v.match(/^\/\/md/))
+						{
+							v = v.replace(/^\/\/md\s?/, '')
+							v = MarkDownConverter.makeHtml(v)
+							v = '<span class="markdown-singleline-container"><span class="markdown-singleline">' + v + '</span></span>'
+							printEndLine = false
+						}
+*/
+					}
+					str += '<span class="' + c + '">' + v + '</span>'
+					lastIndex = token.character
+					i++
+				}
+				// Copy end of line
+				if (lastIndex < line.length)
+				{
+					var space = line.substr(lastIndex)
+					str += makeWhitespaceVisible(space)
+				}
+//str += '\n'				
+				node.innerHTML = str
+			}
+			
+
+			var selectionStack = []
+			
+			function	rawSelection()
+			{
+				var sel = getSelection()
+				return { anchorNode : sel.anchorNode, anchorOffset : sel.anchorOffset, extentNode : sel.extentNode, extentOffset : sel.extentOffset }
+			}
+			function	setRawSelection(r)
+			{
+				var sel = getSelection()
+				sel.setBaseAndExtent(r.anchorNode, r.anchorOffset, sel.extentNode, sel.extentOffset)
+			}
+			function	selectionAsLineAndOffset()
+			{
+				var sel = getSelection()
+				var raw = rawSelection()
+
+				sel.modify('extend', 'left', 'lineboundary')
+				var h = { type : 'Caret', line : lineNumberFromNode(sel.anchorNode), offset : sel.toString().length }
+
+				setRawSelection(raw)
+
+				return h
+			}
+			function	setSelectionAsLineAndOffset(line, offset)
+			{
+				var line = nodeFromLineNumber(line)
+				var sel = getSelection()
+				sel.setPosition(line, 0)
+				for (var i=0; i<offset; i++)
+					sel.modify('move', 'right', 'character')
+			}
+			function	pushCaretSelection()
+			{
+				selectionStack.push(selectionAsLineAndOffset())
+			}
+			function	popCaretSelection()
+			{
+				var s = selectionStack.pop()
+				setSelectionAsLineAndOffset(s.line, s.offset)
+			}
 			
 			
 			var lineCount
@@ -264,7 +428,6 @@ function somethingElse(z)
 					
 					if (sel.type == 'Caret')
 					{
-//						alert(sel.anchorNode.nodeValue)
 						var l = lineNumberFromNode(sel.anchorNode)
 						
 						var line = lineNodeFromNode(sel.anchorNode)
@@ -376,13 +539,12 @@ function somethingElse(z)
 				// While forward or backward deleting, the next line SPAN came onto the current SPAN. Remove it
 				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
 				{
-//					alert(sel.anchorNode + '\n' + sel.anchorNode.nodeValue + '\n' + sel.anchorOffset)
 					line.innerText += line.nextSibling.innerText
 					line.nextSibling.parentNode.removeChild(line.nextSibling)
 					// Selection stays the same, nice !
 				}
 
-				str += '\nchildNodesCount=' + highlighted.childNodes.length + ' \\n count=' + highlighted.innerText.match(/\n/g).length
+				str += '\nchildNodesCount=' + highlighted.childNodes.length + ' \\n count=' + (highlighted.innerText.match(/\n/g)||0).length
 				
 				str += '\nlineCount=' + lineCount
 				str += '\nlineCount2=' + lineCount2
@@ -398,6 +560,7 @@ function somethingElse(z)
 				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
 				
 				
+				if (mode != 'typing')	return
 				var lines = []
 				var f = highlighted.firstChild
 				while (f)
@@ -405,7 +568,25 @@ function somethingElse(z)
 					lines.push(f.innerText)
 					f = f.nextSibling
 				}
-				lintLines(lines)
+				var lint = lintLines(lines)
+
+
+				pushCaretSelection()
+				
+				var f = highlighted.firstChild
+				var i = 0
+				while (f)
+				{
+					var tokens = lint.tokens[i]
+					if (!tokens) tokens = []
+					var line = lines[i]
+					writeTokensToLine(f, tokens, line)
+					f = f.nextSibling
+					i++
+				}
+				
+				popCaretSelection()
+
 //				alert(lines)
 				
 			}
