@@ -36,7 +36,7 @@
 		}
 		.line
 		{
-			background-color: #ddd;
+			ebackground-color: #fafafa;
 		}
 		
 		#dumpHighlighted
@@ -71,6 +71,27 @@
 		{
 			color: rgb(83, 180, 255);
 		}
+
+
+		
+		.newline:before
+		{
+			content: '¶';
+		}
+		.space:before
+		{
+			content: '·';
+		}
+		.tab:before
+		{
+			content: '→';
+		}
+		.newline, .space, .tab
+		{
+			color: rgb(83, 180, 255);
+			position: absolute;
+		}
+
 		/* source styling */
 		
 		
@@ -88,6 +109,7 @@ if ('blah'.match(/[a-zA-Z0-4]/))
 {
 	// do something
 }
+		</textarea>
 
 function doSomething(pa, pb, pc)
 {
@@ -108,7 +130,9 @@ function doSomething(pa, pb, pc)
 }
 
 var ccc = 'hello'
-
+/*
+	some comment
+*/
 function somethingElse(z)
 {
 	if (!z)	return
@@ -137,6 +161,8 @@ function somethingElse(z)
 	<script src='showdown.js'></script>
 
 		<script>
+			var MarkDownConverter = new Showdown.converter()
+
 			function	getTickCount()
 			{
 				return (new Date).getTime()
@@ -158,9 +184,10 @@ function somethingElse(z)
 			var src = []
 
 			// Typing on an empty line deletes trailing '\n'
+			// Now that I'm handling line breaking, no more problems
 			var lineElementName = 'DIV'
 			// OK
-			var lineElementName = 'SPAN'
+//			var lineElementName = 'SPAN'
 			var prefix = '<' + lineElementName + ' class="line">'
 			var suffix = '\n</' + lineElementName + '>'
 			for (var i=0; i<lines.length; i++)
@@ -263,13 +290,15 @@ function somethingElse(z)
 //					return
 				}
 				
-				return { tokens : tokensByLine, success : !!tree }
+				return { tokens : tokensByLine, res : !!tree }
 			}
 			
 			
-			function	makeWhitespaceVisible(str)
+			function	makeWhitespaceVisible(space)
 			{
-				return	str
+//				space = space.replace(/ /g, '<span contentEditable="false"><span class="space"></span></span> ')
+//				space = space.replace(/\t/g, '<span contentEditable="false"><span class="tab"></span></span>	')
+				return	space					
 			}
 			
 			function	writeTokensToLine(node, tokens, line)
@@ -306,14 +335,14 @@ function somethingElse(z)
 					if (token.type == '(comment)') 
 					{
 						c = 'comment'
-/*						
+/*
 						// Single line markdown comment
 						if (v.match(/^\/\/md/))
 						{
 							v = v.replace(/^\/\/md\s?/, '')
 							v = MarkDownConverter.makeHtml(v)
 							v = '<span class="markdown-singleline-container"><span class="markdown-singleline">' + v + '</span></span>'
-							printEndLine = false
+//							printEndLine = false
 						}
 */
 					}
@@ -371,6 +400,7 @@ function somethingElse(z)
 			function	popCaretSelection()
 			{
 				var s = selectionStack.pop()
+//				alert(s.line + ' ' + s.offset)
 				setSelectionAsLineAndOffset(s.line, s.offset)
 			}
 			
@@ -383,10 +413,10 @@ function somethingElse(z)
 			
 			function	keydown()
 			{
+				setTimeout(postKeydown, 0)
 //				alert(event.keyCode)
 				var keyCode = event.keyCode
 				
-				setTimeout(postKeydown, 10)
 				
 				
 				var sel = getSelection()
@@ -419,15 +449,45 @@ function somethingElse(z)
 //				alert(lineNumber)
 				var str = keyCode + '(' + String.fromCharCode(keyCode) + ') line=' + lineNumber
 				document.getElementById('dump5').innerHTML += str
+
+
+				//  Insert tab
+				if (keyCode == 9)
+				{
+					if (sel.type == 'Caret')
+					{
+						event.preventDefault()					
+						pushCaretSelection()
+						var t = lineNode.innerText
+						lineNode.innerHTML = t
+						popCaretSelection()
+						lineNode.innerText = t.substr(0, sel.anchorOffset) + '\t' + t.substr(sel.anchorOffset)
+						sel.modify('move', 'right', 'character')
+					}
+					else
+					{
+						alert('tab selection TODO, account shift')						
+					}
+				}
+				
+				// Custom word delete handling
+				if (keyCode == 8 && event.altKey)
+				{
+					alert('CHECK ! extent selection to previous word. if overflows line, just move it to start of line')
+				}
 				
 				// Insert new line
 				// Check enter and CTRL+O
 				if (keyCode == 13 || (keyCode == 79 && event.ctrlKey))
 				{
-					event.preventDefault()
 					
 					if (sel.type == 'Caret')
+					// OR if one line range
 					{
+						event.preventDefault()
+						pushCaretSelection()
+						lineNode.innerHTML = lineNode.innerText
+						popCaretSelection()
 						var l = lineNumberFromNode(sel.anchorNode)
 						
 						var line = lineNodeFromNode(sel.anchorNode)
@@ -453,7 +513,9 @@ function somethingElse(z)
 						// Add \n if it's not here (happens on one-line documents)
 						var rightText = line.innerText.substr(leftLength)
 						if (!rightText.match(/\n/)) rightText += '\n'
-						n.innerHTML = rightText
+						// Get space (minus \n) on cursor left
+						var leftSpace = line.innerText.substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
+						n.innerHTML = leftSpace + rightText
 						
 //-> COUNT line number with a LOOP						
 
@@ -466,13 +528,20 @@ function somethingElse(z)
 						line.innerHTML = line.innerText.substr(0, leftLength) + '\n'
 
 						if (keyCode == 13)
+						{
 							sel.setPosition(n, 0)
+							if (leftSpace.length)
+							{
+								for (var i=0; i<leftSpace.length; i++)
+									sel.modify('move', 'right', 'character')
+							}
+						}
 						else
 							sel.setPosition(sel.extentNode, sel.extentOffset)
 					}
 					else
 					{
-						alert('enter selection TODO')
+						// Nothing to do with a range as no newline is inserted.
 					}
 					
 				}
@@ -539,8 +608,12 @@ function somethingElse(z)
 				// While forward or backward deleting, the next line SPAN came onto the current SPAN. Remove it
 				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
 				{
+					pushCaretSelection()
+					line.innerText = line.innerText
+					line.nextSibling.innerText = line.nextSibling.innerText
 					line.innerText += line.nextSibling.innerText
 					line.nextSibling.parentNode.removeChild(line.nextSibling)
+					popCaretSelection()
 					// Selection stays the same, nice !
 				}
 
@@ -561,6 +634,20 @@ function somethingElse(z)
 				
 				
 				if (mode != 'typing')	return
+				
+				highlightText()
+
+//				alert(lines)
+				
+			}
+			function	keyup()
+			{
+				dumpHighlighted()
+//				dumpInternalSource()
+			}
+			
+			function	highlightText()
+			{
 				var lines = []
 				var f = highlighted.firstChild
 				while (f)
@@ -569,6 +656,8 @@ function somethingElse(z)
 					f = f.nextSibling
 				}
 				var lint = lintLines(lines)
+				
+				highlighted.style.backgroundColor = lint.res ? '' : '#fee'
 
 
 				pushCaretSelection()
@@ -586,15 +675,8 @@ function somethingElse(z)
 				}
 				
 				popCaretSelection()
-
-//				alert(lines)
-				
 			}
-			function	keyup()
-			{
-				dumpHighlighted()
-//				dumpInternalSource()
-			}
+			
 			
 			highlighted.onkeyup = keyup
 			highlighted.onkeydown = keydown
@@ -612,6 +694,7 @@ function somethingElse(z)
 
 				var s = getSelection()
 				s.collapseToStart()
+				highlightText()
 //				s.setPosition(highlighted, 5)
 //				s.setPosition(highlighted.firstChild.firstChild, 5)
 				
@@ -712,6 +795,8 @@ function somethingElse(z)
 	special case for option-backspace : delete to back of line
 
 	design bouton : http://recaptcha.net/
+	
+	highlight line bar red when lint fails
 	
 </body>
 </html>

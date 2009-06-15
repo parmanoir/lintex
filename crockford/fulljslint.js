@@ -1331,7 +1331,7 @@ JSLINT = (function () {
 								{
 									// ##
 									// All comment lines but the last one go through here
-									logToken({ type : '(comment)', line : line, from : from, value : firstCommentPrefix + s })
+									logToken({ type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : lines[line].substr(from).length })
 									from = 0
 								}
                                 if (!nextLine()) {
