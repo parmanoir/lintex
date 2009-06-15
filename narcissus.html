@@ -12,7 +12,7 @@
 		textarea
 		{
 			width: 100%;
-			height: 450px;
+			height: 500px;
 			ecolor: rgba(255, 255, 255, 0.1);
 			background-color: transparent;
 			font-family: courier;
@@ -37,6 +37,11 @@
 		.line
 		{
 			ebackground-color: #fafafa;
+			position: relative;
+		}
+		.selectedLine
+		{
+			background-color: lime;
 		}
 		
 		#dumpHighlighted
@@ -109,7 +114,6 @@ if ('blah'.match(/[a-zA-Z0-4]/))
 {
 	// do something
 }
-		</textarea>
 
 function doSomething(pa, pb, pc)
 {
@@ -119,7 +123,7 @@ function doSomething(pa, pb, pc)
 	}
 	function fn32(tryme)
 	{
-		return tryme+pc
+		return tryme+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow
 	}
 	function fn4(pz)
 	{
@@ -130,7 +134,7 @@ function doSomething(pa, pb, pc)
 }
 
 var ccc = 'hello'
-/*
+/*md
 	some comment
 */
 function somethingElse(z)
@@ -140,7 +144,12 @@ function somethingElse(z)
 	return z*2
 }
 
-		</textarea>
+&lt;?minitex ?&gt;
+for (var i=0; i<10; i++)
+{
+	// do stuff ...
+}
+</textarea>
 	<pre id='dump'></pre>
 	
 </td><td>
@@ -163,6 +172,13 @@ function somethingElse(z)
 		<script>
 			var MarkDownConverter = new Showdown.converter()
 
+			function	htmlEncode(str)
+			{
+//				return str
+				return str.replace(/</g, '&lt;')
+				return str.replace(/</g, '&lt;')
+				return str.replace(/</g, '&lt;')
+			}
 			function	getTickCount()
 			{
 				return (new Date).getTime()
@@ -192,7 +208,7 @@ function somethingElse(z)
 			var suffix = '\n</' + lineElementName + '>'
 			for (var i=0; i<lines.length; i++)
 			{
-				src.push(prefix + lines[i] + suffix)
+				src.push(prefix + htmlEncode(lines[i]) + suffix)
 			}
 			highlighted.innerHTML = src.join('')
 			
@@ -213,7 +229,7 @@ function somethingElse(z)
 			{
 				while (node)
 				{
-					if (node.nodeType == 1 && node.className == 'line')
+					if (node.nodeType == 1 && node.className.indexOf('line') != -1)
 						return node
 					node = node.parentNode
 				}
@@ -255,11 +271,9 @@ function somethingElse(z)
 			var tokens
 			function	logToken(token)
 			{
-//				alert(dumpHash(token))
-//				eaz()
 				var line = token.line
 				
-				token.toString = toStringToken
+//				token.toString = toStringToken
 				
 				if (!tokensByLine[line])	tokensByLine[line] = []
 				tokensByLine[line].push(token)
@@ -316,6 +330,7 @@ function somethingElse(z)
 					if (token.value && token.from > lastIndex)
 					{
 						var space = line.substr(lastIndex, token.from-lastIndex)
+						space = htmlEncode(space)
 						str += makeWhitespaceVisible(space)						
 					}
 					var c = ''
@@ -346,6 +361,7 @@ function somethingElse(z)
 						}
 */
 					}
+					v = htmlEncode(v)
 					str += '<span class="' + c + '">' + v + '</span>'
 					lastIndex = token.character
 					i++
@@ -354,6 +370,7 @@ function somethingElse(z)
 				if (lastIndex < line.length)
 				{
 					var space = line.substr(lastIndex)
+					space = htmlEncode(space)
 					str += makeWhitespaceVisible(space)
 				}
 //str += '\n'				
@@ -366,12 +383,15 @@ function somethingElse(z)
 			function	rawSelection()
 			{
 				var sel = getSelection()
-				return { anchorNode : sel.anchorNode, anchorOffset : sel.anchorOffset, extentNode : sel.extentNode, extentOffset : sel.extentOffset }
+//				return { anchorNode : sel.anchorNode, anchorOffset : sel.anchorOffset, extentNode : sel.extentNode, extentOffset : sel.extentOffset }
+				return sel.getRangeAt(0)
 			}
 			function	setRawSelection(r)
 			{
 				var sel = getSelection()
-				sel.setBaseAndExtent(r.anchorNode, r.anchorOffset, sel.extentNode, sel.extentOffset)
+				sel.removeAllRanges()
+				sel.addRange(r)
+//				sel.setBaseAndExtent(r.anchorNode, r.anchorOffset, r.extentNode, r.extentOffset)
 			}
 			function	selectionAsLineAndOffset()
 			{
@@ -454,19 +474,57 @@ function somethingElse(z)
 				//  Insert tab
 				if (keyCode == 9)
 				{
-					if (sel.type == 'Caret')
+					event.preventDefault()
+					var lineNumber2 = lineNumberFromNode(sel.extentNode)
+					if (lineNumber == lineNumber2)
 					{
-						event.preventDefault()					
+						if (sel.type == 'Range')	sel.deleteFromDocument()
 						pushCaretSelection()
+						
 						var t = lineNode.innerText
-						lineNode.innerHTML = t
+						lineNode.innerText = t
 						popCaretSelection()
 						lineNode.innerText = t.substr(0, sel.anchorOffset) + '\t' + t.substr(sel.anchorOffset)
 						sel.modify('move', 'right', 'character')
 					}
 					else
 					{
-						alert('tab selection TODO, account shift')						
+//						alert(sel.extentNode.parentNode.innerText + ' ' + sel.extentOffset)
+//						alert('tab selection TODO, account shift')
+						
+//						pushRangeSelection()
+						var str = 'when shift selecting keyboard, selection differs and selects part of the first line'
+						str += '\nanchor=(' + sel.anchorOffset + ')' + lineNodeFromNode(sel.anchorNode).innerText
+						str += '\nextent=(' + sel.extentOffset + ')' + lineNodeFromNode(sel.extentNode).innerText
+						str += '\nbase=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
+						str += '\noffset=(' + sel.focusOffset + ')' + lineNodeFromNode(sel.focusNode).innerText
+						alert(str)
+
+						// Keyboard selecting lines will select the next line with a zero offset
+						// happens on triple-clicking left space on tabs on a function
+						if (sel.extentOffset == 0) lineNumber2--
+
+//						alert(lineNumber + ' ' + lineNumber2)
+//						alert(lineNodeFromNode(sel.baseNode).innerText)
+						
+						if (lineNumber2 <= lineNumber)
+						{
+							var tmp = lineNumber2
+							lineNumber2 = lineNumber
+							lineNumber = tmp
+						}
+						
+						for (var i=lineNumber; i<=lineNumber2; i++)
+						{
+							var line = nodeFromLineNumber(i)
+							if (!event.shiftKey)
+								line.innerText = '\t' + line.innerText
+							else
+							{
+								line.innerText = line.innerText.toString().replace(/^\s/, '')
+							}
+						}
+//						popRangeSelection()
 					}
 				}
 				
@@ -486,7 +544,7 @@ function somethingElse(z)
 					{
 						event.preventDefault()
 						pushCaretSelection()
-						lineNode.innerHTML = lineNode.innerText
+						lineNode.innerText = lineNode.innerText
 						popCaretSelection()
 						var l = lineNumberFromNode(sel.anchorNode)
 						
@@ -515,7 +573,7 @@ function somethingElse(z)
 						if (!rightText.match(/\n/)) rightText += '\n'
 						// Get space (minus \n) on cursor left
 						var leftSpace = line.innerText.substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
-						n.innerHTML = leftSpace + rightText
+						n.innerText = leftSpace + rightText
 						
 //-> COUNT line number with a LOOP						
 
@@ -524,8 +582,7 @@ function somethingElse(z)
 // check selection change : if extentNode differs ?
 
 						line.insertAdjacentElement('afterEnd', n)
-//						line.innerHTML = line.innerText.substr(0, leftLength)
-						line.innerHTML = line.innerText.substr(0, leftLength) + '\n'
+						line.innerText = line.innerText.substr(0, leftLength) + '\n'
 
 						if (keyCode == 13)
 						{
@@ -551,6 +608,7 @@ function somethingElse(z)
 				*/
 			}
 			
+			var previouslySelectedLine
 			function	postKeydown()
 			{
 				var sel = getSelection()
@@ -567,7 +625,7 @@ function somethingElse(z)
 				var line = lineNodeFromNode(sel.anchorNode)
 				if (!line)
 				{
-					// Will be called even after ALT-L, check if we have a selection
+					// Will be called even after ALT-L (select address bar), check if we have a selection
 					if (sel.type == 'None')	return
 					
 					var newLines = highlighted.innerText.split('\n')
@@ -584,7 +642,15 @@ function somethingElse(z)
 					sel.setPosition(highlighted.firstChild.firstChild, 0)
 					var line = lineNodeFromNode(sel.anchorNode)
 				}
-
+				
+				if (previouslySelectedLine)	previouslySelectedLine.className = 'line'
+				previouslySelectedLine = null
+				if (sel.type == 'Caret')
+				{
+					previouslySelectedLine = line
+					line.className += ' selectedLine'
+				}
+				
 
 				var lineCount2			= highlighted.childNodes.length
 				var currentLineNumber2 	= lineNumberFromNode(sel.anchorNode)
@@ -642,7 +708,7 @@ function somethingElse(z)
 			}
 			function	keyup()
 			{
-				dumpHighlighted()
+//				dumpHighlighted()
 //				dumpInternalSource()
 			}
 			
@@ -797,6 +863,8 @@ function somethingElse(z)
 	design bouton : http://recaptcha.net/
 	
 	highlight line bar red when lint fails
+	
+	keying up : extent selection to line start
 	
 </body>
 </html>
