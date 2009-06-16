@@ -130,7 +130,6 @@
 </style>
 </head>
 <body>
-		gradient123
 <table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px; width: 1px'>
 	<textarea style='display: none'>
 		var a = 'hello'
@@ -184,7 +183,7 @@ for (var i=0; i<10; i++)
 </td><td style='width: 20px'></td><td>
 <div class='tabspaceviewer'><span class='visualtab'></span>1234<span class='visualtab'></span>1234<span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    </div>
 	<div id='highlighted' contentEditable='true'></div>
-</td></tr></table>
+</td><td><div id='birdView'></div></tr></table>
 <table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
 <tr><td>
 	<pre id='dump2'></pre>
@@ -298,12 +297,13 @@ for (var i=0; i<10; i++)
 				return this.value + '(' + this.from + '->' + this.character + ')'
 			}
 			
-			var tokens
+			var tokensByLine
+			var functionLines
 			function	logToken(token)
 			{
 				var line = token.line
 				
-//				token.toString = toStringToken
+				token.toString = toStringToken
 				
 				if (!tokensByLine[line])	tokensByLine[line] = []
 				tokensByLine[line].push(token)
@@ -311,9 +311,12 @@ for (var i=0; i<10; i++)
 			function	logStatement(statement)
 			{
 			}
-			
+
+
 			function	logFunctionStart(startToken)
 			{
+				functionLines.push(startToken.line)
+//				alert(startToken.line + ' ' + startToken)
 			}
 			function	logFunctionEnd(startToken, endToken)
 			{
@@ -324,7 +327,8 @@ for (var i=0; i<10; i++)
 			{
 				var options = { forin : true, laxbreak : true, indent : true }
 				
-				tokensByLine = { }
+				tokensByLine = {}
+				functionLines = []
     			tree = JSLINT(lines, options)
 //alert(lines + '\n********\n' + tree)
 //				alert(dumpHash(tokensByLine))
@@ -334,7 +338,7 @@ for (var i=0; i<10; i++)
 //					return
 				}
 				
-				return { tokens : tokensByLine, res : !!tree }
+				return { tokens : tokensByLine, res : !!tree, functionLines : functionLines }
 			}
 			
 			
@@ -357,7 +361,13 @@ for (var i=0; i<10; i++)
 					deltaTabPosition += length-1
 					var str = ''
 					for (var i=0; i<length; i++)	str += ' '
-					str = '<span>' + String.fromCharCode(0x200b) + '<span eclass="tab" contentEditable="false">' + str + '</span></span>'
+//					str = '<span>' + String.fromCharCode(0x200b) + '<span eclass="tab" contentEditable="false">' + str + '</span></span>'
+//					str = '<span>' + String.fromCharCode(0x200b) + '<span eclass="tab" contentEditable="false">' + str + '</span></span>'
+//					str = '<span style="display: inline-block; width: 3ex">' + '\t' + '</span>'
+//					str = '<span style="display: inline-block; width: 20px">' + '' + '</span>'
+					str = '<span>' + String.fromCharCode(0x200b) + '</span><span style="padding-left: 20px">' + '' + '</span>'
+
+
 //					alert(deltaTabPosition + ' length=' + length + '\nstr=' + str + '!')
 					tabLengths.push(str)
 				}
@@ -441,6 +451,9 @@ for (var i=0; i<10; i++)
 				// Hide newline or Safari will stop on it when keying up while selecting
 				// Add a zero-width space to make empty lines visible
 //				str = str.replace(/\n/, '<span style="display: none">\n</span>')
+				str = str.replace(/\n/, '<span style="display: none">\n</span><span style="margin-left: 1px"></span>')
+
+
 //					str = str.replace(/\n/, '<span style="position: absolute; evisibility: hidden">\n</span>')
 //				str += String.fromCharCode(0x200b)
 //				str += 'HANDLE BLANK LINES'
@@ -787,6 +800,19 @@ for (var i=0; i<10; i++)
 //				dumpHighlighted()
 //				dumpInternalSource()
 			}
+
+			function	updateBirdView(line, functionLines)
+			{
+				var str = ''
+				for (var i=0; i<functionLines.length; i++)
+				{
+					var idx = functionLines[i]
+					var line = lines[idx]
+					str += idx + '=' + line + '<br>'
+				}
+				document.getElementById('birdView').innerHTML = str
+				
+			}
 			
 			function	highlightText()
 			{
@@ -817,6 +843,9 @@ for (var i=0; i<10; i++)
 				}
 				
 				popCaretSelection()
+				
+				
+				updateBirdView(lines, lint.functionLines)
 			}
 			
 			
