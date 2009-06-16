@@ -338,7 +338,7 @@ for (var i=0; i<10; i++)
 //					return
 				}
 				
-				return { tokens : tokensByLine, res : !!tree, functionLines : functionLines }
+				return { tokens : tokensByLine, res : !!tree, functionLines : functionLines, errors : JSLINT.errors }
 			}
 			
 			
@@ -749,7 +749,7 @@ for (var i=0; i<10; i++)
 				if (lineCount2 != lineCount || (currentLineNumber2 == currentLineNumber && currentLineText2 != currentLineText))
 					mode = 'typing'
 					
-				
+/*				
 				var str  = getTickCount() + ' '
 				if (mode == 'typing') 	str += '<span style="color: red">' + mode + '</span>'
 				else					str += mode
@@ -759,7 +759,7 @@ for (var i=0; i<10; i++)
 					str += '\n<span style="color: red">PREVIOUS SPAN ON SAME LINE</span>'
 				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
 					str += '\n<span style="color: red"><b>NEXT</b> SPAN ON SAME LINE</span>'
-
+*/
 				// While forward or backward deleting, the next line SPAN came onto the current SPAN. Remove it
 				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
 				{
@@ -771,7 +771,7 @@ for (var i=0; i<10; i++)
 					popCaretSelection()
 					// Selection stays the same, nice !
 				}
-
+/*
 				str += '\nchildNodesCount=' + highlighted.childNodes.length + ' \\n count=' + (highlighted.innerText.match(/\n/g)||0).length
 				
 				str += '\nlineCount=' + lineCount
@@ -785,6 +785,7 @@ for (var i=0; i<10; i++)
 				str += '\n!=currentLineText=' + (currentLineText2 != currentLineText)
 				
 				document.getElementById('dump4').innerHTML = str
+*/				
 //				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
 				
 				
@@ -846,6 +847,26 @@ for (var i=0; i<10; i++)
 				
 				
 				updateBirdView(lines, lint.functionLines)
+//				alert(lint.errors)
+
+				var str = ''
+				for (var i=0; i<lint.errors.length; i++)
+				{
+					var error = lint.errors[i]
+					str += i + '='
+//					str += JSLINT.errors[i].line
+					str += dumpHash(error)
+					str += '<br>'
+//					str += error['reason'] + '<br>'
+//					str += i + '=' + error.reason + '<br>'
+//alert(dumpHash(e))
+//					str += i + '=' + e.line + '<br>'
+				}
+//				alert(lint.errors[0].reason)
+//				alert(str)
+				str = '<span style="color: red">' + str + '</span>'
+				document.getElementById('dump5').innerHTML = str
+
 			}
 			
 			
