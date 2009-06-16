@@ -1,0 +1,150 @@
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<pre>
+	Stratégie
+	* parse tout : produx
+		source :
+			{
+				lines : [ tokens : [], hash : [] ]
+			}
+	
+	* compte les elements markdown et escape &lt;? ... ?&gt;
+	* transform les et compt la hauteur
+	
+	* detect typing, and when 
+		-> typing changes TEXT
+		-> typing changes selection
+		
+	* when TEXT changes
+		-> figure out WHAT changed
+			* typing inside a function ?
+			* typing a NEW function ?
+			* DELETING a function ?
+
+			* creating a new MD comment or text escape ?
+			
+		-> save text selection (line, offset)
+		-> update html
+		-> reset selection
+
+	
+	source
+		all lines ?
+		
+		contains function list
+			-> BIRDVIEW
+				birdview xhib tout les sources
+				
+				
+	DATA OWNERSHIP ? si chac document a son fich, prqoi pas.
+	MAIS la birdview dev soy partage par tous.
+
+
+	//
+	hover variable : SHOW each assignment and usage in the function prior to it. and also the next ones.
+	
+	ATTENTION CTRL+O : insert line in place
+	
+	//
+	make file links clickable, eg include('blah.js')
+								-> click 'blah.js'
+		
+
+	autocomplete : highlight le symbol sur la page s'il exist.
+	
+	
+	special case for option-backspace : delete to back of line
+
+	design bouton : http://recaptcha.net/
+	
+	highlight line bar red when lint fails
+	
+	keying up : extent selection to line start
+
+<hr>
+detect which char i'm hovering on, find which braces i'm in, highlight surrounding code block
+
+<hr>
+
+	DISCARD BOLD and italic and stuff like that.
+
+
+	http://www.quirksmode.org/dom/range_intro.html
+
+	triple selection doesn't work ! should select line
+	quadruple click : select block if (...)
+	quintuple click : select function
+	-> fex vec clickCount dans mouseDown event
+	
+	
+	run a script : trailing whitespace
+	[line.replace(/\s*$/g)] for line in lines
+
+
+
+	rename local variable or function argument
+	
+	
+	shortcut : use plugin for indent and outdent
+
+PROBLEM 
+	* overlapping block on lines
+		eazeaz */ var a = b 
+
+	* return exp plant
+
+////
+
+	* bouton droit, insert -> list comprehension
+	var list = [x] for x in 0..4
+	doThis(y) for y in m
+
+	* call graph : hover sur un fonxion
+	called by
+		responder method
+		first responder …
+		javascript functions …
+		etc.
+
+	* unfold the method list on a right pane.
+		the same content as the popup, but clickable.
+		-> enable it for drag and drop
+	
+	* add the possibility to extra style the source page, eg
+		file:///Users/mini/Sites/mathml/MathML%20Stress%20Tests.xhtml
+		
+	* drag and drop comment start and end
+	
+	* convert spaces to tabs
+	
+	* line extending to show indentations : show a light drop shadow disappearing when approaching the edages, like on the obama website.
+	
+	* line numbers : in a custom div
+	
+	* check when dragging text with mouse
+	
+	* bordure d'indentation : just un roundrect
+	
+	* undo : typing et paste compte pour 2 commands !
+		type, type, paste -> undo : will undo only type
+		
+	* class : record all variables, allow renaming
+	
+	* script : to uppercase, to lowercase -> only identifiers, or only strings.
+	
+	
+<hr>
+	birdview : xhib bookmarks
+
+	auto align on assign
+	
+	var a = 4
+	var bz = 8
+	var hello = 'world'
+	->
+	var a		= 4
+	var bz		= 8
+	var	hello	= 'world'
+
+
+<hr>
+	handle copy paste

@@ -28,7 +28,7 @@
 		#highlighted
 		{
 			white-space: pre;
-			margin-left: 20px;
+			emargin-left: 20px;
 			font-family: monaco;
 			font-size: 7pt;
 			outline: none;
@@ -38,10 +38,16 @@
 		{
 			ebackground-color: #fafafa;
 			position: relative;
+			line-height: 1.3em;
+			min-height: 1.3em;
 		}
 		.selectedLine
 		{
 			background-color: lime;
+			border: solid 1px #888;
+			border-left: 0;
+			border-right: 0;
+			margin: -1px 0;
 		}
 		
 		#dumpHighlighted
@@ -98,21 +104,44 @@
 		}
 
 		/* source styling */
+
+		.lintError
+		{
+			background-color: rgba(255, 240, 240, 0.8);
+		}
+
+
+		.tabspaceviewer
+		{
+			white-space: pre;
+			font-family: monaco;
+			font-size: 7pt;
+		}
 		
+		.visualtab
+		{
+			background-color: red;
+			position: absolute;
+			display: inline-block;
+			border-left: solid 1px #ddd;
+			height: 800px;
+		}
 		
 </style>
 </head>
 <body>
-
-<table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
-	<textarea>
-var a = 'hello'
+		gradient123
+<table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px; width: 1px'>
+	<textarea style='display: none'>
+		var a = 'hello'
 var b = "world"
 var c = 'hello I\'m home'
 
 if ('blah'.match(/[a-zA-Z0-4]/))
 {
 	// do something
+		// do something : check coloring
+			// do something : check coloring while tabbing
 }
 
 function doSomething(pa, pb, pc)
@@ -123,7 +152,7 @@ function doSomething(pa, pb, pc)
 	}
 	function fn32(tryme)
 	{
-		return tryme+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow
+		return tryme+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow
 	}
 	function fn4(pz)
 	{
@@ -152,7 +181,8 @@ for (var i=0; i<10; i++)
 </textarea>
 	<pre id='dump'></pre>
 	
-</td><td>
+</td><td style='width: 20px'></td><td>
+<div class='tabspaceviewer'><span class='visualtab'></span>1234<span class='visualtab'></span>1234<span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    </div>
 	<div id='highlighted' contentEditable='true'></div>
 </td></tr></table>
 <table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
@@ -315,10 +345,44 @@ for (var i=0; i<10; i++)
 				return	space					
 			}
 			
+			
+			function	replaceTabInLine(line, html)
+			{
+				var tabLengths = []
+				function	countTabs(str, idx)
+				{
+					var length = (idx+deltaTabPosition) % tabLength
+					length = tabLength - length
+					// Add spaces to position (minus one to 'remove' the tab)
+					deltaTabPosition += length-1
+					var str = ''
+					for (var i=0; i<length; i++)	str += ' '
+					str = '<span>' + String.fromCharCode(0x200b) + '<span eclass="tab" contentEditable="false">' + str + '</span></span>'
+//					alert(deltaTabPosition + ' length=' + length + '\nstr=' + str + '!')
+					tabLengths.push(str)
+				}
+				var tabIndex = 0
+				function	replaceTabs(str, idx)
+				{
+					return tabLengths[tabIndex++]
+				}
+				var tabLength = 4
+				var deltaTabPosition = 0
+
+				line.replace(/\t/g, countTabs)
+				html = html.replace(/\t/g, replaceTabs)
+//				alert('line=' + line + '\nhtml=' + html)
+//				alert(n1 + ' ' + n2)
+//				rez()
+				return	html
+			}
 			function	writeTokensToLine(node, tokens, line)
 			{
 //				node.innerHTML = '*' + lineContent
 //				alert(tokens)
+				
+//				line = line.replace(/\r/, '').toString()
+				line = line.replace(/\u200b/, '').toString()
 				
 				var i = 0
 				var lastIndex 	= 0
@@ -373,8 +437,26 @@ for (var i=0; i<10; i++)
 					space = htmlEncode(space)
 					str += makeWhitespaceVisible(space)
 				}
+//				str += String.fromCharCode(0xfeff)
+				// Hide newline or Safari will stop on it when keying up while selecting
+				// Add a zero-width space to make empty lines visible
+//				str = str.replace(/\n/, '<span style="display: none">\n</span>')
+//					str = str.replace(/\n/, '<span style="position: absolute; evisibility: hidden">\n</span>')
+//				str += String.fromCharCode(0x200b)
+//				str += 'HANDLE BLANK LINES'
 //str += '\n'				
+				str = replaceTabInLine(line, str)
 				node.innerHTML = str
+//				node.innerHTML = '<span style="position: absolute">bk</span>' + node.innerHTML
+//				if (node.innerText.length == 0)	node.innerHTML += String.fromCharCode(0x200b)
+//				if (node.innerText.length == 0)	node.innerHTML += '\r'
+//				if (node.innerText.length == 0)	node.innerHTML += ' '
+//				alert(node.innerText.length)
+
+
+//				alert(str)
+//				if (node.innerText.match(/^\s*$/)) node.innerHTML += String.fromCharCode(0x200b)
+//				alert('*' + node.innerText + '*' + node.innerText.match(/^\s*$/))
 			}
 			
 
@@ -398,7 +480,7 @@ for (var i=0; i<10; i++)
 				var sel = getSelection()
 				var raw = rawSelection()
 
-				sel.modify('extend', 'left', 'lineboundary')
+				sel.modify('extend', 'left', 'paragraphboundary')
 				var h = { type : 'Caret', line : lineNumberFromNode(sel.anchorNode), offset : sel.toString().length }
 
 				setRawSelection(raw)
@@ -467,8 +549,8 @@ for (var i=0; i<10; i++)
 
 				var lineNumber = lineNumberFromNode(sel.anchorNode)
 //				alert(lineNumber)
-				var str = keyCode + '(' + String.fromCharCode(keyCode) + ') line=' + lineNumber
-				document.getElementById('dump5').innerHTML += str
+//				var str = keyCode + '(' + String.fromCharCode(keyCode) + ') line=' + lineNumber
+//				document.getElementById('dump5').innerHTML += str
 
 
 				//  Insert tab
@@ -575,12 +657,6 @@ for (var i=0; i<10; i++)
 						var leftSpace = line.innerText.substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
 						n.innerText = leftSpace + rightText
 						
-//-> COUNT line number with a LOOP						
-
-//-> WARNING : may happen to have NO span left : select all, backspace -> plus rien
-// -> detex when a span no longer contains a newline
-// check selection change : if extentNode differs ?
-
 						line.insertAdjacentElement('afterEnd', n)
 						line.innerText = line.innerText.substr(0, leftLength) + '\n'
 
@@ -696,7 +772,7 @@ for (var i=0; i<10; i++)
 				str += '\n!=currentLineText=' + (currentLineText2 != currentLineText)
 				
 				document.getElementById('dump4').innerHTML = str
-				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
+//				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
 				
 				
 				if (mode != 'typing')	return
@@ -723,7 +799,7 @@ for (var i=0; i<10; i++)
 				}
 				var lint = lintLines(lines)
 				
-				highlighted.style.backgroundColor = lint.res ? '' : '#fee'
+				highlighted.className = lint.res ? '' : 'lintError'
 
 
 				pushCaretSelection()
@@ -806,65 +882,6 @@ for (var i=0; i<10; i++)
 		</script>
 
 <pre>
-	Stratégie
-	* parse tout : produx
-		source :
-			{
-				lines : [ tokens : [], hash : [] ]
-			}
-	
-	* compte les elements markdown et escape &lt;? ... ?&gt;
-	* transform les et compt la hauteur
-	
-	* detect typing, and when 
-		-> typing changes TEXT
-		-> typing changes selection
-		
-	* when TEXT changes
-		-> figure out WHAT changed
-			* typing inside a function ?
-			* typing a NEW function ?
-			* DELETING a function ?
-
-			* creating a new MD comment or text escape ?
-			
-		-> save text selection (line, offset)
-		-> update html
-		-> reset selection
-
-	
-	source
-		all lines ?
-		
-		contains function list
-			-> BIRDVIEW
-				birdview xhib tout les sources
-				
-				
-	DATA OWNERSHIP ? si chac document a son fich, prqoi pas.
-	MAIS la birdview dev soy partage par tous.
-
-
-	//
-	hover variable : SHOW each assignment and usage in the function prior to it. and also the next ones.
-	
-	ATTENTION CTRL+O : insert line in place
-	
-	//
-	make file links clickable, eg include('blah.js')
-								-> click 'blah.js'
-		
-
-	autocomplete : highlight le symbol sur la page s'il exist.
-	
-	
-	special case for option-backspace : delete to back of line
-
-	design bouton : http://recaptcha.net/
-	
-	highlight line bar red when lint fails
-	
-	keying up : extent selection to line start
 	
 </body>
 </html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Highlighter</title>
+	<style>
+
+		/*
+			Super Awesome Buttons with CSS3 and RGBA
+			http://www.zurb.com/article/266/super-awesome-buttons-with-css3-and-rgba
+		*/
+		.warning
+		{
+			padding: 4px 9px;
+			background: -webkit-gradient(linear, left top, left bottom, from(#ff9944), to(#ff6600));
+			text-shadow: rgba(0, 0, 0, 0.9) 0px -1px 1px, rgba(255, 255, 255, 1) 0px 1px 1px;
+			text-shadow: rgba(0, 0, 0, 0.3) 0px -1px 1px;
+			color: white;
+			font-weight: bold;
+			font-family: helvetica neue;
+			white-space: normal;
+
+
+			-webkit-border-radius: 5px;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 6px;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 5px;
+			
+			display: inline-block;
+			margin: 1em;
+			margin-bottom: 2em;
+			ewidth: 170px;
+			max-width: 170px;
+			emax-width: 70px;
+		}
+		.warningContainer
+		{
+			font-size: 9pt;
+			position: relative;
+			eborder: solid 1px lime;
+		}
+		.arrowContainer
+		{
+			overflow: hidden;
+			width: 30px;
+			height: 15px;
+			display: inline-block;
+			eposition: absolute;
+			emargin-top: 33px;
+			eborder: solid 1px red;
+			emargin-left: 20px;
+			margin-right: -30px;
+			position: relative;
+			left: 20px;
+			top: 22px;
+			font-size: 9pt;
+		}
+		.arrow
+		{
+			position: relative;
+			top: -38px;
+			font-size: 40pt;
+			eborder: solid 1px red;
+			color: #ff6600;
+			text-shadow: rgba(0, 0, 0, 0.2) 0px 4px 3px;
+		}
+		
+		.arrowContainer2
+		{
+			overflow: hidden;
+			width: 30px;
+			height: 15px;
+			display: inline-block;
+			position: absolute;
+			emargin-top: 33px;
+			eborder: solid 1px red;
+			emargin-left: 20px;
+			margin-right: -30px;
+			margin-top: -4px;
+			position: relative;
+			left: 3px;
+			top: -16px;
+			font-size: 9pt;
+			-webkit-transform: rotate(180deg);
+		}
+		.arrow2
+		{
+			position: relative;
+			top: -40px;
+			font-size: 40pt;
+			eborder: solid 1px red;
+			color: #ff9944;
+			etext-shadow: rgba(0, 0, 0, 0.2) 0px 4px 3px;
+		}
+		
+		#undostack
+		{
+			height: 200px;
+		}
+</style>
+</head>
+<body>
+	Refactor bouton : inline block, position: relative, vec les 2 flech en position absolute.
+	<span class='warningContainer'><span class='arrowContainer'><span class='arrow'>▾</span></span><span class='warning'><span class='arrowContainer2'><span class='arrow2'>▾</span></span>Check this out</span></span>
+<p>
+	Some text
+	<span class='warningContainer'><span class='arrowContainer'><span class='arrow'>▾</span></span><span class='warning'><span class='arrowContainer2'><span class='arrow2'>▾</span></span>Expected an assignment or function call and instead saw an expression</span></span>
+	
+	some text
+	
+	 ▼▾
+
+</body>
+</html>

@@ -1299,7 +1299,7 @@ JSLINT = (function () {
                                 warningAt("Dangerous comment.", line, character);
                             }
 							// ## notify of comment token
-							logToken({ type : '(comment)', line : line, from : from, value : '//' + s, character : lines[line].substr(from).length })
+							logToken({ type : '(comment)', line : line, from : from, value : '//' + s, character : lines[line].length })
                             s = '';
                             token.comment = true;
                             break;
