@@ -11,7 +11,7 @@
 		textarea
 		{
 			width: 100%;
-			height: 350px;
+			height: 200px;
 			ecolor: rgba(255, 255, 255, 0.1);
 			background-color: transparent;
 			font-family: courier;
@@ -170,7 +170,7 @@ highlighted2 :
 
 	<div id='highlighted2' econtentEditable='true'>
 Suiv.....	tab
-1**	2	3*	4**
+1**	2	3*	4**	5***	6	7**	8
 <div>1	2	3	4	5	6	7	8	9	0	1	2	3	4	5	6	7	8	a	b	c	d
 </div><div>12	34	56	78	12
 </div><div>123	456	781	234	567
@@ -273,76 +273,31 @@ highlighted2 measure :
 			
 			function	update2()
 			{
-				
 				var r = '<span class="marginedTabContainer">' + String.fromCharCode(0x200b) + ' ' + '<span class="marginedTab">	</span></span>'
-				
-/*
-				r += String.fromCharCode(0x200b)
-				r += String.fromCharCode(0x200b)
-				r += String.fromCharCode(0x200b)
-				r += String.fromCharCode(0x200b)
-*/				
-				var c = 0x200b
-				c = 8
-				c = 0x2020
-/*
-				r = '<span style="edisplay: none; margin-left: 0px" contentEditable="false">'
-				r += String.fromCharCode(c)
-				r += String.fromCharCode(c)
-				r += String.fromCharCode(c)
-				r += String.fromCharCode(c)
-				r += '</span>'
-*/				
-//				r += '<span contentEditable="false">    </span>'
-				r += '<span class="marginedTabContainer">'
-				r += '	'
-//				r += '<span></span></span>'
-				r += '</span>'
-
-				r += '<span style="margin-left: -8px; display: inline-block"></span>'
-//				r = '<span class="marginedTabContainer">' + String.fromCharCode(0x200b) + '<span class="marginedTab2"></span></span>'
-
 				r = '<span class="marginedTabContainer3" estyle="padding-right: 10px"> </span>'
-
+				
+				var sel = getSelection()
+				sel.modify('extend', 'left', 'documentboundary')
+//				alert('k')
+				var l = sel.toString().length
+//				alert(l)
 
 				var tabLength = 4
 				function	replaceTabs(a, b, c)
 				{
-//					alert(a + '*' + b + '*' + c + '*')
-//					rez()
-					
-//					str2 += ' pos=' + b
-//					str2 += ' delta=' + deltaTabPosition
-//					str2 += ' posWithDelta=' + (b+deltaTabPosition)
 					var pos = (b+deltaTabPosition) % tabLength
-					
 					pos = tabLength - pos
-
-//					str2 += ' pos=' + pos
-					
-//					if (!sizes[pos]) sizes[pos] = 0
-//					sizes[pos]++
-					
-/*
-					str2 += ' posWdelta=' + pos
-					pos = 4-pos
-					str2 += ' adjdelta=' + pos
-*/
-//					str2 += '<br>'
 
 					// Add spaces to position (minus one to 'remove' the tab)
 					deltaTabPosition += pos-1
 
 					return '<span class="marginedTabContainer3" style="padding-right:' + (pos-1)*fontWidth +  'px"> ' + '</span>'
-//					var str = ''
-//					for (var i=0; i<pos; i++) str += ' '
-//					str = '<span class="tab"></span>' + str + '<span class="tab2"></span>'
-					
-//					return str
 				}
-
 				
 				var n = document.getElementById('highlighted2')
+				var ns = document.getElementsByClassName('marginedTabContainer3')
+//				alert(ns.length)
+				for (var i=0; i<ns.length; i++) ns[i].innerHTML = '\t'
 				var t = n.innerText
 				var lines = t.split('\n')
 //				var t = t.replace(/\t/g, r)
@@ -356,8 +311,15 @@ highlighted2 measure :
 				}
 				n.innerHTML = lines2.join('\n')
 				
+				
+				sel.selectAllChildren(n)
+				sel.collapseToStart()
+				for (var i=0; i<l; i++)
+					sel.modify('move', 'right', 'character')
+				
 				var n = document.getElementById('highlighted2dump')
 				n.value = t
+//				alert('l')
 			}
 			function	update3()
 			{
@@ -375,7 +337,7 @@ highlighted2 measure :
 			textarea.onkeyup = update
 
 			document.getElementById('highlighted2').onkeyup = update2
-			document.getElementById('highlighted2').onkeyup = update3
+//			document.getElementById('highlighted2').onkeyup = update3
 			update2()
 			update3()
 
