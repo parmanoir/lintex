@@ -29,6 +29,11 @@
 			white-space: pre;
 			font-family: monaco;
 		}
+		#fontWidthMeasurer
+		{
+			white-space: pre;
+			font-family: monaco;
+		}
 		
 		.visualtab
 		{
@@ -36,7 +41,7 @@
 			position: absolute;
 			display: inline-block;
 			border-left: solid 1px #ddd;
-			height: 300px;
+			height: 700px;
 		}
 		
 		.space:before
@@ -57,6 +62,80 @@
 			position: absolute;
 		}
 		
+		#highlighted2
+		{
+			border: solid 1px #ddd;
+			font-family: courier;
+			font-family: Andale Mono;
+			white-space: pre;
+			font-family: monaco;
+
+			-webkit-user-modify: read-write;
+
+		}
+		
+		.marginedTabContainer
+		{
+			background-color: rgba(200, 200, 255, 0.7);
+			epadding-left: 20px;
+			e-webkit-user-modify: read-only;
+			epadding-right: 10px;
+		}
+		.marginedTabContainer span
+		{
+			e-webkit-user-modify: read-only;
+		}
+		.marginedTab:after
+		{
+			content: '!';
+		}
+		.marginedTab
+		{
+			background-color: rgba(255, 200, 200, 0.7);
+			edisplay: inline-block;
+			ewidth: 20px;
+			eclip: rect(0px,1px,1px,0px);
+			margin-right: 120px;
+			evisibility: hidden;
+			display: none;
+/*
+			emargin-left: -5px;
+			margin-left: -1px;
+			
+			
+			display: inline-block;
+			position: relative;
+			z-index: 4;
+			border-left: solid 1px rgba(0, 255, 0, 0.5);
+			border-right: solid 1px rgba(0, 255, 0, 0.5);
+*/
+		}
+		.marginedTab2
+		{
+			padding-left: 8px;
+		}
+		
+		.marginedTabContainer3
+		{
+			background-color: rgba(100, 255, 100, 0.7);
+/*
+			epadding-right: 12px;
+			padding-right: 2.1ex;
+			padding-right: 9pt;
+			padding-right: 12px;
+			edisplay: inline-table;
+			edisplay: inline-block;
+*/
+/*
+block, compact, inline, inline-block, inline-table, list-item, none, run-in, table, table-caption, table-cell, table-column, table-column-group, table-footer-group, table-header-group, table-row, table-row-group
+*/
+		}
+		.marginedTabContainer3:after
+		{
+			econtent: '@';
+			-webkit-user-modify: read-only;
+		}
+		
 </style>
 </head>
 <body>
@@ -64,7 +143,7 @@
 	<textarea>
 Voici un tab
 123456781234567812345
-1	2	3	4	5
+1	2	3	4	5	6	7	8
 12	34	56	78	12
 123	456	781	234	567
 123	4	56	781234	5
@@ -83,8 +162,27 @@ The following lines have the same length
 </textarea>
 <td style='width: 40px'>
 </td><td>
-<div class='tabspaceviewer'><span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    </div>
+	<span id='fontWidthMeasurer'>1</span>
+<div class='tabspaceviewer'><span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    </div>
+
 	<div id='highlighted' contentEditable='true'></div>
+highlighted2 :
+
+	<div id='highlighted2' econtentEditable='true'>
+Suiv.....	tab
+1**	2	3*	4**
+<div>1	2	3	4	5	6	7	8	9	0	1	2	3	4	5	6	7	8	a	b	c	d
+</div><div>12	34	56	78	12
+</div><div>123	456	781	234	567
+</div>123	4	56	781234	5
+1234	5678	1234	5678	1
+12345	67812	34567	81
+123456	789123	456789
+</div>
+highlighted2 dump :
+	<textarea id='highlighted2dump'></textarea>
+highlighted2 measure :
+	<div id='highlighted3' econtentEditable='true'><span>1</span> (used for measure)</div>
 </td></tr></table>
 	<pre id='dump'></pre>
 	<pre id='dump2'></pre>
@@ -104,13 +202,15 @@ The following lines have the same length
 			//
 			// Parse
 			// 
+			var textarea = document.getElementsByTagName('TEXTAREA')[0]
 			function update()
 			{
-				var textarea = document.getElementsByTagName('TEXTAREA')[0]
 				var source = textarea.value
 				
 				var lines = source.split('\n')
 				var str = ''
+				
+				var sizes = {}
 				
 				var tabLength = 4
 				function	replaceTabs(a, b, c)
@@ -126,6 +226,10 @@ The following lines have the same length
 					pos = tabLength - pos
 
 					str2 += ' pos=' + pos
+					
+					if (!sizes[pos]) sizes[pos] = 0
+					sizes[pos]++
+					
 /*
 					str2 += ' posWdelta=' + pos
 					pos = 4-pos
@@ -159,12 +263,122 @@ The following lines have the same length
 					str += line + '\n'
 				}
 				document.getElementById('highlighted').innerHTML = str
+				
+				str2 = dumpHash(sizes) + str2
 				document.getElementById('dump').innerHTML = str2
 			}
 
 			update()
 			
-			document.body.onkeyup = update
+			
+			function	update2()
+			{
+				
+				var r = '<span class="marginedTabContainer">' + String.fromCharCode(0x200b) + ' ' + '<span class="marginedTab">	</span></span>'
+				
+/*
+				r += String.fromCharCode(0x200b)
+				r += String.fromCharCode(0x200b)
+				r += String.fromCharCode(0x200b)
+				r += String.fromCharCode(0x200b)
+*/				
+				var c = 0x200b
+				c = 8
+				c = 0x2020
+/*
+				r = '<span style="edisplay: none; margin-left: 0px" contentEditable="false">'
+				r += String.fromCharCode(c)
+				r += String.fromCharCode(c)
+				r += String.fromCharCode(c)
+				r += String.fromCharCode(c)
+				r += '</span>'
+*/				
+//				r += '<span contentEditable="false">    </span>'
+				r += '<span class="marginedTabContainer">'
+				r += '	'
+//				r += '<span></span></span>'
+				r += '</span>'
+
+				r += '<span style="margin-left: -8px; display: inline-block"></span>'
+//				r = '<span class="marginedTabContainer">' + String.fromCharCode(0x200b) + '<span class="marginedTab2"></span></span>'
+
+				r = '<span class="marginedTabContainer3" estyle="padding-right: 10px"> </span>'
+
+
+				var tabLength = 4
+				function	replaceTabs(a, b, c)
+				{
+//					alert(a + '*' + b + '*' + c + '*')
+//					rez()
+					
+//					str2 += ' pos=' + b
+//					str2 += ' delta=' + deltaTabPosition
+//					str2 += ' posWithDelta=' + (b+deltaTabPosition)
+					var pos = (b+deltaTabPosition) % tabLength
+					
+					pos = tabLength - pos
+
+//					str2 += ' pos=' + pos
+					
+//					if (!sizes[pos]) sizes[pos] = 0
+//					sizes[pos]++
+					
+/*
+					str2 += ' posWdelta=' + pos
+					pos = 4-pos
+					str2 += ' adjdelta=' + pos
+*/
+//					str2 += '<br>'
+
+					// Add spaces to position (minus one to 'remove' the tab)
+					deltaTabPosition += pos-1
+
+					return '<span class="marginedTabContainer3" style="padding-right:' + (pos-1)*fontWidth +  'px"> ' + '</span>'
+//					var str = ''
+//					for (var i=0; i<pos; i++) str += ' '
+//					str = '<span class="tab"></span>' + str + '<span class="tab2"></span>'
+					
+//					return str
+				}
+
+				
+				var n = document.getElementById('highlighted2')
+				var t = n.innerText
+				var lines = t.split('\n')
+//				var t = t.replace(/\t/g, r)
+				var lines2 = []
+				for (var i=0; i<lines.length; i++)
+				{
+					var line = lines[i]
+					var deltaTabPosition = 0
+					line = line.replace(/\t/g, replaceTabs)
+					lines2.push(line)
+				}
+				n.innerHTML = lines2.join('\n')
+				
+				var n = document.getElementById('highlighted2dump')
+				n.value = t
+			}
+			function	update3()
+			{
+				document.getElementById('highlighted2dump').value = document.getElementById('highlighted2').innerHTML
+			}
+			
+			var fontWidth = document.getElementById('fontWidthMeasurer').offsetWidth
+			
+			var highlighted = document.getElementById('highlighted')
+			var highlighted2 = document.getElementById('highlighted2')
+			var highlighted3 = document.getElementById('highlighted3')
+			
+			
+//			document.body.onkeyup = update
+			textarea.onkeyup = update
+
+			document.getElementById('highlighted2').onkeyup = update2
+			document.getElementById('highlighted2').onkeyup = update3
+			update2()
+			update3()
+
 			//
 			// Focus textarea
 			// 
