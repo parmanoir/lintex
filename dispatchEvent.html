@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>dispatchEvent</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+		#source
+		{
+			white-space: pre;
+			-webkit-user-modify: read-write;
+			border: solid 1px #ddd;
+			font-family: Monaco;
+		}
+		
+</style>
+</head>
+<body>
+	
+<div id='source'>hop !
+hello world
+1	2	3	4
+1****	2
+</div>
+
+	<script>
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + o[i] + '\n'
+				return str
+			}
+
+		function	keydown()
+		{
+//			source.parentNode.dispatchEvent(event)
+			event.returnValue = false
+			event.cancelBubble = true
+//			alert(dumpHash(event))
+		}
+		var source = document.getElementById('source')
+		source.onkeydown = keydown
+		
+		setTimeout(function () { source.focus(); getSelection().collapseToStart(); }, 10)
+	</script>
+
+
+<pre>
+	We need to let the browser handle an event then execute code RIGHT AFTER it, in the same run loop cycle.
+	
+	* add an handler 
+	* send the event back to the parent element
+	* prevent default, cancel bubble
+	-> doesn't work with the same event. create a new one ?
+	
+	https://developer.mozilla.org/En/DOM/Element.dispatchEvent	
+		
+
+</body>
+</html>

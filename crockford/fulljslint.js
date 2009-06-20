@@ -774,7 +774,8 @@ JSLINT = (function () {
 //        tx = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z_$][a-zA-Z0-9_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/,
 		// ## Allow unicode identifiers as characters having a charcode > 0xc0. 
 		// That's too broad. Maybe check if eval('var supposedIdentifier') throws ?
-        tx = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/,
+		// added ext <?
+        tx = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|<\?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/,
 // html token
         hx = /^\s*(['"=>\/&#]|<(?:\/|\!(?:--)?)?|[a-zA-Z][a-zA-Z0-9_\-]*|[0-9]+|--|.)/,
 // characters in strings that need escapement
@@ -972,7 +973,7 @@ JSLINT = (function () {
                 return false;
             }
             character = 0;
-			//##
+			//## keep tabs
 //            s = lines[line].replace(/\t/g, tab);
             s = lines[line]
 /*            at = s.search(cx);
@@ -1351,6 +1352,42 @@ JSLINT = (function () {
                             s = s.substr(i + 2);
                             token.comment = true;
                             break;
+
+
+    //      /* js extension
+
+                        case '<?':
+
+							alert('ext')
+							var firstCommentPrefix = '<?'
+                            for (;;) {
+                                i = s.search(/\?>/);
+                                if (i >= 0) {
+									// ## notify of comment token
+									// Last line of comment
+//									var h = !commentLineIndex ? from : 0
+//									alert(commentLineIndex + '\n\nline=' + line + '\n\nfrom=' + from + '\n\ns=' + s)
+									var v = firstCommentPrefix+s.substr(0, i+2)
+									logToken({ type : '(extension)', line : line, from : from, value : v, character: from+v.length })
+                                    break;
+                                }
+								else
+								{
+									// ##
+									// All comment lines but the last one go through here
+									logToken({ type : '(extension)', line : line, from : from, value : firstCommentPrefix + s, character : lines[line].substr(from).length })
+									from = 0
+								}
+                                if (!nextLine()) {
+                                    errorAt("Unclosed extension.", line, character);
+                                }
+								commentLineIndex++
+								firstCommentPrefix = ''
+                            }
+                            character += i + 2;
+                            s = s.substr(i + 2);
+                            token.comment = true;
+							break;
 
     //      /*global /*extern /*members /*jslint */
 

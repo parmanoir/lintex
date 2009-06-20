@@ -8,7 +8,7 @@
 		{
 			font-size: 80%;
 		}
-		textarea
+		.textarea
 		{
 			width: 100%;
 			height: 200px;
@@ -136,11 +136,22 @@ block, compact, inline, inline-block, inline-table, list-item, none, run-in, tab
 			-webkit-user-modify: read-only;
 		}
 		
+		.fakeImageTab
+		{
+			height: 20px; 
+			background-color: rgba(255, 200, 255, 0.5);
+			content:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAAAmJLR0QAAKqNIzIAAAATSURBVHjaYzzAgB8wMYwqGEEKAK5fAOCh+eV3AAAAAElFTkSuQmCC);
+		}
+		.fakeImageTabContainer
+		{
+			opacity: 0.8;
+		}
+		
 </style>
 </head>
 <body>
 <table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
-	<textarea>
+	<textarea class='textarea'>
 Voici un tab
 123456781234567812345
 1	2	3	4	5	6	7	8
@@ -160,6 +171,7 @@ The following lines have the same length
 1	2	3	4	5
 
 </textarea>
+	<pre id='dump'></pre>
 <td style='width: 40px'>
 </td><td>
 	<span id='fontWidthMeasurer'>1</span>
@@ -168,8 +180,9 @@ The following lines have the same length
 	<div id='highlighted' contentEditable='true'></div>
 highlighted2 :
 
+<h1 style="color: red; font-size: 400%">tap post IMG plant selexion</h1>
 	<div id='highlighted2' econtentEditable='true'>
-Suiv.....	tab
+Suiv.....	tab et...	tab ////
 1**	2	3*	4**	5***	6	7**	8
 <div>1	2	3	4	5	6	7	8	9	0	1	2	3	4	5	6	7	8	a	b	c	d
 </div><div>12	34	56	78	12
@@ -180,11 +193,21 @@ Suiv.....	tab
 123456	789123	456789
 </div>
 highlighted2 dump :
-	<textarea id='highlighted2dump'></textarea>
+	<textarea id='highlighted2dump' class='textarea'></textarea>
 highlighted2 measure :
 	<div id='highlighted3' econtentEditable='true'><span>1</span> (used for measure)</div>
+
+
+	<div id='highlighted4' contentEditable='true' style='white-space: pre; border: solid 1px #aaa; font-family: monaco'>
+fakeImageTab		
+HELLO <img src="blank.png" style="width: 24px;"> IMAGE
+HELLO <img esrc="" class='fakeImageTab' style='width: 24px'> IMAGE
+hop
+1	2	3	4
+1<span style="font-size: 50%">	</span>2	3	4
+	</div>
+
 </td></tr></table>
-	<pre id='dump'></pre>
 	<pre id='dump2'></pre>
 	<hr>
 		<script>
@@ -270,35 +293,116 @@ highlighted2 measure :
 
 			update()
 			
+			function	htmlEncode(str)
+			{
+//				return str
+				if (!str)	return ''
+				str = str.replace(/</g, '&lt;')
+				str = str.replace(/</g, '&lt;')
+				str = str.replace(/</g, '&lt;')
+				return str
+			}
+			
+			
+			function	dumpSelection()
+			{
+				var sel = getSelection()
+				
+				var str = getTickCount()
+				if (sel.anchorNode)
+				{
+					str += '\nanchorNode=' + sel.anchorNode + (sel.anchorNode.nodeType == 1 ? htmlEncode(sel.anchorNode.outerHTML) : '')
+					str += '\nanchorNode=' + sel.anchorNode.nodeValue
+//					str += '\nanchorNode=' + htmlEncode(sel.anchorNode.outerHTML)
+//					str += '\nanchorNode.parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML)
+					str += '\nanchorOffset=' + sel.anchorOffset
+				}
+				document.getElementById('dump').innerHTML = str
+			}
 			
 			function	update2()
 			{
-				var r = '<span class="marginedTabContainer">' + String.fromCharCode(0x200b) + ' ' + '<span class="marginedTab">	</span></span>'
-				r = '<span class="marginedTabContainer3" estyle="padding-right: 10px"> </span>'
-				
+//				var r = '<span class="marginedTabContainer">' + String.fromCharCode(0x200b) + ' ' + '<span class="marginedTab">	</span></span>'
+//				r = '<span class="marginedTabContainer3" estyle="padding-right: 10px"> </span>'
+
+				dumpSelection()
+
 				var sel = getSelection()
+//				alert(dumpHash(sel))
+				if (sel.type == 'Range')	return
+/*				
+				var str = getTickCount()
+				if (sel.anchorNode)
+				{
+					str += '\nanchorNode=' + sel.anchorNode
+					str += '\nanchorNode=' + sel.anchorNode.nodeValue
+					str += '\nanchorNode=' + htmlEncode(sel.anchorNode.outerHTML)
+					str += '\nanchorNode.parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML)
+					str += '\nanchorOffset=' + sel.anchorOffset
+				}
+				document.getElementById('dump').innerHTML = str
+*/				
+				var n = document.getElementById('highlighted2')
+				var ns = n.getElementsByClassName('fakeImageTabContainer')
+//				alert(ns.length)
+				
+				var direction = 'afterEnd'
+				if (sel.anchorNode && sel.anchorNode.nodeType == 1 && sel.anchorNode.className == 'fakeImageTabContainer')	direction = 'beforeStart'
+				
+				for (var i=0; i<ns.length; i++) 
+				{
+//					alert('a')
+//					ns[i].innerHTML = '\t'
+//					alert(ns[i].outerHTML)
+//					eaz()
+//					var n2 = document.createElement('SPAN')
+//					n2.innerHTML = '\t'
+//					var img = ns[i].firstChild
+//					ns[i].replaceChild(n2, img)
+//					alert(ns[i].outerHTML)
+//					eaz()
+//					alert('b')
+					var n2 = document.createElement('SPAN')
+					n2.innerText = '\t'
+					ns[i].insertAdjacentElement(direction, n2)
+//					ns[i].replaceNode(n2)
+				} 
+//				alert(n.innerHTML)
+//				alert(ns.length)
+				
 				sel.modify('extend', 'left', 'documentboundary')
 //				alert('k')
 				var l = sel.toString().length
-//				alert(l)
+//				alert(l + '\n' + sel.anchorNode)
 
 				var tabLength = 4
 				function	replaceTabs(a, b, c)
 				{
 					var pos = (b+deltaTabPosition) % tabLength
+					var initialPos = pos
 					pos = tabLength - pos
 
 					// Add spaces to position (minus one to 'remove' the tab)
 					deltaTabPosition += pos-1
 
-					return '<span class="marginedTabContainer3" style="padding-right:' + (pos-1)*fontWidth +  'px"> ' + '</span>'
+					var w = (pos)*fontWidth
+					var s = ''
+//					for (var i=0; i<pos; i++) s += (i+2)
+					for (var i=initialPos; i<tabLength; i++) s += (i+1)
+//					return '<span class="fakeImageTabContainer"><textarea disabled="true" cols="' + pos + '" style="background-color: rgba(0, 255, 0, 0.3); border: 0; margin: 0; padding: 0; font-size: inherit; font-family: inherit; width: 3em">' + s + '</textarea></span>'
+//					return '<span class="fakeImageTabContainer"><input disabled="true" type="text" value="' + s + '" size="' + pos + '" style="background-color: rgba(0, 255, 0, 0.3); border: 0; margin: 0; padding: 0; font-size: inherit; font-family: inherit; margin-left: -1px; margin-right: -1px; "></span>'
+					return '<span class="fakeImageTabContainer"><img class="fakeImageTab" style="width: ' + w + 'px; evisibility: hidden; eopacity: 0.1"></span>'
+
+//					return '<span class="marginedTabContainer3" style="padding-left:' + (pos-1)*fontWidth +  'px"> ' + '</span>'
+//					return '<span class="marginedTabContainer3" style="padding-left:' + (pos-0)*fontWidth +  'px">' + '</span>'
+//					var w = (pos)*fontWidth
+//					return '<span class="marginedTabContainer3" style="padding-right: ' + w +  'px">' + String.fromCharCode(0x200b) + '</span>'
 				}
+//				for (var i=0; i<ns.length; i++) ns[i].parentNode.removeChild(ns[i])
 				
-				var n = document.getElementById('highlighted2')
-				var ns = document.getElementsByClassName('marginedTabContainer3')
-//				alert(ns.length)
-				for (var i=0; i<ns.length; i++) ns[i].innerHTML = '\t'
+				
 				var t = n.innerText
+//				alert(t)
 				var lines = t.split('\n')
 //				var t = t.replace(/\t/g, r)
 				var lines2 = []
@@ -310,7 +414,7 @@ highlighted2 measure :
 					lines2.push(line)
 				}
 				n.innerHTML = lines2.join('\n')
-				
+//				alert('rep !')
 				
 				sel.selectAllChildren(n)
 				sel.collapseToStart()
@@ -337,6 +441,7 @@ highlighted2 measure :
 			textarea.onkeyup = update
 
 			document.getElementById('highlighted2').onkeyup = update2
+			document.getElementById('highlighted2').onmouseup = dumpSelection
 //			document.getElementById('highlighted2').onkeyup = update3
 			update2()
 			update3()
