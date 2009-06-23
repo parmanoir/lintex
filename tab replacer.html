@@ -37,11 +37,12 @@
 		
 		.visualtab
 		{
-			background-color: red;
+			ebackground-color: red;
 			position: absolute;
 			display: inline-block;
-			border-left: solid 1px #ddd;
+			border-left: solid 1px rgba(0, 0, 0, 0.2);
 			height: 700px;
+			edisplay: none;
 		}
 		
 		.space:before
@@ -147,6 +148,39 @@ block, compact, inline, inline-block, inline-table, list-item, none, run-in, tab
 			opacity: 0.8;
 		}
 		
+		#highlighted5
+		{
+			font-family: Monaco;
+			font-size: 7pt;
+			white-space: pre;
+			-webkit-user-modify: read-write;
+			border: solid 1px #888;
+		}
+		
+		.fakeTab5
+		{
+			background-color: rgba(0, 0, 0, 0.2); 
+/*
+			e-webkit-user-modify: read-only; 
+			epadding-left: 24px; 
+			edisplay: inline-block; 
+			ewidth: 24px;
+			
+			edisplay: inline-block;
+			eoverflow: hidden;
+			width: 24px;
+			emargin-right: -16px;
+			width: 200px;
+			epadding-right: 10px;
+			eposition: relative;
+			ez-index: 4;
+*/
+			emargin-right: -16px;
+			edisplay: inline-block;
+			width: 23px;
+			overflow: hidden;
+		}
+		
 </style>
 </head>
 <body>
@@ -171,6 +205,37 @@ The following lines have the same length
 1	2	3	4	5
 
 </textarea>
+<hr>
+<div id='highlighted5' contentEditable='true'>
+	hello world ! <span class='fakeTab5'>	<span>e</span></span> check.
+1<span class='fakeTab5' style='background-color: red; emargin-right: -16px'>	</span><span style='display: inline-block; epadding-right: 24px; background-color: lime; margin-right: -14px'></span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1
+1<span class='fakeTab5'>	</span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1
+
+1<span eclass='fakeTab5' style='background-color: lime; margin-right: 24px'> </span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1
+
+img follows ...
+1<span eclass='fakeTab5' style='background-color: lime; emargin-right: 24px'><img src='' style='width: 36px'></span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1
+
+position absolute follows ...
+1<span eclass='fakeTab5' style='background-color: orange; emargin-right: 24px'> <span style='position: absolute'>*****</span></span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1
+
+
+inline block follows ...
+1<span eclass='fakeTab5' style='background-color: #aac; display: inline-block; padding-right: 20px; ewidth: 32px; emargin-right: 4px; overflow: hidden'> </span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1
+
+inline-block will make selection jump up and down.<span style="color: red">CHECK WITH LINES ENCLOSED IN DIVS</span> cured w/ div ! bof. NON. un ligne de code spannan plusier lign visuel plant.
+
+<div>inline block in DIV follows ...</div><div>1<span eclass='fakeTab5' style='background-color: #aac; display: inline-block; padding-right: 20px; ewidth: 32px; emargin-right: 4px; overflow: hidden'> </span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1</div><div>div line</div>
+
+
+
+Hello button <button>a</button> eza <field>eaz</field>
+
+5------<span class='fakeTab5'>	</span>6----<span class='fakeTab5'>	</span>7----<span class='fakeTab5'>	</span>8
+	this is a test.
+<span class='fakeTab5'>	</span></div>
+use scrollLeft to show cursor
+
 	<pre id='dump'></pre>
 <td style='width: 40px'>
 </td><td>
@@ -311,10 +376,10 @@ hop
 				var str = getTickCount()
 				if (sel.anchorNode)
 				{
-					str += '\nanchorNode=' + sel.anchorNode + (sel.anchorNode.nodeType == 1 ? htmlEncode(sel.anchorNode.outerHTML) : '')
+//					str += '\nanchorNode=' + sel.anchorNode + (sel.anchorNode.nodeType == 1 ? htmlEncode(sel.anchorNode.outerHTML) : '')
 					str += '\nanchorNode=' + sel.anchorNode.nodeValue
 //					str += '\nanchorNode=' + htmlEncode(sel.anchorNode.outerHTML)
-//					str += '\nanchorNode.parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML)
+					str += '\nanchorNode.parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML).substr(0, 50)
 					str += '\nanchorOffset=' + sel.anchorOffset
 				}
 				document.getElementById('dump').innerHTML = str
@@ -389,9 +454,14 @@ hop
 					var s = ''
 //					for (var i=0; i<pos; i++) s += (i+2)
 					for (var i=initialPos; i<tabLength; i++) s += (i+1)
-//					return '<span class="fakeImageTabContainer"><textarea disabled="true" cols="' + pos + '" style="background-color: rgba(0, 255, 0, 0.3); border: 0; margin: 0; padding: 0; font-size: inherit; font-family: inherit; width: 3em">' + s + '</textarea></span>'
+//					return '<span class="fakeImageTabContainer"><textarea disabled="true" cols="' + pos + '" style="background-color: rgba(0, 255, 0, 0.3); border: 0; margin: 0; padding: 0; font-size: inherit; font-family: inherit; ewidth: 8px; overflow: hidden">' + s + '</textarea></span>'
 //					return '<span class="fakeImageTabContainer"><input disabled="true" type="text" value="' + s + '" size="' + pos + '" style="background-color: rgba(0, 255, 0, 0.3); border: 0; margin: 0; padding: 0; font-size: inherit; font-family: inherit; margin-left: -1px; margin-right: -1px; "></span>'
-					return '<span class="fakeImageTabContainer"><img class="fakeImageTab" style="width: ' + w + 'px; evisibility: hidden; eopacity: 0.1"></span>'
+//					return '*'
+
+//					return "<img src='' style='width: " + w + "px'>"
+					return "<span eclass='fakeTab5' style='background-color: lime; emargin-right: 24px'><img src='' style='width: " + w + "px'></span>"
+
+//					return '<span class="fakeImageTabContainer"><img class="fakeImageTab" style="width: ' + w + 'px; evisibility: hidden; eopacity: 0.1"></span>'
 
 //					return '<span class="marginedTabContainer3" style="padding-left:' + (pos-1)*fontWidth +  'px"> ' + '</span>'
 //					return '<span class="marginedTabContainer3" style="padding-left:' + (pos-0)*fontWidth +  'px">' + '</span>'
@@ -435,7 +505,34 @@ hop
 			var highlighted = document.getElementById('highlighted')
 			var highlighted2 = document.getElementById('highlighted2')
 			var highlighted3 = document.getElementById('highlighted3')
+
+			var highlighted5 = document.getElementById('highlighted5')
 			
+			function	update5()
+			{
+				dumpSelection()
+				
+				var sel = getSelection()
+				var p = sel.anchorNode.parentNode
+				var str = '\n'
+				if (p.nodeType == 1 && p.className == 'fakeTab5')
+				{
+					str += 'FAKETAB'
+//					p.scrollLeft = 5000000
+					
+					var newSelection = sel.anchorNode.parentNode.nextSibling
+//					alert(sel.anchorNode.parentNode.nextSibling)
+//					alert(sel.anchorNode.parentNode.nextSibling.nodeValue)
+//					alert('k')
+//					sel.setPosition(highlighted5, 0)
+//					alert('k')
+//					sel.setPosition(newSelection, 0)
+//					p.paddingRight = 10
+				}
+				document.getElementById('dump').innerHTML += str
+			}
+//				alert('make button to select post tab')
+			highlighted5.onkeyup = update5
 			
 //			document.body.onkeyup = update
 			textarea.onkeyup = update

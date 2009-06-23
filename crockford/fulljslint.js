@@ -1357,8 +1357,6 @@ JSLINT = (function () {
     //      /* js extension
 
                         case '<?':
-
-							alert('ext')
 							var firstCommentPrefix = '<?'
                             for (;;) {
                                 i = s.search(/\?>/);

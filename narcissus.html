@@ -85,7 +85,7 @@
 		}
 
 
-		
+/*		
 		.newline:before
 		{
 			content: '¶';
@@ -98,10 +98,11 @@
 		{
 			content: '→';
 		}
+*/
 		.newline, .space, .tab
 		{
 			color: rgb(83, 180, 255);
-			position: absolute;
+			eposition: absolute;
 		}
 
 		/* source styling */
@@ -176,6 +177,11 @@ for (var i=0; i<10; i++)
 {
 	// do stuff ...
 }
+
+	&lt;?minitex 2
+		hop
+		la
+	?&gt;
 </textarea>
 	<pre id='dump'></pre>
 	
@@ -302,10 +308,15 @@ for (var i=0; i<10; i++)
 			{
 				var line = token.line
 				
-				token.toString = toStringToken
+//				token.toString = toStringToken
 				
 				if (!tokensByLine[line])	tokensByLine[line] = []
 				tokensByLine[line].push(token)
+				
+				if (token.type == '(extension)')
+				{
+//					alert(dumpHash(token))
+				}
 			}
 			function	logStatement(statement)
 			{
@@ -364,7 +375,7 @@ for (var i=0; i<10; i++)
 //					str = '<span>' + String.fromCharCode(0x200b) + '<span eclass="tab" contentEditable="false">' + str + '</span></span>'
 //					str = '<span style="display: inline-block; width: 3ex">' + '\t' + '</span>'
 //					str = '<span style="display: inline-block; width: 20px">' + '' + '</span>'
-					str = '<span>' + String.fromCharCode(0x200b) + '</span><span style="padding-left: 20px">' + '' + '</span>'
+//					str = '<span>' + String.fromCharCode(0x200b) + '</span><span style="padding-left: 20px">' + '' + '</span>'
 
 
 //					alert(deltaTabPosition + ' length=' + length + '\nstr=' + str + '!')
@@ -379,7 +390,7 @@ for (var i=0; i<10; i++)
 				var deltaTabPosition = 0
 
 				line.replace(/\t/g, countTabs)
-				html = html.replace(/\t/g, replaceTabs)
+//				html = html.replace(/\t/g, replaceTabs)
 //				alert('line=' + line + '\nhtml=' + html)
 //				alert(n1 + ' ' + n2)
 //				rez()
@@ -391,7 +402,7 @@ for (var i=0; i<10; i++)
 //				alert(tokens)
 				
 //				line = line.replace(/\r/, '').toString()
-				line = line.replace(/\u200b/, '').toString()
+//				line = line.replace(/\u200b/, '').toString()
 				
 				var i = 0
 				var lastIndex 	= 0
@@ -458,7 +469,24 @@ for (var i=0; i<10; i++)
 //				str += 'HANDLE BLANK LINES'
 //str += '\n'				
 				str = replaceTabInLine(line, str)
+				str = '<div style="position: relative; z-index: 4">' + str + '</span>'
 				node.innerHTML = str
+				var n2 = document.createElement('DIV')
+//				en2.style.visibility = 'hidden'
+				var lineSpaced = line
+				lineSpaced = lineSpaced.replace(/ /g, '<span class="space">·</span>')
+				lineSpaced = lineSpaced.replace(/\t/g, '<span class="tab">→</span>')
+				lineSpaced = lineSpaced.replace(/\n/g, '<span class="newline">¶</span>')
+				n2.innerHTML = lineSpaced
+				n2.style.position = 'absolute'
+				n2.style.width = '100%'
+				node.insertBefore(n2, node.firstChild)
+				var f = n2.firstChild
+				while (f)
+				{
+					if (f.nodeType == 3)	f.nodeValue = f.nodeValue.replace(/./g, ' ')
+					f = f.nextSibling
+				}
 //				node.innerHTML = '<span style="position: absolute">bk</span>' + node.innerHTML
 //				if (node.innerText.length == 0)	node.innerHTML += String.fromCharCode(0x200b)
 //				if (node.innerText.length == 0)	node.innerHTML += '\r'
