@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>4 tab replacer img</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+		
+		#highlighted
+		{
+			border: solid 1px #ddd;
+			-webkit-user-modify: read-write;
+			white-space: pre;
+			font-family: monaco;
+		}
+		
+		img
+		{
+			content: 'hello';
+			display: inline;
+			width: 24px;
+			padding: 4px;
+			overflow: visible;
+		}
+		.fakeTab0
+		{
+			econtent: 'BLAH';
+			emargin-left: -24px;
+			emargin-right: -24px;
+			efont-size: 0;
+			edisplay: none;
+			efont-size: 0;
+			epadding-left: 1em;
+			evisibility: hidden;
+			eposition: fixed;
+			border: solid 1px rgba(255, 0, 0, 0.5);
+			eborder-right: solid 30px lime;
+			efloat: left;
+			eposition: fixed;
+			eposition: relative;
+			eleft: -60px;
+		}
+		.fakeTab
+		{
+			eborder: solid 1px rgba(0, 255, 0, 0.3);
+			background-color: rgba(0, 255, 0, 0.5);
+			emargin-right: 24px;
+			display: inline-block;
+			width: 24px;
+			overflow: hidden;
+		}
+		
+</style>
+</head>
+<body>
+
+	<div id='highlighted'>
+<div>		Hello<span class='fakeTab'>	</span>test	
+	=</div><div>		test<span class='fakeTab'>	</span>obst<span class='fakeTab'>	</span>obst<span class='fakeTab'>	</span>objzae st<span class='fakeTab'>	</span>ob  st<span class='fakeTab'>	</span>ob   st<span class='fakeTab'>	</span>ob st<span class='fakeTab'>	</span>obect
+	</div><div>		test<span class='fakeTab'>	</span>fakst<span class='fakeTab'>	</span>ob  st<span class='fakeTab'>	</span>ob st<span class='fakeTab'>	</span>obect klzejrezlkjr st<span class='fakeTab'>	</span>ob eklzrjzelkj st<span class='fakeTab'>	</span>ob jdslk st<span class='fakeTab'>	</span>obe span
+	</div><div>		1<span class='fakeTab'>	</span>2<span class='fakeTab'>	</span>3<span class='fakeTab'>	</span>4fin st<span class='fakeTab'>	</span>ob kldfjzelkjrlzek st<span class='fakeTab'>	</span>obezkrj st<span class='fakeTab'>	</span>ob st<span class='fakeTab'>	</span>obst<span class='fakeTab'>	</span>ob st<span class='fakeTab'>	</span>obezrkjezlkrj st<span class='fakeTab'>	</span>ob
+	</div><div>		1	2	3	4fin
+	</div><div>		1234
+	</div><div>		test<span class='fakeTab'>	</span>fake tab
+	</div>
+	</div>
+	
+<pre>
+<div id='dump'></div>
+
+		<script>
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + (o[i]) + '\n'
+				return str
+			}
+			function	htmlEncode(str)
+			{
+//				return str
+				return str.replace(/</g, '&lt;')
+				return str.replace(/</g, '&lt;')
+				return str.replace(/</g, '&lt;')
+			}
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+
+
+			var highlighted = document.getElementById('highlighted')
+			highlighted.innerHTML = highlighted.innerHTML.replace(/\n/g, '')
+			function	focusMe()
+			{
+				highlighted.focus()
+				getSelection().collapseToStart()
+			}
+			setTimeout(focusMe, 10)
+			
+			
+			function	keydown()
+			{
+				setTimeout(dumpSelection, 0)
+			}
+			function	mousedown()
+			{
+				setTimeout(dumpSelection, 0)
+			}
+			
+			function	dumpSelection()
+			{
+				var sel = getSelection()
+				var str = getTickCount()
+//					alert(dumpHash(sel))
+//					alert(n)
+				try
+				{
+					str += '\nsel=' + sel.toString() + '!'
+					var n = sel.anchorNode
+					str += '\nanchorNode=&lt;' + (n.nodeValue || htmlEncode(n.outerHTML)) + '&gt;'
+					str += '\nanchorOffset=' + sel.anchorOffset
+					if (n.nodeValue)
+						str += '\nanchor=&lt;' + n.nodeValue.substr(0, sel.anchorOffset) + '<span style="color: red">*</span>' + n.nodeValue.substr(sel.anchorOffset) + '&gt;'
+					var n = n.parentNode
+					str += '\nanchorNode.parentNode=&lt;' + (n.nodeValue || htmlEncode(n.outerHTML)) + '&gt;'
+					
+					var fakeTab
+					if (n && n.nodeType == 1 && n.className == 'fakeTab')
+					{
+						str += '\n<span style="color: red">fakeTab scrollLeft=' + n.scrollLeft + '</span>'
+//						alert(n.scrollLeft)
+//						n.scrollLeft = 30000
+//						n.scrollLeft = n.offsetWidth
+//						str += '\nscrollLeft=clientWidth=' + n.clientWidth
+						str += '\nclientWidth=' + n.clientWidth
+						
+						fakeTab = n
+					}
+					while (n && n.tagName != 'DIV') n = n.parentNode
+					if (n)
+						str += '\n<b>line=</b>' + n.innerText
+					
+					if (fakeTab && fakeTab.nextSibling && fakeTab.nextSibling.className != 'fakeTabHighlighter')
+					{
+//						alert(fakeTab.nextSibling)
+
+						// This temporary fake element will ensure cursor blinks. As it contains nothing, it will disappear on next highlight.
+						var n2 = document.createElement('SPAN')
+						n2.className = 'fakeTabHighlighter'
+						var n3 = document.createTextNode('')
+						n2.appendChild(n3)
+						fakeTab.insertAdjacentElement('afterEnd', n2)
+						
+						fakeTab.scrollLeft = n.clientWidth
+						
+//						sel.setPosition(fakeTab.nextSibling, 1)
+//						sel.setPosition(fakeTab.nextSibling, 0)
+					}
+					
+//					var n = sel.extentNode
+//					str += '\nextentNode=&lt;' + (n.nodeValue || htmlEncode(n.outerHTML)) + '&gt;'
+				}
+				catch (e)
+				{
+					str += '\nselection fail'
+				}
+				document.getElementById('dump').innerHTML = str
+			}
+			highlighted.onkeydown = keydown
+			highlighted.onmousedown = keydown
+		</script>
+
+<pre>
+	
+	can IMG be treated as a standard html node containing text ?
+
+</body>
+</html>

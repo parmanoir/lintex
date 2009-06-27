@@ -25,7 +25,7 @@
 			vertical-align: top;
 			width: 50%;
 		}
-		#highlighted
+		#highlighted, #fontWidthMeasurer
 		{
 			white-space: pre;
 			emargin-left: 20px;
@@ -99,10 +99,17 @@
 			content: '→';
 		}
 */
+/*
 		.newline, .space, .tab
 		{
 			color: rgb(83, 180, 255);
 			eposition: absolute;
+		}
+*/
+
+		.newline
+		{
+			display: none;
 		}
 
 		/* source styling */
@@ -119,7 +126,7 @@
 			font-family: monaco;
 			font-size: 7pt;
 		}
-		
+
 		.visualtab
 		{
 			background-color: red;
@@ -128,6 +135,24 @@
 			border-left: solid 1px #ddd;
 			height: 800px;
 		}
+
+		.fakeTab
+		{
+			eborder: solid 1px red; 
+			height: 2px; 
+			background-color: lime;			
+		}
+		
+		#fontWidthMeasurer
+		{
+			position: absolute;
+			top: -30000px;
+		}
+		#rawSourceFromLineExtractor
+		{
+			display: none;
+		}
+		
 		
 </style>
 </head>
@@ -183,6 +208,12 @@ for (var i=0; i<10; i++)
 		la
 	?&gt;
 </textarea>
+
+<!-- Measures the width of one char -->
+<div id='fontWidthMeasurer'><span>*</span> measures font width</div>
+<!-- readRawSourceFromLine copies line in here and reads it. As the process is destructive, copying it won't affect original source -->
+<div id='rawSourceFromLineExtractor'></div>
+
 	<pre id='dump'></pre>
 	
 </td><td style='width: 20px'></td><td>
@@ -195,9 +226,10 @@ for (var i=0; i<10; i++)
 <td>
 	<pre id='dump3'></pre>
 </tr></table>
+	<button onclick="clearDumps()">Clear</button>
 	<pre id='dump4'></pre>
 	<pre id='dump5'></pre>
-	<button onclick="document.getElementById('dump2').innerHTML = ' ', document.getElementById('dump3').innerHTML = ' ', document.getElementById('dump4').innerHTML = ' ', document.getElementById('dump5').innerHTML = ' '">Clear</button>
+	<pre id='dump6'></pre>
 
 	<script src="crockford/json2.js"></script>
 	<script src="crockford/fulljslint.js"></script>
@@ -369,8 +401,14 @@ for (var i=0; i<10; i++)
 					length = tabLength - length
 					// Add spaces to position (minus one to 'remove' the tab)
 					deltaTabPosition += length-1
-					var str = ''
-					for (var i=0; i<length; i++)	str += ' '
+					
+					tabLengths.push(length)
+//					var str = ''
+//					for (var i=0; i<length; i++)	str += ' '
+					
+					
+//					return "<img class='fakeTab5' src='' style='eborder: solid 1px red; height: 2px; background-color: lime; width: " + w + "px'>"
+
 //					str = '<span>' + String.fromCharCode(0x200b) + '<span eclass="tab" contentEditable="false">' + str + '</span></span>'
 //					str = '<span>' + String.fromCharCode(0x200b) + '<span eclass="tab" contentEditable="false">' + str + '</span></span>'
 //					str = '<span style="display: inline-block; width: 3ex">' + '\t' + '</span>'
@@ -379,18 +417,20 @@ for (var i=0; i<10; i++)
 
 
 //					alert(deltaTabPosition + ' length=' + length + '\nstr=' + str + '!')
-					tabLengths.push(str)
+//					tabLengths.push(str)
 				}
 				var tabIndex = 0
 				function	replaceTabs(str, idx)
 				{
-					return tabLengths[tabIndex++]
+					// A tab is an IMG sized to charWidth (measured in fontWidthMeasurer)
+					// This is only for display, as source retains original \t
+					return "<img class='fakeTab' src='' style='width: " + tabLengths[tabIndex++]*charWidth + "px'>"
 				}
 				var tabLength = 4
 				var deltaTabPosition = 0
 
 				line.replace(/\t/g, countTabs)
-//				html = html.replace(/\t/g, replaceTabs)
+				html = html.replace(/\t/g, replaceTabs)
 //				alert('line=' + line + '\nhtml=' + html)
 //				alert(n1 + ' ' + n2)
 //				rez()
@@ -414,8 +454,7 @@ for (var i=0; i<10; i++)
 					if (token.value && token.from > lastIndex)
 					{
 						var space = line.substr(lastIndex, token.from-lastIndex)
-						space = htmlEncode(space)
-						str += makeWhitespaceVisible(space)						
+						str += htmlEncode(space)
 					}
 					var c = ''
 					var v = token.value
@@ -454,14 +493,15 @@ for (var i=0; i<10; i++)
 				if (lastIndex < line.length)
 				{
 					var space = line.substr(lastIndex)
-					space = htmlEncode(space)
-					str += makeWhitespaceVisible(space)
+					str += htmlEncode(space)
 				}
 //				str += String.fromCharCode(0xfeff)
 				// Hide newline or Safari will stop on it when keying up while selecting
 				// Add a zero-width space to make empty lines visible
 //				str = str.replace(/\n/, '<span style="display: none">\n</span>')
-				str = str.replace(/\n/, '<span style="display: none">\n</span><span style="margin-left: 1px"></span>')
+//				str = str.replace(/\n/, '<span style="display: none">\n</span><span style="margin-left: 1px"></span>')
+
+				str = str.replace(/\n/, '<span class="newline">\n</span>')
 
 
 //					str = str.replace(/\n/, '<span style="position: absolute; evisibility: hidden">\n</span>')
@@ -469,24 +509,27 @@ for (var i=0; i<10; i++)
 //				str += 'HANDLE BLANK LINES'
 //str += '\n'				
 				str = replaceTabInLine(line, str)
-				str = '<div style="position: relative; z-index: 4">' + str + '</span>'
+//				str = '<div style="position: relative; z-index: 4">' + str + '</span>'
 				node.innerHTML = str
+/*
 				var n2 = document.createElement('DIV')
 //				en2.style.visibility = 'hidden'
 				var lineSpaced = line
 				lineSpaced = lineSpaced.replace(/ /g, '<span class="space">·</span>')
-				lineSpaced = lineSpaced.replace(/\t/g, '<span class="tab">→</span>')
+				lineSpaced = lineSpaced.replace(/\t/g, '<span class="tab"><span style="position: absolute">→</span>	</span>')
 				lineSpaced = lineSpaced.replace(/\n/g, '<span class="newline">¶</span>')
 				n2.innerHTML = lineSpaced
 				n2.style.position = 'absolute'
 				n2.style.width = '100%'
-				node.insertBefore(n2, node.firstChild)
+//				node.insertBefore(n2, node.firstChild)
+
 				var f = n2.firstChild
 				while (f)
 				{
 					if (f.nodeType == 3)	f.nodeValue = f.nodeValue.replace(/./g, ' ')
 					f = f.nextSibling
 				}
+*/				
 //				node.innerHTML = '<span style="position: absolute">bk</span>' + node.innerHTML
 //				if (node.innerText.length == 0)	node.innerHTML += String.fromCharCode(0x200b)
 //				if (node.innerText.length == 0)	node.innerHTML += '\r'
@@ -498,6 +541,41 @@ for (var i=0; i<10; i++)
 //				if (node.innerText.match(/^\s*$/)) node.innerHTML += String.fromCharCode(0x200b)
 //				alert('*' + node.innerText + '*' + node.innerText.match(/^\s*$/))
 			}
+
+			//
+			// Get raw text from highlighted line
+			//
+			function	readRawSourceFromLineQuicker(line)
+			{
+				// Restore newlines
+				var ns = line.getElementsByClassName('newline')
+				for (var i=0; i<ns.length; i++) 
+				{
+					var n = ns[i]
+					n.className = ''
+				}
+				
+				// Restore tabs
+				var ns = line.getElementsByClassName('fakeTab')
+				for (var i=0; i<ns.length; i++) 
+				{
+					var n2 = document.createElement('SPAN')
+					n2.className = 'realTab'
+					n2.innerText = '\t'
+					ns[i].insertAdjacentElement('beforeBegin', n2)
+				} 
+				return	line.innerText
+			}
+			
+			function	readRawSourceFromLine(line)
+			{
+				var n = document.getElementById('rawSourceFromLineExtractor')
+				n.innerHTML = '<div>' + line.innerHTML + '</div>'
+//				alert(n.innerHTML)
+//				return ''
+				return	readRawSourceFromLineQuicker(n.firstChild)
+			}
+			
 			
 
 			var selectionStack = []
@@ -521,7 +599,31 @@ for (var i=0; i<10; i++)
 				var raw = rawSelection()
 
 				sel.modify('extend', 'left', 'paragraphboundary')
-				var h = { type : 'Caret', line : lineNumberFromNode(sel.anchorNode), offset : sel.toString().length }
+				var selectionText = sel.toString()
+				var length = selectionText.length
+				var range = sel.getRangeAt(0)
+				// If there are no real tabs (\t) in the line, try checking for fake ones (img class='fakeTab')
+				if (range && selectionText.indexOf('	') == -1)
+				{
+//					length += range
+					
+					var n = range.endContainer
+//					alert(dumpHash(sel))
+					if (!n.previousSibling) n = n.parentNode
+					// Account for tabs
+					while (n)
+					{
+//						alert('*' + sel.toString() + '*\nc=' + range.endContainer)
+						if (n.nodeType == 1 && n.className == 'fakeTab')	length++
+						n = n.previousSibling
+					}
+//					alert(dumpHash(sel))
+//					alert(dumpHash(range))
+//					alert(range.toString())
+				}
+				var h = { type : 'Caret', line : lineNumberFromNode(sel.anchorNode), offset : length }
+
+				document.getElementById('dump6').innerHTML += '\nselectionAsLineAndOffset line=' + h.line + ', offset=' + h.offset
 
 				setRawSelection(raw)
 
@@ -545,6 +647,11 @@ for (var i=0; i<10; i++)
 //				alert(s.line + ' ' + s.offset)
 				setSelectionAsLineAndOffset(s.line, s.offset)
 			}
+			function	caretSelectionOnStack()
+			{
+				if (!selectionStack.length)	return
+				return	selectionStack[selectionStack.length-1]
+			}
 			
 			
 			var lineCount
@@ -566,23 +673,26 @@ for (var i=0; i<10; i++)
 				if (sel.type != 'Caret' && sel.type != 'Range')	return
 				
 				var line = lineNodeFromNode(sel.anchorNode)
-				
+/*				
 				if (line.innerText.length > 1)
 				{
 					var brs = line.getElementsByTagName('BR')
 					for (var i=0; i<brs.length; i++) brs[i].parentNode.removeChild(brs[i])
 				}
+*/
 //				if (sel.anchorNode == highlighted || sel.extentNode == highlighted)
+
 				if (!line)
 				{
-					alert('TEXT NOT IN SPAN')
+					alert('Caret is not in a DIV')
 					return
 				}
 					
 				var lineNode 		= lineNodeFromNode(sel.anchorNode)
 				lineCount			= highlighted.childNodes.length
 				currentLineNumber 	= lineNumberFromNode(sel.anchorNode)
-				currentLineText 	= lineNode.innerText
+//				currentLineText 	= lineNode.innerText
+				currentLineText		= readRawSourceFromLine(lineNode)
 //				previousLineText	= lineNode.previousSibling ? lineNode.previousSibling.innerText : null
 //				nextLineText		= lineNode.nextSibling ? lineNode.nextSibling.innerText : null
 				
@@ -598,30 +708,46 @@ for (var i=0; i<10; i++)
 				{
 					event.preventDefault()
 					var lineNumber2 = lineNumberFromNode(sel.extentNode)
+					// Insert a single tab
 					if (lineNumber == lineNumber2)
 					{
 						if (sel.type == 'Range')	sel.deleteFromDocument()
 						pushCaretSelection()
-						
-						var t = lineNode.innerText
-						lineNode.innerText = t
+//alert('1')						
+						var t = currentLineText
+//						lineNode.innerText = t
+						var offset = caretSelectionOnStack().offset
+//alert('2')						
+//alert('3')						
+						var left = t.substr(0, offset)
+						var right = t.substr(offset)
+//						alert(left + '<CARET>' + right)
+//						alert('offset=' + offset + '\ntext=' + t + '\n\n\nleft=' + left + '\n\n\nright=' + right)
+						lineNode.innerText = left + '\t' + right
+//alert('4')						
 						popCaretSelection()
-						lineNode.innerText = t.substr(0, sel.anchorOffset) + '\t' + t.substr(sel.anchorOffset)
+						// Advance after tabbing
 						sel.modify('move', 'right', 'character')
+//alert('5')						
+				document.getElementById('dump6').innerHTML += '\nselectionAsLineAndOffset line=' + h.line + ', offset=' + h.offset
+
 					}
 					else
+					// Move lines back and from
 					{
 //						alert(sel.extentNode.parentNode.innerText + ' ' + sel.extentOffset)
 //						alert('tab selection TODO, account shift')
 						
 //						pushRangeSelection()
+/*
 						var str = 'when shift selecting keyboard, selection differs and selects part of the first line'
 						str += '\nanchor=(' + sel.anchorOffset + ')' + lineNodeFromNode(sel.anchorNode).innerText
 						str += '\nextent=(' + sel.extentOffset + ')' + lineNodeFromNode(sel.extentNode).innerText
 						str += '\nbase=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
 						str += '\noffset=(' + sel.focusOffset + ')' + lineNodeFromNode(sel.focusNode).innerText
 						alert(str)
-
+*/
+alert('SEL TAB MULTIPLE LINES')
 						// Keyboard selecting lines will select the next line with a zero offset
 						// happens on triple-clicking left space on tabs on a function
 						if (sel.extentOffset == 0) lineNumber2--
@@ -638,6 +764,7 @@ for (var i=0; i<10; i++)
 						
 						for (var i=lineNumber; i<=lineNumber2; i++)
 						{
+							alert('change innerText to READ')
 							var line = nodeFromLineNumber(i)
 							if (!event.shiftKey)
 								line.innerText = '\t' + line.innerText
@@ -660,13 +787,12 @@ for (var i=0; i<10; i++)
 				// Check enter and CTRL+O
 				if (keyCode == 13 || (keyCode == 79 && event.ctrlKey))
 				{
-					
 					if (sel.type == 'Caret')
 					// OR if one line range
 					{
 						event.preventDefault()
 						pushCaretSelection()
-						lineNode.innerText = lineNode.innerText
+						lineNode.innerText = readRawSourceFromLineQuicker(lineNode)
 						popCaretSelection()
 						var l = lineNumberFromNode(sel.anchorNode)
 						
@@ -744,6 +870,7 @@ for (var i=0; i<10; i++)
 					// Will be called even after ALT-L (select address bar), check if we have a selection
 					if (sel.type == 'None')	return
 					
+					alert('ADD READ')
 					var newLines = highlighted.innerText.split('\n')
 					highlighted.innerHTML = ''
 //					alert(newLines.length)
@@ -767,13 +894,17 @@ for (var i=0; i<10; i++)
 					line.className += ' selectedLine'
 				}
 				
-
 				var lineCount2			= highlighted.childNodes.length
 				var currentLineNumber2 	= lineNumberFromNode(sel.anchorNode)
-				var currentLineText2 	= lineNodeFromNode(sel.anchorNode).innerText
+				
+				var currentLineText2 	= readRawSourceFromLine(lineNodeFromNode(sel.anchorNode))
+
+//alert(currentLineText + '\n\n' + currentLineText2 + '\n\n\nn1=' + currentLineNumber + '\nn2=' + currentLineNumber2)
 				
 				var mode = 'selecting'
-				if (lineCount2 != lineCount || (currentLineNumber2 == currentLineNumber && currentLineText2 != currentLineText))
+				var moved = lineCount2 != lineCount
+				var lineChanged = !(currentLineNumber2 == currentLineNumber && currentLineText2 == currentLineText)
+				if (moved || lineChanged)
 					mode = 'typing'
 					
 /*				
@@ -791,9 +922,9 @@ for (var i=0; i<10; i++)
 				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
 				{
 					pushCaretSelection()
-					line.innerText = line.innerText
-					line.nextSibling.innerText = line.nextSibling.innerText
-					line.innerText += line.nextSibling.innerText
+					line.innerText = readRawSourceFromLineQuicker(line)
+					line.nextSibling.innerText = readRawSourceFromLineQuicker(line.nextSibling)
+					line.innerText += readRawSourceFromLine(line.nextSibling)
 					line.nextSibling.parentNode.removeChild(line.nextSibling)
 					popCaretSelection()
 					// Selection stays the same, nice !
@@ -842,15 +973,19 @@ for (var i=0; i<10; i++)
 				
 			}
 			
+			var charWidth = 0
 			function	highlightText()
 			{
+				charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
 				var lines = []
 				var f = highlighted.firstChild
 				while (f)
 				{
-					lines.push(f.innerText)
+					var text = readRawSourceFromLineQuicker(f)
+					lines.push(text)
 					f = f.nextSibling
 				}
+//				alert(lines.join('').substr(0, 200))
 				var lint = lintLines(lines)
 				
 				highlighted.className = lint.res ? '' : 'lintError'
@@ -876,7 +1011,7 @@ for (var i=0; i<10; i++)
 				updateBirdView(lines, lint.functionLines)
 //				alert(lint.errors)
 
-				var str = ''
+				var str = getTickCount() + ' highlight'
 				for (var i=0; i<lint.errors.length; i++)
 				{
 					var error = lint.errors[i]
@@ -891,7 +1026,7 @@ for (var i=0; i<10; i++)
 				}
 //				alert(lint.errors[0].reason)
 //				alert(str)
-				str = '<span style="color: red">' + str + '</span>'
+				str = '\n<span style="color: red">' + str + '</span>'
 				document.getElementById('dump5').innerHTML = str
 
 			}
@@ -955,11 +1090,31 @@ for (var i=0; i<10; i++)
 //				zea
 			}
 			setTimeout(focusHighlighted, 10)
+			
+			
+			
+			
+			function	clearDumps()
+			{
+				document.getElementById('dump2').innerHTML = ' '
+				document.getElementById('dump3').innerHTML = ' '
+				document.getElementById('dump4').innerHTML = ' '
+				document.getElementById('dump5').innerHTML = ' '
+				document.getElementById('dump6').innerHTML = ' '
+			}
 
 		</script>
 
 <pre>
-	
+	<h1 style='color: red'>* TABBING fails badly
+* highlight happens on caret move : left/right + up/down on overflowing lines
+* selection shift keyboard doesn't work (because of highlight on caret move)	
+* moving caret to line start fails when starting with a tab
+* enter removes white space
+* birdview keeps OLD LINES !
+* offset 0, asc lign ayan un tab prim : sel change
+* tab plant vec multipl tab lun post lautr
+	</h1>
 	
 </body>
 </html>

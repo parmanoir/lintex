@@ -206,7 +206,7 @@ The following lines have the same length
 
 </textarea>
 <hr>
-<div id='highlighted5' contentEditable='true'>
+<div id='highlighted5' contentEditable='true'>1<img src='' style='width: 24px'>2imgIMG<img src='' style='width: 24px'>3<img src='' style='width: 24px'>4
 	hello world ! <span class='fakeTab5'>	<span>e</span></span> check.
 1<span class='fakeTab5' style='background-color: red; emargin-right: -16px'>	</span><span style='display: inline-block; epadding-right: 24px; background-color: lime; margin-right: -14px'></span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1
 1<span class='fakeTab5'>	</span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1
@@ -228,6 +228,9 @@ inline-block will make selection jump up and down.<span style="color: red">CHECK
 <div>inline block in DIV follows ...</div><div>1<span eclass='fakeTab5' style='background-color: #aac; display: inline-block; padding-right: 20px; ewidth: 32px; emargin-right: 4px; overflow: hidden'> </span>2-<span class='fakeTab5'>	</span>3--<span class='fakeTab5'>	</span>4---<span class='fakeTab5'>	</span>5----<span class='fakeTab5'>	</span>6-----<span class='fakeTab5'>	</span>7------<span class='fakeTab5'>	</span>8<span class='fakeTab5'>	</span>1</div><div>div line</div>
 
 
+raw image follows ...
+1<img src='' style='width: 24px'>1<img src='' style='width: 24px'>1<img src='' style='width: 24px'>2
+
 
 Hello button <button>a</button> eza <field>eaz</field>
 
@@ -245,7 +248,6 @@ use scrollLeft to show cursor
 	<div id='highlighted' contentEditable='true'></div>
 highlighted2 :
 
-<h1 style="color: red; font-size: 400%">tap post IMG plant selexion</h1>
 	<div id='highlighted2' econtentEditable='true'>
 Suiv.....	tab et...	tab ////
 1**	2	3*	4**	5***	6	7**	8
@@ -377,7 +379,8 @@ hop
 				if (sel.anchorNode)
 				{
 //					str += '\nanchorNode=' + sel.anchorNode + (sel.anchorNode.nodeType == 1 ? htmlEncode(sel.anchorNode.outerHTML) : '')
-					str += '\nanchorNode=' + sel.anchorNode.nodeValue
+					str += '\n<table border="1" style="border-collapse: collapse; border-color: #ccc"><tr><td>anchorNode=<td>' + sel.anchorNode.nodeValue + '</table>'
+					if (sel.anchorNode.nodeValue == null) str += '\n<span style="color: blue">HTML=' + htmlEncode(sel.anchorNode.outerHTML).substr(0, 50) + '</span>'
 //					str += '\nanchorNode=' + htmlEncode(sel.anchorNode.outerHTML)
 					str += '\nanchorNode.parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML).substr(0, 50)
 					str += '\nanchorOffset=' + sel.anchorOffset
@@ -391,8 +394,15 @@ hop
 //				r = '<span class="marginedTabContainer3" estyle="padding-right: 10px"> </span>'
 
 				dumpSelection()
-
+//return
 				var sel = getSelection()
+				if (sel.anchorNode)	
+				{
+					var str = sel.anchorNode.nodeValue + '=' + sel.anchorOffset
+					if (!sel.anchorNode.nodeValue) str += '\n***\nhtmlNode=' + sel.anchorNode.outerHTML
+					
+//					alert(str)
+				}
 //				alert(dumpHash(sel))
 				if (sel.type == 'Range')	return
 /*				
@@ -408,11 +418,13 @@ hop
 				document.getElementById('dump').innerHTML = str
 */				
 				var n = document.getElementById('highlighted2')
-				var ns = n.getElementsByClassName('fakeImageTabContainer')
+//				var ns = n.getElementsByClassName('fakeImageTabContainer')
+				var ns = n.getElementsByClassName('fakeTab5')
 //				alert(ns.length)
 				
 				var direction = 'afterEnd'
 				if (sel.anchorNode && sel.anchorNode.nodeType == 1 && sel.anchorNode.className == 'fakeImageTabContainer')	direction = 'beforeStart'
+				var direction = 'beforeBegin'
 				
 				for (var i=0; i<ns.length; i++) 
 				{
@@ -438,7 +450,7 @@ hop
 				sel.modify('extend', 'left', 'documentboundary')
 //				alert('k')
 				var l = sel.toString().length
-//				alert(l + '\n' + sel.anchorNode)
+//				alert(l + '\nsel.anchorNode=' + sel.anchorNode + '\nsel=' + sel)
 
 				var tabLength = 4
 				function	replaceTabs(a, b, c)
@@ -458,8 +470,8 @@ hop
 //					return '<span class="fakeImageTabContainer"><input disabled="true" type="text" value="' + s + '" size="' + pos + '" style="background-color: rgba(0, 255, 0, 0.3); border: 0; margin: 0; padding: 0; font-size: inherit; font-family: inherit; margin-left: -1px; margin-right: -1px; "></span>'
 //					return '*'
 
-//					return "<img src='' style='width: " + w + "px'>"
-					return "<span eclass='fakeTab5' style='background-color: lime; emargin-right: 24px'><img src='' style='width: " + w + "px'></span>"
+					return "<img class='fakeTab5' src='' style='eborder: solid 1px red; height: 2px; background-color: lime; width: " + w + "px'>"
+//					return "<span class='fakeTab5' style='background-color: lime; emargin-right: 24px'><img src='' style='width: " + w + "px'></span>"
 
 //					return '<span class="fakeImageTabContainer"><img class="fakeImageTab" style="width: ' + w + 'px; evisibility: hidden; eopacity: 0.1"></span>'
 
@@ -537,7 +549,12 @@ hop
 //			document.body.onkeyup = update
 			textarea.onkeyup = update
 
-			document.getElementById('highlighted2').onkeyup = update2
+			function	keydown2()
+			{
+				setTimeout(update2, 0)
+			}
+			document.getElementById('highlighted2').onkeydown = keydown2
+//			document.getElementById('highlighted2').onkeyup = update2
 			document.getElementById('highlighted2').onmouseup = dumpSelection
 //			document.getElementById('highlighted2').onkeyup = update3
 			update2()
