@@ -9,7 +9,7 @@
 			font-size: 80%;
 		}
 		
-		#highlighted, #highlighted2, #highlighted3, .tabspaceviewer
+		#highlighted, #highlighted2, #highlighted3, .tabspaceviewer, #fontWidthMeasurer
 		{
 			border: solid 1px #ddd;
 			-webkit-user-modify: read-write;
@@ -105,8 +105,8 @@
 */
 			ewhite-space: normal;
 			efont-size: 0;
-			letter-spacing: -6px;
-			padding-right: 24px;
+			eletter-spacing: -6px;
+			epadding-right: 24px;
 			eposition: relative;
 
 /*
@@ -151,16 +151,17 @@
 			border-left: solid 1px #ddd;
 			height: 800px;
 		}
-		.newline
+		.newlineNormal
 		{
 			white-space: normal;
 		}
 </style>
 </head>
 <body>
-
+<div id='fontWidthMeasurer'><span>*</span></div>
 <div class='tabspaceviewer'><span class='visualtab'></span>1234<span class='visualtab'></span>1234<span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    </div>
 	<div id='highlighted'>
+
 1***2
 1___2___3___4		a
 1	2	3	4
@@ -184,6 +185,9 @@ lone tab ends
 			<-three tabs start
 		
 	=		test	obst	obst	objzae st	ob st	ob st	ob st	obect
+lone line follows
+
+lone line ended	
 		test	fakst	ob st	ob st	obect klzejrezlkjr st	ob eklzrjzelkj st	ob jdslk st	obe span
 		1	2	3	4fin st	ob kldfjzelkjrlzek st	obezkrj st	ob st	obst	ob st	obezrkjezlkrj st	ob
 		1	2	3	4fin
@@ -215,8 +219,12 @@ lone tab ends
 	
 <pre>
 <div id='dump'></div>
+<div id='dump2'></div>
 
 		<script>
+			var fontWidthMeasurer = document.getElementById('fontWidthMeasurer')
+			var charWidth = fontWidthMeasurer.firstChild.offsetWidth
+
 			function	dumpHash(o)
 			{
 				var str = ''
@@ -236,6 +244,33 @@ lone tab ends
 			}
 
 
+			function	replaceTabInLine(line, html)
+			{
+				var tabLengths = []
+				function	countTabs(str, idx)
+				{
+					var length = (idx+deltaTabPosition) % tabLength
+					length = tabLength - length
+					// Add spaces to position (minus one to 'remove' the tab)
+					deltaTabPosition += length-1
+					
+					tabLengths.push(length)
+				}
+				var tabIndex = 0
+				function	replaceTabs(str, idx)
+				{
+					return '<span class="fakeTab" style="letter-spacing: -' + charWidth + 'px; padding-right: ' + tabLengths[tabIndex++]*charWidth + 'px">	</span>'
+//					return "<img class='fakeTab' src='' style='width: " + tabLengths[tabIndex++]*charWidth + "px'>"
+				}
+				var tabLength = 4
+				var deltaTabPosition = 0
+
+				line.replace(/\t/g, countTabs)
+				html = html.replace(/\t/g, replaceTabs)
+				return	html
+			}
+
+
 			function	transformText(n)
 			{
 				var lines = n.innerText.split('\n')
@@ -244,40 +279,21 @@ lone tab ends
 				for (var i=0; i<lines.length; i++)
 				{
 					var line = lines[i]
-					line = line.replace(/\t/g, '<span class="fakeTab">	</span>')
-//					line = line + '<span class="newline">\n</span>'
-//					line = '<span class="newline">\n</span>' + line
-//					line = String.fromCharCode(0x200b) + line
+//					line = line.replace(/\t/g, '<span class="fakeTab">	</span>')
+					var isLastLineAndIsEmpty = i == lines.length-1 && line.match(/^$/)
+					// Don't add a new line on the last line if it's empty
+					if (!isLastLineAndIsEmpty)
+					{
+						if (line.match(/^$/))	line = line + '<span class="newline">\n</span>'
+						else					line = line + '<span class="newlineNormal">\n</span>'
+					}
+						
+					line = replaceTabInLine(line, line)
 					
 					var n2 = document.createElement('DIV')
+					n2.className = 'line'
 					n2.innerHTML = line
 					n.appendChild(n2)
-/*					
-						var fakeTabCaretShower = document.createElement('SPAN')
-						fakeTabCaretShower.className = 'fakeTabHighlighter'
-						var n3 = document.createTextNode('')
-						n2.appendChild(n3)
-						var fakeTabCaretShower = document.createElement('SPAN')
-						fakeTabCaretShower.className = 'fakeTabHighlighter'
-						var n3 = document.createTextNode('')
-						n2.insertBefore(n3, n2.firstChild)
-*/					
-					
-					var tabs = n2.getElementsByClassName('fakeTab')
-//					alert(tabs.length)
-/*					
-					for (var j=0; j<tabs.length; j++)
-					{
-						var fakeTab = tabs[j]
-						// This temporary fake element will ensure cursor blinks. As it contains nothing, it will disappear on next highlight.
-						var fakeTabCaretShower = document.createElement('SPAN')
-						fakeTabCaretShower.className = 'fakeTabHighlighter'
-						var n3 = document.createTextNode('')
-						fakeTabCaretShower.appendChild(n3)
-						fakeTab.insertAdjacentElement('afterEnd', fakeTabCaretShower)
-					}
-*/
-//					t += '<div>' + line + '</div>'
 				}
 			}
 			var highlighted = document.getElementById('highlighted')
@@ -297,7 +313,95 @@ lone tab ends
 			function	keydown()
 			{
 				setTimeout(dumpSelection, 0)
+				setTimeout(postKeydown, 10)
 			}
+			function	postKeydown()
+			{
+				var sel = getSelection()
+				if (sel.type != 'Caret')	return
+				
+				var str = getTickCount()
+				str += '\nanchorNode=' + sel.anchorNode
+				var a = sel.anchorNode
+				
+				var s = selectionAsLineAndOffset()
+				if (s.line == 0)
+				{
+//					alert('*' + a.nodeValue + '$\nlineNumber=' + lineNumberFromNode(a) + '\nparent=' + a.parentNode.parentNode.outerHTML)
+				}
+//				alert(dumpHash(s))
+				transformText(highlighted)
+				setSelectionAsLineAndOffset(s.line, s.offset)
+		
+				str += '\nline=' + s.line + ' offset=' + s.offset
+				document.getElementById('dump2').innerHTML = str
+			}
+			
+			function	lineNodeFromNode(node)
+			{
+				while (node)
+				{
+					if (node.nodeType == 1 && node.className.match(/\bline\b/))
+						return node
+					node = node.parentNode
+				}
+			}
+			
+			function	lineNumberFromNode(node)
+			{
+				node = lineNodeFromNode(node)
+				if (!node)	return
+//				return parseFloat(node.id.match(/\d+/))
+				var i = 0
+				node = node.previousSibling
+				while (node)
+				{
+					i++
+					node = node.previousSibling
+				}
+				return i
+			}
+			function	nodeFromLineNumber(i)
+			{
+				return highlighted.childNodes[i]
+			}
+			function	rawSelection()
+			{
+				var sel = getSelection()
+				return sel.getRangeAt(0)
+			}
+			function	setRawSelection(r)
+			{
+				var sel = getSelection()
+				sel.removeAllRanges()
+				sel.addRange(r)
+//				sel.setBaseAndExtent(r.anchorNode, r.anchorOffset, r.extentNode, r.extentOffset)
+			}
+			function	selectionAsLineAndOffset()
+			{
+				var sel = getSelection()
+				var raw = rawSelection()
+
+				sel.modify('extend', 'left', 'paragraphboundary')
+				var selectionText = sel.toString()
+				var length = selectionText.length
+				var range = sel.getRangeAt(0)
+				// If there are no real tabs (\t) in the line, try checking for fake ones (img class='fakeTab')
+				var h = { type : 'Caret', line : lineNumberFromNode(sel.anchorNode), offset : length }
+
+				setRawSelection(raw)
+
+				return h
+			}
+			function	setSelectionAsLineAndOffset(line, offset)
+			{
+				var line = nodeFromLineNumber(line)
+				var sel = getSelection()
+				sel.setPosition(line, 0)
+				for (var i=0; i<offset; i++)
+					sel.modify('move', 'right', 'character')
+			}
+			
 			function	mousedown()
 			{
 				var n = event.target
@@ -347,27 +451,6 @@ lone tab ends
 						str += '\n<b>line=</b>' + n.innerText
 						str += '\nline.offsetHeight=' + n.offsetHeight
 					}
-					
-					if (fakeTab && fakeTab.nextSibling && fakeTab.nextSibling.className != 'fakeTabHighlighter')
-					{
-//						alert(fakeTab.nextSibling)
-//alert('FEX CEA EN TRANSFORM')
-/*
-						// This temporary fake element will ensure cursor blinks. As it contains nothing, it will disappear on next highlight.
-						var n2 = document.createElement('SPAN')
-						n2.className = 'fakeTabHighlighter'
-						var n3 = document.createTextNode('')
-						n2.appendChild(n3)
-						fakeTab.insertAdjacentElement('afterEnd', n2)
-*/						
-						fakeTab.scrollLeft = n.clientWidth
-						
-//						sel.setPosition(fakeTab.nextSibling, 1)
-//						sel.setPosition(fakeTab.nextSibling, 0)
-					}
-					
-//					var n = sel.extentNode
-//					str += '\nextentNode=&lt;' + (n.nodeValue || htmlEncode(n.outerHTML)) + '&gt;'
 				}
 				catch (e)
 				{
@@ -377,6 +460,8 @@ lone tab ends
 			}
 			highlighted.onkeydown = keydown
 			highlighted.onmousedown = mousedown
+			
+//			alert(fontWidthMeasurer.firstChild.offsetWidth)
 		</script>
 
 <pre>
@@ -393,6 +478,7 @@ lone tab ends
 	TAB prim in lign plant
 	
 	adding \n at the end bugs selection.
+	^but not if \n has white-space: normal !
 
 </body>
 </html>

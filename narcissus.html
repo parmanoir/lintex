@@ -109,7 +109,10 @@
 
 		.newline
 		{
-			display: none;
+		}
+		.newline-normal
+		{
+			white-space: normal;
 		}
 
 		/* source styling */
@@ -295,7 +298,7 @@ for (var i=0; i<10; i++)
 			{
 				while (node)
 				{
-					if (node.nodeType == 1 && node.className.indexOf('line') != -1)
+					if (node.nodeType == 1 && node.className.match(/\bline\b/))
 						return node
 					node = node.parentNode
 				}
@@ -422,9 +425,10 @@ for (var i=0; i<10; i++)
 				var tabIndex = 0
 				function	replaceTabs(str, idx)
 				{
+					return '<span class="fakeTab" style="letter-spacing: -' + charWidth + 'px; padding-right: ' + tabLengths[tabIndex++]*charWidth + 'px">	</span>'
 					// A tab is an IMG sized to charWidth (measured in fontWidthMeasurer)
 					// This is only for display, as source retains original \t
-					return "<img class='fakeTab' src='' style='width: " + tabLengths[tabIndex++]*charWidth + "px'>"
+//					return "<img class='fakeTab' src='' style='width: " + tabLengths[tabIndex++]*charWidth + "px'>"
 				}
 				var tabLength = 4
 				var deltaTabPosition = 0
@@ -501,7 +505,8 @@ for (var i=0; i<10; i++)
 //				str = str.replace(/\n/, '<span style="display: none">\n</span>')
 //				str = str.replace(/\n/, '<span style="display: none">\n</span><span style="margin-left: 1px"></span>')
 
-				str = str.replace(/\n/, '<span class="newline">\n</span>')
+if (line.match(/^\n$/))	str = str.replace(/\n/, '<span class="newline">\n</span>')
+else 					str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 
 
 //					str = str.replace(/\n/, '<span style="position: absolute; evisibility: hidden">\n</span>')
@@ -509,6 +514,7 @@ for (var i=0; i<10; i++)
 //				str += 'HANDLE BLANK LINES'
 //str += '\n'				
 				str = replaceTabInLine(line, str)
+				
 //				str = '<div style="position: relative; z-index: 4">' + str + '</span>'
 				node.innerHTML = str
 /*
@@ -547,6 +553,7 @@ for (var i=0; i<10; i++)
 			//
 			function	readRawSourceFromLineQuicker(line)
 			{
+/*
 				// Restore newlines
 				var ns = line.getElementsByClassName('newline')
 				for (var i=0; i<ns.length; i++) 
@@ -564,16 +571,20 @@ for (var i=0; i<10; i++)
 					n2.innerText = '\t'
 					ns[i].insertAdjacentElement('beforeBegin', n2)
 				} 
+*/
 				return	line.innerText
 			}
 			
 			function	readRawSourceFromLine(line)
 			{
+/*
 				var n = document.getElementById('rawSourceFromLineExtractor')
 				n.innerHTML = '<div>' + line.innerHTML + '</div>'
 //				alert(n.innerHTML)
 //				return ''
-				return	readRawSourceFromLineQuicker(n.firstChild)
+*/
+//				return	readRawSourceFromLineQuicker(n.firstChild)
+				return	readRawSourceFromLineQuicker(line)
 			}
 			
 			
@@ -603,6 +614,7 @@ for (var i=0; i<10; i++)
 				var length = selectionText.length
 				var range = sel.getRangeAt(0)
 				// If there are no real tabs (\t) in the line, try checking for fake ones (img class='fakeTab')
+/*
 				if (range && selectionText.indexOf('	') == -1)
 				{
 //					length += range
@@ -621,6 +633,7 @@ for (var i=0; i<10; i++)
 //					alert(dumpHash(range))
 //					alert(range.toString())
 				}
+*/
 				var h = { type : 'Caret', line : lineNumberFromNode(sel.anchorNode), offset : length }
 
 				document.getElementById('dump6').innerHTML += '\nselectionAsLineAndOffset line=' + h.line + ', offset=' + h.offset
@@ -1106,14 +1119,10 @@ alert('SEL TAB MULTIPLE LINES')
 		</script>
 
 <pre>
-	<h1 style='color: red'>* TABBING fails badly
+	<h1 style='color: red'>
 * highlight happens on caret move : left/right + up/down on overflowing lines
-* selection shift keyboard doesn't work (because of highlight on caret move)	
-* moving caret to line start fails when starting with a tab
 * enter removes white space
 * birdview keeps OLD LINES !
-* offset 0, asc lign ayan un tab prim : sel change
-* tab plant vec multipl tab lun post lautr
 	</h1>
 	
 </body>
