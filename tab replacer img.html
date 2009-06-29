@@ -9,12 +9,14 @@
 			font-size: 80%;
 		}
 		
-		#highlighted
+		#highlighted, #highlighted2, #highlighted3, .tabspaceviewer
 		{
 			border: solid 1px #ddd;
 			-webkit-user-modify: read-write;
 			white-space: pre;
 			font-family: monaco;
+			position: relative;
+			z-index: 4;
 		}
 		
 		img
@@ -43,30 +45,173 @@
 			eposition: relative;
 			eleft: -60px;
 		}
+/*
+		#highlighted div
+		{
+			line-height: 1.4em;
+			eheight: 1em;
+		}
+*/
 		.fakeTab
 		{
-			eborder: solid 1px rgba(0, 255, 0, 0.3);
 			background-color: rgba(0, 255, 0, 0.5);
+/*
+			edisplay: inline-block;
+			ewidth: 24px;
+			eoverflow: hidden;
+			edisplay: inline-table;
+			edisplay: table-cell;
+			emax-width: 24px;
+			font-size: 0px;
+			letter-spacing: -1px;
+			epadding-right: 30px;
+			epadding-right: 7px;
+			epadding-left: 7px;
+			epadding-top: 7px;
+			margin-top: 7px;
+			line-height: 7pt;
+			emargin-bottom: 7px;
+*/			
+/*
+			font-size: 0px;
+			letter-spacing: -1px;
+			epadding-left: 7px;
+			padding-right: 7px;
+			epadding-bottom: 7px;
+*/
+/*
+			white-space: pre;
+			white-space: pre-line;
+			epadding-right: 24px;
 			emargin-right: 24px;
 			display: inline-block;
 			width: 24px;
-			overflow: hidden;
+			eheight: 4px;
+			econtent: ('-');
+			font-size: 40px;
+			margin-bottom: -10px;
+			vertical-align: bottom;
+*/
+/*
+			eletter-spacing: 10px;
+			etext-indent: 10px;
+			edisplay: inline-block;
+			
+			white-space: normal;
+			efont-size: 0;
+			letter-spacing: 35px;
+			epadding-right: 16px;
+			eposition: relative;
+*/
+			ewhite-space: normal;
+			efont-size: 0;
+			letter-spacing: -6px;
+			padding-right: 24px;
+			eposition: relative;
+
+/*
+			eborder: solid 1px rgba(0, 255, 0, 0.3);
+			emargin-right: 24px;
+			efloat: left;
+			eoverflow: hidden;
+			position: absolute;
+			visibility: hidden;
+			edisplay: none;
+			-webkit-user-modify: read-only;
+*/			
 		}
-		
+		.fakeTabHighlighter
+		{
+			emargin-left: -30px;
+			epadding: 4px;
+			position: relative;
+			background-color: rgba(255, 0, 0, 0.3);
+		}
+		.fakeTabHighlighter:after
+		{
+			econtent: '*';
+		}
+		#highlighted3 button
+		{
+			display: inline;
+		}
+/*		
+		.tabspaceviewer
+		{
+			white-space: pre;
+			font-family: monaco;
+			font-size: 7pt;
+		}
+*/
+		.visualtab
+		{
+			background-color: red;
+			position: absolute;
+			display: inline-block;
+			border-left: solid 1px #ddd;
+			height: 800px;
+		}
+		.newline
+		{
+			white-space: normal;
+		}
 </style>
 </head>
 <body>
 
+<div class='tabspaceviewer'><span class='visualtab'></span>1234<span class='visualtab'></span>1234<span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    </div>
 	<div id='highlighted'>
-<div>		Hello<span class='fakeTab'>	</span>test	
-	=</div><div>		test<span class='fakeTab'>	</span>obst<span class='fakeTab'>	</span>obst<span class='fakeTab'>	</span>objzae st<span class='fakeTab'>	</span>ob  st<span class='fakeTab'>	</span>ob   st<span class='fakeTab'>	</span>ob st<span class='fakeTab'>	</span>obect
-	</div><div>		test<span class='fakeTab'>	</span>fakst<span class='fakeTab'>	</span>ob  st<span class='fakeTab'>	</span>ob st<span class='fakeTab'>	</span>obect klzejrezlkjr st<span class='fakeTab'>	</span>ob eklzrjzelkj st<span class='fakeTab'>	</span>ob jdslk st<span class='fakeTab'>	</span>obe span
-	</div><div>		1<span class='fakeTab'>	</span>2<span class='fakeTab'>	</span>3<span class='fakeTab'>	</span>4fin st<span class='fakeTab'>	</span>ob kldfjzelkjrlzek st<span class='fakeTab'>	</span>obezkrj st<span class='fakeTab'>	</span>ob st<span class='fakeTab'>	</span>obst<span class='fakeTab'>	</span>ob st<span class='fakeTab'>	</span>obezrkjezlkrj st<span class='fakeTab'>	</span>ob
-	</div><div>		1	2	3	4fin
-	</div><div>		1234
-	</div><div>		test<span class='fakeTab'>	</span>fake tab
+1***2
+1___2___3___4		a
+1	2	3	4
+1*	2*	3*	4
+1**	2**	3**	4
+1***	2***	3***	4
+1****	2****	3****	4
+1*****	2*****	3*****	4
+1******	2******	3******	4
+1	2**	3*	4***5	6
+	-	+
+1
+	a	Hello	test			=
+	a	Hello, real tab follows to check height 	test trailing tab->		
+	more trailing tabs ->		
+lone tab follows
+	a
+lone tab ends
+	<-one tabs start
+		<-two tabs start
+			<-three tabs start
+		
+	=		test	obst	obst	objzae st	ob st	ob st	ob st	obect
+		test	fakst	ob st	ob st	obect klzejrezlkjr st	ob eklzrjzelkj st	ob jdslk st	obe span
+		1	2	3	4fin st	ob kldfjzelkjrlzek st	obezkrj st	ob st	obst	ob st	obezrkjezlkrj st	ob
+		1	2	3	4fin
+		1234
+		test	fake tab
 	</div>
+
+	<div id='highlighted2'>
+		Hello	test			=
+		Hello, real tab follows to check height 	test	
+	=		test	obst	obst	objzae st	ob  st	ob   st	ob st	obect
+		test	fakst	ob  st	ob st	obect klzejrezlkjr st	ob eklzrjzelkj st	ob jdslk st	obe span
+		1	2	3	4fin st	ob kldfjzelkjrlzek st	obezkrj st	ob st	obst	ob st	obezrkjezlkrj st	ob
+		1	2	3	4fin
+		1234
+		test	fake tab
 	</div>
+	<div id='highlighted3'>
+		aerlkm rmelzk rmelzkr zemlk rez lr iezpo mlkremlzkrze 
+		Hello <button>test</button> world !
+		Hello <button disabled='true'>test</button> world !
+		Hello <input type='submit'>test</input> world !
+		Hello <select>test<option>TEST</option><option>TEST123</option></select> world !
+		Hello <label style='background-color: red; width: 200px'>test</label> world !
+		Hello <form>test</form> world !
+		aerlkm rmelzk rmelzkr zemlk rez lr iezpo mlkremlzkrze 
+	</div>
+	
 	
 <pre>
 <div id='dump'></div>
@@ -91,8 +236,56 @@
 			}
 
 
+			function	transformText(n)
+			{
+				var lines = n.innerText.split('\n')
+				var t = ''
+				n.innerHTML = ''
+				for (var i=0; i<lines.length; i++)
+				{
+					var line = lines[i]
+					line = line.replace(/\t/g, '<span class="fakeTab">	</span>')
+//					line = line + '<span class="newline">\n</span>'
+//					line = '<span class="newline">\n</span>' + line
+//					line = String.fromCharCode(0x200b) + line
+					
+					var n2 = document.createElement('DIV')
+					n2.innerHTML = line
+					n.appendChild(n2)
+/*					
+						var fakeTabCaretShower = document.createElement('SPAN')
+						fakeTabCaretShower.className = 'fakeTabHighlighter'
+						var n3 = document.createTextNode('')
+						n2.appendChild(n3)
+						var fakeTabCaretShower = document.createElement('SPAN')
+						fakeTabCaretShower.className = 'fakeTabHighlighter'
+						var n3 = document.createTextNode('')
+						n2.insertBefore(n3, n2.firstChild)
+*/					
+					
+					var tabs = n2.getElementsByClassName('fakeTab')
+//					alert(tabs.length)
+/*					
+					for (var j=0; j<tabs.length; j++)
+					{
+						var fakeTab = tabs[j]
+						// This temporary fake element will ensure cursor blinks. As it contains nothing, it will disappear on next highlight.
+						var fakeTabCaretShower = document.createElement('SPAN')
+						fakeTabCaretShower.className = 'fakeTabHighlighter'
+						var n3 = document.createTextNode('')
+						fakeTabCaretShower.appendChild(n3)
+						fakeTab.insertAdjacentElement('afterEnd', fakeTabCaretShower)
+					}
+*/
+//					t += '<div>' + line + '</div>'
+				}
+			}
 			var highlighted = document.getElementById('highlighted')
-			highlighted.innerHTML = highlighted.innerHTML.replace(/\n/g, '')
+			var highlighted2 = document.getElementById('highlighted2')
+			var highlighted3 = document.getElementById('highlighted3')
+			transformText(highlighted)
+			transformText(highlighted2)
+//			alert(highlighted3.innerText)
 			function	focusMe()
 			{
 				highlighted.focus()
@@ -107,6 +300,15 @@
 			}
 			function	mousedown()
 			{
+				var n = event.target
+				if (n.nodeType != 1) n = n.parentNode
+				if (n && n.className == 'fakeTab')
+				{
+					// Direct scrollLeft to select either left or right portion of the tab
+					// Only works the second time
+					if (event.offsetX > n.offsetWidth/2)	n.scrollLeft = n.clientWidth
+					else									n.scrollLeft = 0
+				}
 				setTimeout(dumpSelection, 0)
 			}
 			
@@ -141,19 +343,23 @@
 					}
 					while (n && n.tagName != 'DIV') n = n.parentNode
 					if (n)
+					{
 						str += '\n<b>line=</b>' + n.innerText
+						str += '\nline.offsetHeight=' + n.offsetHeight
+					}
 					
 					if (fakeTab && fakeTab.nextSibling && fakeTab.nextSibling.className != 'fakeTabHighlighter')
 					{
 //						alert(fakeTab.nextSibling)
-
+//alert('FEX CEA EN TRANSFORM')
+/*
 						// This temporary fake element will ensure cursor blinks. As it contains nothing, it will disappear on next highlight.
 						var n2 = document.createElement('SPAN')
 						n2.className = 'fakeTabHighlighter'
 						var n3 = document.createTextNode('')
 						n2.appendChild(n3)
 						fakeTab.insertAdjacentElement('afterEnd', n2)
-						
+*/						
 						fakeTab.scrollLeft = n.clientWidth
 						
 //						sel.setPosition(fakeTab.nextSibling, 1)
@@ -170,12 +376,23 @@
 				document.getElementById('dump').innerHTML = str
 			}
 			highlighted.onkeydown = keydown
-			highlighted.onmousedown = keydown
+			highlighted.onmousedown = mousedown
 		</script>
 
 <pre>
 	
 	can IMG be treated as a standard html node containing text ?
+	^NO
+	
+	move up, down, go to start/end of line fails with inline-block TABs
+	
+	use letter-spacing to remove tab size.
+	
+	BUG when line ends with a TAB : go to line start/line end
+	
+	TAB prim in lign plant
+	
+	adding \n at the end bugs selection.
 
 </body>
 </html>
