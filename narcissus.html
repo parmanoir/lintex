@@ -177,7 +177,28 @@
 			position: absolute;
 			z-index: 100;
 		}
+		#lineNumbers
+		{
+			position: absolute;
+			width: 20px;
+			border-right: solid 1px #eee;
+		}
+		#highlighted
+		{
+			padding-left: 25px;
+		}
 		
+		.lineNumber
+		{
+			font-size: 50%;
+			color: #ccc;
+			text-align: right;
+			padding-right: 4px;
+		}
+		.l10
+		{
+			color: #888;
+		}
 		
 </style>
 </head>
@@ -244,7 +265,7 @@ for (var i=0; i<10; i++)
 	<pre id='dump'></pre>
 	
 </td><td style='width: 20px'></td><td>
-	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='highlighted'></div></div>
+	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='highlighted'></div></div>
 </td><td><div id='birdView'></div></tr></table>
 <table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
 <tr><td>
@@ -933,10 +954,20 @@ alert('SEL TAB MULTIPLE LINES')
 					lines.push(text)
 					f = f.nextSibling
 				}
+				var src = lines.join('')
+				if (src.match(/<\?/))
+				{
+					function	r(a, b, c, d)
+					{
+//						alert(a + '!' + String(a).indexOf('\n'))//+ ' ' + b)
+						
+					}					
+					src.replace(/<\?.*\?>/g, r)
+				}
 //				alert(lines.join('').substr(0, 200))
 				var lint = lintLines(lines)
 				
-				highlighted.className = lint.res ? '' : 'lintError'
+//				highlighted.className = lint.res ? '' : 'lintError'
 
 
 				pushCaretSelection()
@@ -1025,7 +1056,7 @@ alert('SEL TAB MULTIPLE LINES')
 					sel.anchorNode.nodeValue 
 */
 					var line = nodeFromLineNumber(error.line)
-					var y = span.offsetTop + line.offsetTop
+					var y = /*span.offsetTop +*/ line.offsetTop
 					var margin = span.offsetHeight
 					if (line.className.match(/selectedLine/)) y++//, margin -= 2
 //					alert(margin)
@@ -1034,13 +1065,12 @@ alert('SEL TAB MULTIPLE LINES')
 					bubble.innerHTML = error.reason
 					bubble.className = 'bubble'
 					bubble.style.top = y + 'px'
-					bubble.style.marginTop = '-' +  margin + 'px'
+//					bubble.style.marginTop = '-' +  margin + 'px'
 					bubble.style.marginLeft = span.offsetLeft + 'px'
 //					n2.style.marginTop = '0px'
 					bubbleContainer.appendChild(bubble)
 					
 					line.style.paddingTop = bubble.offsetHeight + 'px'
-					line.style.backgroundColor = 'lime'
 					
 					paddedLines.push(error.line)
 
@@ -1055,7 +1085,24 @@ alert('SEL TAB MULTIPLE LINES')
 //				alert(str)
 				str = '\n<span style="color: red">' + str + '</span>'
 				document.getElementById('dump5').innerHTML = str
-
+				
+				
+				// Line numbers
+				var lineNumbers = document.getElementById('lineNumbers')
+				lineNumbers.innerHTML = ''
+				var lines = highlighted.childNodes
+				var f = highlighted.firstChild
+				var numbers = []
+				var i = 1
+				while (f)
+				{
+					var h = f.offsetHeight
+					var c = 'lineNumber'
+					if ((i % 10) == 0) c += ' l10'
+					numbers.push('<div class="' + c + '" style="height: ' + h + 'px">' + i++ + '</div>')
+					f = f.nextSibling
+				}
+				lineNumbers.innerHTML = numbers.join('')
 			}
 			
 			
@@ -1135,7 +1182,7 @@ alert('SEL TAB MULTIPLE LINES')
 <pre>
 	<h1 style='color: red'>
 * highlight happens on caret move : left/right + up/down on overflowing lines
-* fex un bull mi-transparent qi deven opaq en hover
+* try linting src, ie lines.join('')
 	</h1>
 
 	everything on the same line : white-space: wrap
