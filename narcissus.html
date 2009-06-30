@@ -27,15 +27,14 @@
 		}
 		#highlighted, #fontWidthMeasurer
 		{
-			white-space: pre;
+			white-space: pre-wrap;
 			emargin-left: 20px;
 			font-family: monaco;
 			font-size: 7pt;
 			outline: none;
-			border: solid 1px #aaa;
+			eborder: solid 1px #aaa;
 			-webkit-user-modify: read-write;
 			ewidth: 100%;
-			overflow: visible;
 		}
 		#sourceContainer
 		{
@@ -177,7 +176,6 @@
 			background-color: yellow;
 			position: absolute;
 			z-index: 100;
-			margin-top: -20px;
 		}
 		
 		
@@ -199,7 +197,7 @@ function doSomething(pa, pb, pc)
 {
 	function	fn2(pz)
 	{
-		return z+pa
+		return z+pa+
 	}
 	function fn32(tryme)
 	{
@@ -923,6 +921,7 @@ alert('SEL TAB MULTIPLE LINES')
 			}
 			
 			var charWidth = 0
+			var paddedLines = []
 			function	highlightText()
 			{
 				charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
@@ -966,6 +965,11 @@ alert('SEL TAB MULTIPLE LINES')
 
 
 				var str = getTickCount() + ' highlight<br>'
+				
+				
+				// Remove padding from bubble lines
+				for (var i=0; i<paddedLines.length; i++)	nodeFromLineNumber(paddedLines[i]).style.paddingTop = 0
+				
 				for (var i=0; i<lint.errors.length; i++)
 				{
 					
@@ -986,26 +990,59 @@ alert('SEL TAB MULTIPLE LINES')
 //					var str2 = '\nanchorNode in selection=' + (sel.anchorNode) + ' parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML).substr(0, 40)
 					
 					
-/*					
+					// Create an empty span to measure position
+					var n = sel.anchorNode
+					if (n.nodeType == 3)
+					{
+						var span = document.createElement('SPAN')
+						// Special case for the tab — as it's made by adding padding, need to go up one node
+						if (n.parentNode.className == 'fakeTab')
+						{
+							n.parentNode.parentNode.insertBefore(span, n.parentNode.nextSibling)
+						}
+						else
+						{
+							n.parentNode.appendChild(span)
+//							span.style.cssText = 'display: inline-block; width: 2px; height: 10px; background-color: red'
+							var n3 = document.createTextNode(sel.anchorNode.nodeValue.substr(sel.anchorOffset))
+							n.parentNode.appendChild(n3)
+							sel.anchorNode.nodeValue = sel.anchorNode.nodeValue.substr(0, sel.anchorOffset)
+						}
+					}
+					else
+						alert('Cannot create lint error bubble\n' + dumpHash(error))
+						
+//					alert('*' + sel.anchorNode.nodeValue + '-' + sel.anchorOffset)
+/*
 					var n = sel.anchorNode
 					var n2 = document.createElement('SPAN')
 					n2.innerHTML = '<div class="bubble" contentEditable="false">' + error.reason + '</div>'
-					var n3 = document.createTextNode('HaaaaOP')
+					var n3 = document.createTextNode('')
 //					alert(n.nodeValue + sel.anchorOffset)
 					if (n.nextSibling)	n.parentNode.insertBefore(n3, n.nextSibling)
 					else				n.parentNode.appendChild(n3)
 					n.parentNode.insertBefore(n2, n3)
 					sel.anchorNode.nodeValue 
 */
-					var l = nodeFromLineNumber(error.line)
-					var y = l.offsetTop
-					if (l.className.match(/selectedLine/)) y++
+					var line = nodeFromLineNumber(error.line)
+					var y = span.offsetTop + line.offsetTop
+					var margin = span.offsetHeight
+					if (line.className.match(/selectedLine/)) y++//, margin -= 2
+//					alert(margin)
 					
-					var n2 = document.createElement('SPAN')
-					n2.innerHTML = error.reason
-					n2.className = 'bubble'
-					n2.style.top = y + 'px'
-					bubbleContainer.appendChild(n2)
+					var bubble = document.createElement('DIV')
+					bubble.innerHTML = error.reason
+					bubble.className = 'bubble'
+					bubble.style.top = y + 'px'
+					bubble.style.marginTop = '-' +  margin + 'px'
+					bubble.style.marginLeft = span.offsetLeft + 'px'
+//					n2.style.marginTop = '0px'
+					bubbleContainer.appendChild(bubble)
+					
+					line.style.paddingTop = bubble.offsetHeight + 'px'
+					line.style.backgroundColor = 'lime'
+					
+					paddedLines.push(error.line)
 
 					
 //					document.getElementById('dump6').innerHTML += str2
@@ -1100,6 +1137,9 @@ alert('SEL TAB MULTIPLE LINES')
 * highlight happens on caret move : left/right + up/down on overflowing lines
 * fex un bull mi-transparent qi deven opaq en hover
 	</h1>
+
+	everything on the same line : white-space: wrap
+	retour lign : white-space: pre-wrap
 	
 </body>
 </html>

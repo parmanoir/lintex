@@ -775,7 +775,7 @@ JSLINT = (function () {
 		// ## Allow unicode identifiers as characters having a charcode > 0xc0. 
 		// That's too broad. Maybe check if eval('var supposedIdentifier') throws ?
 		// added ext <?
-        tx = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|<\?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/,
+        tx = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/,
 // html token
         hx = /^\s*(['"=>\/&#]|<(?:\/|\!(?:--)?)?|[a-zA-Z][a-zA-Z0-9_\-]*|[0-9]+|--|.)/,
 // characters in strings that need escapement
@@ -1355,7 +1355,7 @@ JSLINT = (function () {
 
 
     //      /* js extension
-
+/*
                         case '<?':
 							var firstCommentPrefix = '<?'
                             for (;;) {
@@ -1386,7 +1386,7 @@ JSLINT = (function () {
                             s = s.substr(i + 2);
                             token.comment = true;
 							break;
-
+*/
     //      /*global /*extern /*members /*jslint */
 
                         case '/*global':
