@@ -33,7 +33,18 @@
 			font-size: 7pt;
 			outline: none;
 			border: solid 1px #aaa;
+			-webkit-user-modify: read-write;
+			ewidth: 100%;
+			overflow: visible;
 		}
+		#sourceContainer
+		{
+			height: 400px;
+			overflow-y: scroll;
+			position: relative;
+		}
+		
+		
 		.line
 		{
 			ebackground-color: #fafafa;
@@ -141,9 +152,11 @@
 
 		.fakeTab
 		{
+/*
 			eborder: solid 1px red; 
 			height: 2px; 
 			background-color: lime;			
+*/
 		}
 		
 		#fontWidthMeasurer
@@ -154,6 +167,17 @@
 		#rawSourceFromLineExtractor
 		{
 			display: none;
+		}
+		
+		.bubble
+		{
+			position: absolute; 
+			letter-spacing: 0px; 
+			width: 800px;
+			background-color: yellow;
+			position: absolute;
+			z-index: 100;
+			margin-top: -20px;
 		}
 		
 		
@@ -179,7 +203,7 @@ function doSomething(pa, pb, pc)
 	}
 	function fn32(tryme)
 	{
-		return tryme+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow
+		re turn tryme+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToO verflow + longToOverflow + longToOverflow
 	}
 	function fn4(pz)
 	{
@@ -204,6 +228,8 @@ function somethingElse(z)
 for (var i=0; i<10; i++)
 {
 	// do stuff ...
+	for (var i=10; i>0; i--) { /* some more stuff ... */ }
+
 }
 
 	&lt;?minitex 2
@@ -220,8 +246,7 @@ for (var i=0; i<10; i++)
 	<pre id='dump'></pre>
 	
 </td><td style='width: 20px'></td><td>
-<div class='tabspaceviewer'><span class='visualtab'></span>1234<span class='visualtab'></span>1234<span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    <span class='visualtab'></span>    </div>
-	<div id='highlighted' contentEditable='true'></div>
+	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='highlighted'></div></div>
 </td><td><div id='birdView'></div></tr></table>
 <table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
 <tr><td>
@@ -406,48 +431,22 @@ for (var i=0; i<10; i++)
 					deltaTabPosition += length-1
 					
 					tabLengths.push(length)
-//					var str = ''
-//					for (var i=0; i<length; i++)	str += ' '
-					
-					
-//					return "<img class='fakeTab5' src='' style='eborder: solid 1px red; height: 2px; background-color: lime; width: " + w + "px'>"
-
-//					str = '<span>' + String.fromCharCode(0x200b) + '<span eclass="tab" contentEditable="false">' + str + '</span></span>'
-//					str = '<span>' + String.fromCharCode(0x200b) + '<span eclass="tab" contentEditable="false">' + str + '</span></span>'
-//					str = '<span style="display: inline-block; width: 3ex">' + '\t' + '</span>'
-//					str = '<span style="display: inline-block; width: 20px">' + '' + '</span>'
-//					str = '<span>' + String.fromCharCode(0x200b) + '</span><span style="padding-left: 20px">' + '' + '</span>'
-
-
-//					alert(deltaTabPosition + ' length=' + length + '\nstr=' + str + '!')
-//					tabLengths.push(str)
 				}
 				var tabIndex = 0
 				function	replaceTabs(str, idx)
 				{
+					// A tab is surrounded by a SPAN nulling its width (with negative letter-spacing) and padding it to the correct 4-size with charWidth (measured in fontWidthMeasurer)
 					return '<span class="fakeTab" style="letter-spacing: -' + charWidth + 'px; padding-right: ' + tabLengths[tabIndex++]*charWidth + 'px">	</span>'
-					// A tab is an IMG sized to charWidth (measured in fontWidthMeasurer)
-					// This is only for display, as source retains original \t
-//					return "<img class='fakeTab' src='' style='width: " + tabLengths[tabIndex++]*charWidth + "px'>"
 				}
 				var tabLength = 4
 				var deltaTabPosition = 0
 
 				line.replace(/\t/g, countTabs)
 				html = html.replace(/\t/g, replaceTabs)
-//				alert('line=' + line + '\nhtml=' + html)
-//				alert(n1 + ' ' + n2)
-//				rez()
 				return	html
 			}
 			function	writeTokensToLine(node, tokens, line)
 			{
-//				node.innerHTML = '*' + lineContent
-//				alert(tokens)
-				
-//				line = line.replace(/\r/, '').toString()
-//				line = line.replace(/\u200b/, '').toString()
-				
 				var i = 0
 				var lastIndex 	= 0
 				var str = ''
@@ -499,53 +498,15 @@ for (var i=0; i<10; i++)
 					var space = line.substr(lastIndex)
 					str += htmlEncode(space)
 				}
-//				str += String.fromCharCode(0xfeff)
-				// Hide newline or Safari will stop on it when keying up while selecting
-				// Add a zero-width space to make empty lines visible
-//				str = str.replace(/\n/, '<span style="display: none">\n</span>')
-//				str = str.replace(/\n/, '<span style="display: none">\n</span><span style="margin-left: 1px"></span>')
+				
+				// Treat newlines in empty lines as white-space: pre (so the caret lets you stop on them), use white-space: normal for the rest
+				if (line.match(/^\n$/))	str = str.replace(/\n/, '<span class="newline">\n</span>')
+				else 					str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 
-if (line.match(/^\n$/))	str = str.replace(/\n/, '<span class="newline">\n</span>')
-else 					str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
-
-
-//					str = str.replace(/\n/, '<span style="position: absolute; evisibility: hidden">\n</span>')
-//				str += String.fromCharCode(0x200b)
-//				str += 'HANDLE BLANK LINES'
-//str += '\n'				
+				// TABS ! sized to any size you want.
 				str = replaceTabInLine(line, str)
 				
-//				str = '<div style="position: relative; z-index: 4">' + str + '</span>'
 				node.innerHTML = str
-/*
-				var n2 = document.createElement('DIV')
-//				en2.style.visibility = 'hidden'
-				var lineSpaced = line
-				lineSpaced = lineSpaced.replace(/ /g, '<span class="space">·</span>')
-				lineSpaced = lineSpaced.replace(/\t/g, '<span class="tab"><span style="position: absolute">→</span>	</span>')
-				lineSpaced = lineSpaced.replace(/\n/g, '<span class="newline">¶</span>')
-				n2.innerHTML = lineSpaced
-				n2.style.position = 'absolute'
-				n2.style.width = '100%'
-//				node.insertBefore(n2, node.firstChild)
-
-				var f = n2.firstChild
-				while (f)
-				{
-					if (f.nodeType == 3)	f.nodeValue = f.nodeValue.replace(/./g, ' ')
-					f = f.nextSibling
-				}
-*/				
-//				node.innerHTML = '<span style="position: absolute">bk</span>' + node.innerHTML
-//				if (node.innerText.length == 0)	node.innerHTML += String.fromCharCode(0x200b)
-//				if (node.innerText.length == 0)	node.innerHTML += '\r'
-//				if (node.innerText.length == 0)	node.innerHTML += ' '
-//				alert(node.innerText.length)
-
-
-//				alert(str)
-//				if (node.innerText.match(/^\s*$/)) node.innerHTML += String.fromCharCode(0x200b)
-//				alert('*' + node.innerText + '*' + node.innerText.match(/^\s*$/))
 			}
 
 			//
@@ -613,30 +574,7 @@ else 					str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 				var selectionText = sel.toString()
 				var length = selectionText.length
 				var range = sel.getRangeAt(0)
-				// If there are no real tabs (\t) in the line, try checking for fake ones (img class='fakeTab')
-/*
-				if (range && selectionText.indexOf('	') == -1)
-				{
-//					length += range
-					
-					var n = range.endContainer
-//					alert(dumpHash(sel))
-					if (!n.previousSibling) n = n.parentNode
-					// Account for tabs
-					while (n)
-					{
-//						alert('*' + sel.toString() + '*\nc=' + range.endContainer)
-						if (n.nodeType == 1 && n.className == 'fakeTab')	length++
-						n = n.previousSibling
-					}
-//					alert(dumpHash(sel))
-//					alert(dumpHash(range))
-//					alert(range.toString())
-				}
-*/
 				var h = { type : 'Caret', line : lineNumberFromNode(sel.anchorNode), offset : length }
-
-				document.getElementById('dump6').innerHTML += '\nselectionAsLineAndOffset line=' + h.line + ', offset=' + h.offset
 
 				setRawSelection(raw)
 
@@ -666,6 +604,15 @@ else 					str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 				return	selectionStack[selectionStack.length-1]
 			}
 			
+			function	pushSelection()
+			{
+				pushCaretSelection()
+			}
+			function	popSelection()
+			{
+				popCaretSelection()
+			}
+			
 			
 			var lineCount
 			var currentLineNumber
@@ -686,14 +633,6 @@ else 					str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 				if (sel.type != 'Caret' && sel.type != 'Range')	return
 				
 				var line = lineNodeFromNode(sel.anchorNode)
-/*				
-				if (line.innerText.length > 1)
-				{
-					var brs = line.getElementsByTagName('BR')
-					for (var i=0; i<brs.length; i++) brs[i].parentNode.removeChild(brs[i])
-				}
-*/
-//				if (sel.anchorNode == highlighted || sel.extentNode == highlighted)
 
 				if (!line)
 				{
@@ -711,10 +650,6 @@ else 					str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 				
 
 				var lineNumber = lineNumberFromNode(sel.anchorNode)
-//				alert(lineNumber)
-//				var str = keyCode + '(' + String.fromCharCode(keyCode) + ') line=' + lineNumber
-//				document.getElementById('dump5').innerHTML += str
-
 
 				//  Insert tab
 				if (keyCode == 9)
@@ -736,7 +671,8 @@ else 					str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 						var right = t.substr(offset)
 //						alert(left + '<CARET>' + right)
 //						alert('offset=' + offset + '\ntext=' + t + '\n\n\nleft=' + left + '\n\n\nright=' + right)
-						lineNode.innerText = left + '\t' + right
+						var line = left + '\t' + right
+						lineNode.innerHTML = replaceTabInLine(line, line)
 //alert('4')						
 						popCaretSelection()
 						// Advance after tabbing
@@ -990,7 +926,7 @@ alert('SEL TAB MULTIPLE LINES')
 			function	highlightText()
 			{
 				charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
-				var lines = []
+				lines = []
 				var f = highlighted.firstChild
 				while (f)
 				{
@@ -1024,11 +960,17 @@ alert('SEL TAB MULTIPLE LINES')
 				updateBirdView(lines, lint.functionLines)
 //				alert(lint.errors)
 
-				var str = getTickCount() + ' highlight'
+
+				var bubbleContainer = document.getElementById('bubbleContainer')
+				bubbleContainer.innerHTML = ''
+
+
+				var str = getTickCount() + ' highlight<br>'
 				for (var i=0; i<lint.errors.length; i++)
 				{
+					
 					var error = lint.errors[i]
-					str += i + '='
+					str += '<b>' + i + '</b>='
 //					str += JSLINT.errors[i].line
 					str += dumpHash(error)
 					str += '<br>'
@@ -1036,6 +978,41 @@ alert('SEL TAB MULTIPLE LINES')
 //					str += i + '=' + error.reason + '<br>'
 //alert(dumpHash(e))
 //					str += i + '=' + e.line + '<br>'
+
+					
+					pushSelection()
+					setSelectionAsLineAndOffset(error.line, error.character)
+					var sel = getSelection()
+//					var str2 = '\nanchorNode in selection=' + (sel.anchorNode) + ' parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML).substr(0, 40)
+					
+					
+/*					
+					var n = sel.anchorNode
+					var n2 = document.createElement('SPAN')
+					n2.innerHTML = '<div class="bubble" contentEditable="false">' + error.reason + '</div>'
+					var n3 = document.createTextNode('HaaaaOP')
+//					alert(n.nodeValue + sel.anchorOffset)
+					if (n.nextSibling)	n.parentNode.insertBefore(n3, n.nextSibling)
+					else				n.parentNode.appendChild(n3)
+					n.parentNode.insertBefore(n2, n3)
+					sel.anchorNode.nodeValue 
+*/
+					var l = nodeFromLineNumber(error.line)
+					var y = l.offsetTop
+					if (l.className.match(/selectedLine/)) y++
+					
+					var n2 = document.createElement('SPAN')
+					n2.innerHTML = error.reason
+					n2.className = 'bubble'
+					n2.style.top = y + 'px'
+					bubbleContainer.appendChild(n2)
+
+					
+//					document.getElementById('dump6').innerHTML += str2
+					popSelection()
+
+					break
+
 				}
 //				alert(lint.errors[0].reason)
 //				alert(str)
@@ -1121,8 +1098,7 @@ alert('SEL TAB MULTIPLE LINES')
 <pre>
 	<h1 style='color: red'>
 * highlight happens on caret move : left/right + up/down on overflowing lines
-* enter removes white space
-* birdview keeps OLD LINES !
+* fex un bull mi-transparent qi deven opaq en hover
 	</h1>
 	
 </body>
