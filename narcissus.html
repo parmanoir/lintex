@@ -4,6 +4,11 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>Highlighter</title>
 	<style>
+		html, body
+		{
+			margin: 0;
+			padding: 0;
+		}
 		body
 		{
 			font-size: 80%;
@@ -38,7 +43,7 @@
 		}
 		#sourceContainer
 		{
-			height: 400px;
+			height: 100%;
 			overflow-y: scroll;
 			position: relative;
 		}
@@ -167,7 +172,7 @@
 		{
 			display: none;
 		}
-		
+/*		
 		.bubble
 		{
 			position: absolute; 
@@ -177,15 +182,48 @@
 			position: absolute;
 			z-index: 100;
 		}
+*/
+		.bubble
+		{
+			position: absolute;
+			z-index: 8;
+
+			padding: 4px 9px;
+			background: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 255, 0.2)), to(rgba(0, 0, 0, 0.2)));
+			background-color: red;
+			text-shadow: rgba(0, 0, 0, 0.3) 0px -1px 1px;
+			color: white;
+			font-weight: bold;
+			font-family: helvetica neue;
+			white-space: normal;
+
+			-webkit-border-radius: 5px;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 6px;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 5px;
+			
+			display: inline-block;
+			emargin: 1em;
+			margin-bottom: 2em;
+			max-width: 150px;
+		}
+		.warningContainer
+		{
+			font-size: 9pt;
+			position: relative;
+			eborder: solid 1px lime;
+		}
+
+
 		#lineNumbers
 		{
 			position: absolute;
-			width: 20px;
+			width: 25px;
 			border-right: solid 1px #eee;
+			background-color: #f8f8f8;
 		}
 		#highlighted
 		{
-			padding-left: 25px;
+			margin-left: 30px;
 		}
 		
 		.lineNumber
@@ -193,7 +231,7 @@
 			font-size: 50%;
 			color: #ccc;
 			text-align: right;
-			padding-right: 4px;
+			padding-right: 1px;
 		}
 		.l10
 		{
@@ -203,7 +241,13 @@
 </style>
 </head>
 <body>
-<table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px; width: 1px'>
+
+<table eborder='1' style='table-layout: fixed; width: 100%; height: 800px' cellPadding='0' cellSpacing='0'><tr>
+<td>
+	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='highlighted'></div></div>
+</td><td style='width: 200px'><div id='birdView'></div></tr></table>
+
+
 	<textarea style='display: none'>
 		var a = 'hello'
 var b = "world"
@@ -212,17 +256,18 @@ var c = 'hello I\'m home'
 if ('blah'.match(/[a-zA-Z0-4]/))
 {
 	// do something
+	var d = 8.
 }
 
 function doSomething(pa, pb, pc)
 {
 	function	fn2(pz)
 	{
-		return z+pa+
+		return z+pa
 	}
 	function fn32(tryme)
 	{
-		re turn tryme+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToO verflow + longToOverflow + longToOverflow
+		return try me+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow
 	}
 	function fn4(pz)
 	{
@@ -255,7 +300,12 @@ for (var i=0; i<10; i++)
 		hop
 		la
 	?&gt;
+	
+// end line !
+var c = 3+a2*5
+
 </textarea>
+
 
 <!-- Measures the width of one char -->
 <div id='fontWidthMeasurer'><span>*</span> measures font width</div>
@@ -263,10 +313,9 @@ for (var i=0; i<10; i++)
 <div id='rawSourceFromLineExtractor'></div>
 
 	<pre id='dump'></pre>
-	
-</td><td style='width: 20px'></td><td>
-	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='highlighted'></div></div>
-</td><td><div id='birdView'></div></tr></table>
+
+
+
 <table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
 <tr><td>
 	<pre id='dump2'></pre>
@@ -303,6 +352,8 @@ for (var i=0; i<10; i++)
 				return str
 			}
 
+
+			var charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
 		
 			var textarea = document.getElementsByTagName('TEXTAREA')[0]
 			var source = textarea.value
@@ -321,7 +372,9 @@ for (var i=0; i<10; i++)
 			var suffix = '\n</' + lineElementName + '>'
 			for (var i=0; i<lines.length; i++)
 			{
-				src.push(prefix + htmlEncode(lines[i]) + suffix)
+				var l = prefix + htmlEncode(lines[i]) + suffix
+				l = replaceTabInLine(l, l)
+				src.push(l)
 			}
 			highlighted.innerHTML = src.join('')
 			
@@ -391,11 +444,6 @@ for (var i=0; i<10; i++)
 				
 				if (!tokensByLine[line])	tokensByLine[line] = []
 				tokensByLine[line].push(token)
-				
-				if (token.type == '(extension)')
-				{
-//					alert(dumpHash(token))
-				}
 			}
 			function	logStatement(statement)
 			{
@@ -480,7 +528,7 @@ for (var i=0; i<10; i++)
 					}
 					var c = ''
 					var v = token.value
-						v = line.substr(token.from, token.character-token.from)
+					v = line.substr(token.from, token.character-token.from)
 					if (token.identifier) c = 'identifier-' + token.value
 					if (token.reserved) c = 'keyword'
 					if (token.id && !token.reserved) 
@@ -690,8 +738,8 @@ for (var i=0; i<10; i++)
 						var right = t.substr(offset)
 //						alert(left + '<CARET>' + right)
 //						alert('offset=' + offset + '\ntext=' + t + '\n\n\nleft=' + left + '\n\n\nright=' + right)
-						var line = left + '\t' + right
-						lineNode.innerHTML = replaceTabInLine(line, line)
+						var text = left + '\t' + right
+						lineNode.innerHTML = replaceTabInLine(text, text)
 //alert('4')						
 						popCaretSelection()
 						// Advance after tabbing
@@ -789,10 +837,14 @@ alert('SEL TAB MULTIPLE LINES')
 						if (!rightText.match(/\n/)) rightText += '\n'
 						// Get space (minus \n) on cursor left
 						var leftSpace = line.innerText.substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
-						n.innerText = leftSpace + rightText
+						var text = leftSpace + rightText
+						text = replaceTabInLine(text, text)
+						n.innerHTML = text
 						
 						line.insertAdjacentElement('afterEnd', n)
-						line.innerText = line.innerText.substr(0, leftLength) + '\n'
+//						line.innerText = line.innerText.substr(0, leftLength) + '\n'
+						var text = line.innerText.substr(0, leftLength) + '\n'
+						lineNode.innerHTML = replaceTabInLine(text, text)
 
 						if (keyCode == 13)
 						{
@@ -943,6 +995,56 @@ alert('SEL TAB MULTIPLE LINES')
 			
 			var charWidth = 0
 			var paddedLines = []
+			
+			function	replaceExtensions(src)
+			{
+				var idx = src.indexOf('<?')
+				var idx2 = 0
+				
+				var tag1 = /<\?/g
+				var tag2 = /\?>/g
+				
+				var r1
+				var lastIndex = 0
+				var src2 = []
+				while (r1 = tag1.exec(src))
+				{
+//					alert(r1.index  + '\n' + dumpHash(r1))
+					tag2.lastIndex = r1.index
+					var r2 = tag2.exec(src)
+					if (r2)
+					{
+						src2.push(src.substr(lastIndex, r1.index-lastIndex))
+//						src2.push(src.substr(r1.index, r2.index-r1.index+2))
+						var str = src.substr(r1.index, r2.index-r1.index+2)
+//						alert('IN=' + str + '\n**********************')
+						lastIndex = r2.index+2
+					}
+					else
+					{
+						return null
+					}
+//					alert(dumpHash(r1))
+//					alert(dumpHash(r2))
+//					alert(r.index + '\n' + (r2 ? r2.index : 'NO LASTMATCH'))
+				}
+				if (lastIndex)
+				{
+					src2.push(src.substr(lastIndex))
+//					alert('EXTRACTED=' + src2.join(''))
+					return src2.join('')
+				}
+				return	src
+				
+/*
+				if (idx)
+				{
+					var src2 = src.substr(idx2, idx)
+					var idx2 = src.indexOf('')
+				}
+*/
+			}
+			
 			function	highlightText()
 			{
 				charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
@@ -955,7 +1057,10 @@ alert('SEL TAB MULTIPLE LINES')
 					f = f.nextSibling
 				}
 				var src = lines.join('')
-				if (src.match(/<\?/))
+				src = replaceExtensions(src)
+//				lines = src.split('\n')
+//				for (var i=0; i<lines.length-1; i++)	lines[i] += '\n'
+/*				if (src.match(/<\?/))
 				{
 					function	r(a, b, c, d)
 					{
@@ -964,12 +1069,17 @@ alert('SEL TAB MULTIPLE LINES')
 					}					
 					src.replace(/<\?.*\?>/g, r)
 				}
+*/				
 //				alert(lines.join('').substr(0, 200))
 				var lint = lintLines(lines)
+//				var lint = lintLines(src)
 				
 //				highlighted.className = lint.res ? '' : 'lintError'
 
 
+				//
+				// Highlight
+				//
 				pushCaretSelection()
 				
 				var f = highlighted.firstChild
@@ -987,9 +1097,19 @@ alert('SEL TAB MULTIPLE LINES')
 				popCaretSelection()
 				
 				
+				//
+				// Bird view
+				// 
 				updateBirdView(lines, lint.functionLines)
 //				alert(lint.errors)
 
+
+				var selectedLineClassName
+				if (previouslySelectedLine)
+				{
+					selectedLineClassName = previouslySelectedLine.className
+					previouslySelectedLine.className = 'line'
+				}
 
 				var bubbleContainer = document.getElementById('bubbleContainer')
 				bubbleContainer.innerHTML = ''
@@ -998,13 +1118,24 @@ alert('SEL TAB MULTIPLE LINES')
 				var str = getTickCount() + ' highlight<br>'
 				
 				
-				// Remove padding from bubble lines
-				for (var i=0; i<paddedLines.length; i++)	nodeFromLineNumber(paddedLines[i]).style.paddingTop = 0
 				
+				//
+				// Show error bubbles
+				// 
+
+				// Remove padding from bubble lines
+				for (var i=0; i<paddedLines.length; i++)	nodeFromLineNumber(paddedLines[i]).style.padding = 0
+
 				for (var i=0; i<lint.errors.length; i++)
 				{
 					
 					var error = lint.errors[i]
+					// Last error is null
+					if (error == null)		break
+					
+					// This error will be made visible by the non-highlighted source
+					if (error['reason'].match(/unable to continue/))	continue
+					
 					str += '<b>' + i + '</b>='
 //					str += JSLINT.errors[i].line
 					str += dumpHash(error)
@@ -1056,7 +1187,7 @@ alert('SEL TAB MULTIPLE LINES')
 					sel.anchorNode.nodeValue 
 */
 					var line = nodeFromLineNumber(error.line)
-					var y = /*span.offsetTop +*/ line.offsetTop
+					var y = /*span.offsetTop +*/ line.offsetTop + line.offsetHeight
 					var margin = span.offsetHeight
 					if (line.className.match(/selectedLine/)) y++//, margin -= 2
 //					alert(margin)
@@ -1066,11 +1197,11 @@ alert('SEL TAB MULTIPLE LINES')
 					bubble.className = 'bubble'
 					bubble.style.top = y + 'px'
 //					bubble.style.marginTop = '-' +  margin + 'px'
-					bubble.style.marginLeft = span.offsetLeft + 'px'
+					bubble.style.marginLeft = (span.offsetLeft + highlighted.offsetLeft) + 'px'
 //					n2.style.marginTop = '0px'
 					bubbleContainer.appendChild(bubble)
 					
-					line.style.paddingTop = bubble.offsetHeight + 'px'
+					line.style.paddingBottom = bubble.offsetHeight + 'px'
 					
 					paddedLines.push(error.line)
 
@@ -1078,7 +1209,7 @@ alert('SEL TAB MULTIPLE LINES')
 //					document.getElementById('dump6').innerHTML += str2
 					popSelection()
 
-					break
+//					break
 
 				}
 //				alert(lint.errors[0].reason)
@@ -1087,7 +1218,9 @@ alert('SEL TAB MULTIPLE LINES')
 				document.getElementById('dump5').innerHTML = str
 				
 				
+				//
 				// Line numbers
+				//
 				var lineNumbers = document.getElementById('lineNumbers')
 				lineNumbers.innerHTML = ''
 				var lines = highlighted.childNodes
@@ -1103,6 +1236,11 @@ alert('SEL TAB MULTIPLE LINES')
 					f = f.nextSibling
 				}
 				lineNumbers.innerHTML = numbers.join('')
+
+
+
+				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
+
 			}
 			
 			
@@ -1123,45 +1261,6 @@ alert('SEL TAB MULTIPLE LINES')
 				var s = getSelection()
 				s.collapseToStart()
 				highlightText()
-//				s.setPosition(highlighted, 5)
-//				s.setPosition(highlighted.firstChild.firstChild, 5)
-				
-//				s.setBaseAndExtent(highlighted.firstChild.firstChild, 5, highlighted.firstChild.nextSibling.firstChild, 7)
-//				s.empty()
-				
-/*
-
-	.	addRange: function addRange() {
-	.	anchorNode: Text
-	.	anchorOffset: 11
-	.	baseNode: Text
-	.	baseOffset: 11
-	.	collapse: function collapse() {
-	.	collapseToEnd: function collapseToEnd() {
-	.	collapseToStart: function collapseToStart() {
-	.	containsNode: function containsNode() {
-	.	deleteFromDocument: function deleteFromDocument() {
-	.	empty: function empty() {
-	.	extend: function extend() {
-	.	extentNode: Text
-	.	extentOffset: 11
-	.	focusNode: Text
-	.	focusOffset: 11
-	.	getRangeAt: function getRangeAt() {
-	.	isCollapsed: true
-	.	modify: function modify() {
-	.	rangeCount: 1
-	.	removeAllRanges: function removeAllRanges() {
-	.	selectAllChildren: function selectAllChildren() {
-	.	setBaseAndExtent: function setBaseAndExtent() {
-	.	setPosition: function setPosition() {
-	.	type: "Caret"
-
-
-*/
-
-//				alert(s)
-//				zea
 			}
 			setTimeout(focusHighlighted, 10)
 			
@@ -1180,13 +1279,11 @@ alert('SEL TAB MULTIPLE LINES')
 		</script>
 
 <pre>
-	<h1 style='color: red'>
-* highlight happens on caret move : left/right + up/down on overflowing lines
+	<h1 style='color: red'>* highlight happens on caret move : left/right + up/down on overflowing lines
 * try linting src, ie lines.join('')
+* clear selected line before numbering and erroring
 	</h1>
-
 	everything on the same line : white-space: wrap
 	retour lign : white-space: pre-wrap
-	
 </body>
 </html>
