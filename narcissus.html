@@ -311,7 +311,27 @@ for (var i=0; i<10; i++)
 	
 // end line !
 var c = 3+a2*5
-
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
+	a
 </textarea>
 
 
@@ -983,7 +1003,7 @@ alert('SEL TAB MULTIPLE LINES')
 				
 			}
 
-			function	updateBirdView(line, functionLines)
+			function	birdView(line, functionLines)
 			{
 				var str = ''
 				for (var i=0; i<functionLines.length; i++)
@@ -1049,13 +1069,185 @@ alert('SEL TAB MULTIPLE LINES')
 			}
 			
 			
+			function	errorBubbles(lint)
+			{
+				var str = ''
+				
+				var bubbleContainer = document.getElementById('bubbleContainer')
+				bubbleContainer.innerHTML = ''
+
+				// Remove padding from bubble lines
+				for (var i=0; i<paddedLines.length; i++)	nodeFromLineNumber(paddedLines[i]).style.padding = 0
+
+
+
+//				if (highlightCount > 1)	return
+//					pushSelection()
+
+				var previousLineError
+				for (var i=0; i<lint.errors.length; i++)
+				{
+					
+					var error = lint.errors[i]
+					// Last error is null
+					if (error == null)		break
+					
+					// This error will be made visible by the non-highlighted source
+					if (error['reason'].match(/unable to continue/))	continue
+
+					// Only show one error per line
+					if (error.line == previousLineError)				continue
+					previousLineError = error.line
+					
+					str += '<b>' + i + '</b>='
+//					str += JSLINT.errors[i].line
+					str += dumpHash(error)
+					str += '<br>'
+//					str += error['reason'] + '<br>'
+//					str += i + '=' + error.reason + '<br>'
+//alert(dumpHash(e))
+//					str += i + '=' + e.line + '<br>'
+
+					
+					setSelectionAsLineAndOffset(error.line, error.character)
+					var sel = getSelection()
+//					var str2 = '\nanchorNode in selection=' + (sel.anchorNode) + ' parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML).substr(0, 40)
+					
+					
+					var ll = nodeFromLineNumber(error.line)
+					var t = ll.innerText
+					var str = ''
+					str += 'line=' + error.line + ' offset=' + error.character + ' lineLength=' + t.length + '\n'
+					str += 'anchorOffset=' + sel.anchorOffset + ' text=' + sel.anchorNode.nodeValue + '!'
+					var offset = error.character
+					str += 'line=' + t.substr(0, offset) + '*' + t.substr(offset) + '!'
+//					alert(str)
+					
+					ll.innerText = t
+					setSelectionAsLineAndOffset(error.line, error.character)
+
+
+					// Create an empty span to measure position
+					var n = sel.anchorNode
+					if (n.nodeType == 3)
+					{
+						var span = document.createElement('SPAN')
+						// Special case for tabs — as they're made by adding padding, need to go up one node
+						if (n.parentNode.className == 'fakeTab')
+						{
+							n.parentNode.parentNode.insertBefore(span, n.parentNode.nextSibling)
+						}
+						else
+						{
+//							alert('IN THERE')
+							n.parentNode.appendChild(span)
+//							span.style.cssText = 'display: inline-block; width: 2px; height: 10px; background-color: red'
+							// Split text node at anchorOffset : original text node, SPAN, new text node
+							var n3 = document.createTextNode(sel.anchorNode.nodeValue.substr(sel.anchorOffset))
+							n.parentNode.appendChild(n3)
+							sel.anchorNode.nodeValue = sel.anchorNode.nodeValue.substr(0, sel.anchorOffset)
+						}
+					}
+					else
+						alert('Cannot create lint error bubble\n' + dumpHash(error))
+
+//					span.style.borderLeft = 'solid 1px red'
+//					var t = document.createTextNode('')
+//					span.appendChild(t)
+//					span.className = 'HOOOOOO'
+//					span.innerHTML = '*'
+					
+//					span.innerHTML = ''
+//					alert('*' + sel.anchorNode.nodeValue + '-' + sel.anchorOffset)
+/*
+					var n = sel.anchorNode
+					var n2 = document.createElement('SPAN')
+					n2.innerHTML = '<div class="bubble" contentEditable="false">' + error.reason + '</div>'
+					var n3 = document.createTextNode('')
+//					alert(n.nodeValue + sel.anchorOffset)
+					if (n.nextSibling)	n.parentNode.insertBefore(n3, n.nextSibling)
+					else				n.parentNode.appendChild(n3)
+					n.parentNode.insertBefore(n2, n3)
+					sel.anchorNode.nodeValue 
+*/
+					var line = nodeFromLineNumber(error.line)
+					var x = (span.offsetLeft + highlighted.offsetLeft)
+					var y = /*span.offsetTop +*/ line.offsetTop + line.offsetHeight
+					var margin = span.offsetHeight
+					if (line.className.match(/selectedLine/)) y++//, margin -= 2
+//					alert(margin)
+					
+					var bubbleWrapper	= document.createElement('DIV')
+					bubbleWrapper.className = 'bubbleWrapper'
+					bubbleWrapper.style.top = y + 'px'
+					bubbleWrapper.style.marginLeft = 0 + 'px'
+//					alert(highlighted.offsetLeft)
+
+					var bubble			= document.createElement('DIV')
+					bubble.innerHTML = error.reason
+					bubble.className = 'bubble'
+//					n2.style.marginTop = '0px'
+					
+					
+					bubbleWrapper.appendChild(bubble)
+					bubbleContainer.appendChild(bubbleWrapper)
+//					alert(bubbleWrapper.offsetHeight + '\n' + bubbleWrapper.clientHeight)
+
+//					alert('x=' + x + '\nspan.offsetLeft=' + span.offsetLeft + '\nhighlighted.offsetLeft=' + highlighted.offsetLeft + '\nbubbleWrapper.offsetWidth=' + bubbleWrapper.offsetWidth + '\nhighlighted.offsetWidth=' + highlighted.offsetWidth)
+					
+					if (x+bubbleWrapper.offsetWidth > highlighted.offsetWidth)
+					{
+						x = highlighted.offsetWidth - bubbleWrapper.offsetWidth
+					}
+					bubbleWrapper.style.marginLeft = x + 'px'
+					
+
+					line.style.paddingBottom = bubbleWrapper.offsetHeight + 'px'
+					
+					paddedLines.push(error.line)
+
+					
+//					document.getElementById('dump6').innerHTML += str2
+
+//					break
+
+				}
+
+
+				str = '\n<span style="color: red">' + str + '</span>'
+				document.getElementById('dump5').innerHTML += str
+			}
+			
+			function	lineNumbers()
+			{
+				var lineNumbers = document.getElementById('lineNumbers')
+				lineNumbers.innerHTML = ''
+				var lines = highlighted.childNodes
+				var f = highlighted.firstChild
+				var numbers = []
+				var i = 1
+				while (f)
+				{
+					var h = f.offsetHeight
+					var c = 'lineNumber'
+					if ((i % 10) == 0) c += ' l10'
+					numbers.push('<div class="' + c + '" style="height: ' + h + 'px">' + i++ + '</div>')
+					f = f.nextSibling
+				}
+				lineNumbers.innerHTML = numbers.join('')
+			}
+			
+			
 			var highlightCount = 0
+			
+			//
+			// Highlight
+			// 
 			function	highlightText()
 			{
 				document.getElementById('dump4').innerHTML = highlighted.childNodes.length + ' ' + highlighted.innerText.match(/\n/g).length
 
 				highlightCount++
-//				if (highlightCount > 1)	return
 				charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
 				lines = []
 				var f = highlighted.firstChild
@@ -1110,159 +1302,52 @@ alert('SEL TAB MULTIPLE LINES')
 					i++
 				}
 				
-				popCaretSelection()
 				
 				//
 				// Bird view
 				// 
-				updateBirdView(lines, lint.functionLines)
+				birdView(lines, lint.functionLines)
 //				alert(lint.errors)
 
 
+				//
+				// Save selected line's className
+				// 
 				var selectedLineClassName
 				if (previouslySelectedLine)
 				{
 					selectedLineClassName = previouslySelectedLine.className
 					previouslySelectedLine.className = 'line'
 				}
+				
+				
+				
 
-				var bubbleContainer = document.getElementById('bubbleContainer')
-				bubbleContainer.innerHTML = ''
 
 
 				var str = getTickCount() + ' highlight (' + highlightCount + ')<br>' 
+				document.getElementById('dump5').innerHTML = str
 				
 				
 				
 				//
 				// Show error bubbles
 				// 
-
-				// Remove padding from bubble lines
-				for (var i=0; i<paddedLines.length; i++)	nodeFromLineNumber(paddedLines[i]).style.padding = 0
-
-				var previousLineError
-				for (var i=0; i<lint.errors.length; i++)
-				{
-					
-					var error = lint.errors[i]
-					// Last error is null
-					if (error == null)		break
-					
-					// This error will be made visible by the non-highlighted source
-					if (error['reason'].match(/unable to continue/))	continue
-
-					// Only show one error per line
-					if (error.line == previousLineError)				continue
-					previousLineError = error.line
-					
-					str += '<b>' + i + '</b>='
-//					str += JSLINT.errors[i].line
-					str += dumpHash(error)
-					str += '<br>'
-//					str += error['reason'] + '<br>'
-//					str += i + '=' + error.reason + '<br>'
-//alert(dumpHash(e))
-//					str += i + '=' + e.line + '<br>'
-
-					
-					pushSelection()
-					setSelectionAsLineAndOffset(error.line, error.character)
-					var sel = getSelection()
-//					var str2 = '\nanchorNode in selection=' + (sel.anchorNode) + ' parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML).substr(0, 40)
-					
-					
-					// Create an empty span to measure position
-					var n = sel.anchorNode
-					if (n.nodeType == 3)
-					{
-						var span = document.createElement('SPAN')
-						// Special case for the tab — as it's made by adding padding, need to go up one node
-						if (n.parentNode.className == 'fakeTab')
-						{
-							n.parentNode.parentNode.insertBefore(span, n.parentNode.nextSibling)
-						}
-						else
-						{
-							n.parentNode.appendChild(span)
-//							span.style.cssText = 'display: inline-block; width: 2px; height: 10px; background-color: red'
-							var n3 = document.createTextNode(sel.anchorNode.nodeValue.substr(sel.anchorOffset))
-							n.parentNode.appendChild(n3)
-							sel.anchorNode.nodeValue = sel.anchorNode.nodeValue.substr(0, sel.anchorOffset)
-						}
-					}
-					else
-						alert('Cannot create lint error bubble\n' + dumpHash(error))
-						
-//					alert('*' + sel.anchorNode.nodeValue + '-' + sel.anchorOffset)
-/*
-					var n = sel.anchorNode
-					var n2 = document.createElement('SPAN')
-					n2.innerHTML = '<div class="bubble" contentEditable="false">' + error.reason + '</div>'
-					var n3 = document.createTextNode('')
-//					alert(n.nodeValue + sel.anchorOffset)
-					if (n.nextSibling)	n.parentNode.insertBefore(n3, n.nextSibling)
-					else				n.parentNode.appendChild(n3)
-					n.parentNode.insertBefore(n2, n3)
-					sel.anchorNode.nodeValue 
-*/
-					var line = nodeFromLineNumber(error.line)
-					var y = /*span.offsetTop +*/ line.offsetTop + line.offsetHeight
-					var margin = span.offsetHeight
-					if (line.className.match(/selectedLine/)) y++//, margin -= 2
-//					alert(margin)
-					
-					var bubbleWrapper	= document.createElement('DIV')
-					bubbleWrapper.className = 'bubbleWrapper'
-					bubbleWrapper.style.top = y + 'px'
-					bubbleWrapper.style.marginLeft = (span.offsetLeft + highlighted.offsetLeft) + 'px'
-//					alert(highlighted.offsetLeft)
-
-					var bubble			= document.createElement('DIV')
-					bubble.innerHTML = error.reason
-					bubble.className = 'bubble'
-//					n2.style.marginTop = '0px'
-					
-					
-					bubbleWrapper.appendChild(bubble)
-					bubbleContainer.appendChild(bubbleWrapper)
-//					alert(bubbleWrapper.offsetHeight + '\n' + bubbleWrapper.clientHeight)
-					line.style.paddingBottom = bubbleWrapper.offsetHeight + 'px'
-					
-					paddedLines.push(error.line)
-
-					
-//					document.getElementById('dump6').innerHTML += str2
-					popSelection()
-
-//					break
-
-				}
+				
+				errorBubbles(lint)
+//return
 //				alert(lint.errors[0].reason)
 //				alert(str)
-				str = '\n<span style="color: red">' + str + '</span>'
-				document.getElementById('dump5').innerHTML = str
 				
 				
 				//
 				// Line numbers
 				//
-				var lineNumbers = document.getElementById('lineNumbers')
-				lineNumbers.innerHTML = ''
-				var lines = highlighted.childNodes
-				var f = highlighted.firstChild
-				var numbers = []
-				var i = 1
-				while (f)
-				{
-					var h = f.offsetHeight
-					var c = 'lineNumber'
-					if ((i % 10) == 0) c += ' l10'
-					numbers.push('<div class="' + c + '" style="height: ' + h + 'px">' + i++ + '</div>')
-					f = f.nextSibling
-				}
-				lineNumbers.innerHTML = numbers.join('')
+				lineNumbers()
 
+//					popSelection()
+
+				popCaretSelection()
 
 
 				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
