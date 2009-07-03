@@ -168,3 +168,23 @@ PROBLEM
 	hover outlet : highlight usage in methods (birdview)
 	+ show in tooltip ?
 	
+<hr>
+	argument commments
+	fn(a, b, /* must be a hash */ c) -> will show up in autocomplete
+	
+	birdview : xhib function length with a progressbar-like symbol, being red and showing line count if it's more than 200.
+	
+
+
+problems : 
+.line
+{
+	position: relative; 
+}
+mixes code up :
+line 1		: (tab)(newline)
+line 2		: (tab)function(tab)(newline)
+line 3		: (tab){(newline)
+-> go to start of line 1, type 'suppr' -> turns into
+line 1		: (tab){(tab)function(tab)fn2
+-> REMOVE position: relative

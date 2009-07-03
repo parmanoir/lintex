@@ -32,6 +32,7 @@
 		}
 		#highlighted, #fontWidthMeasurer
 		{
+			position: relative;
 			white-space: pre-wrap;
 			emargin-left: 20px;
 			font-family: monaco;
@@ -39,7 +40,6 @@
 			outline: none;
 			eborder: solid 1px #aaa;
 			-webkit-user-modify: read-write;
-			ewidth: 100%;
 		}
 		#sourceContainer
 		{
@@ -52,7 +52,7 @@
 		.line
 		{
 			ebackground-color: #fafafa;
-			position: relative;
+			eposition: relative;
 			line-height: 1.3em;
 			min-height: 1.3em;
 		}
@@ -68,7 +68,6 @@
 		
 		#dumpHighlighted
 		{
-			width: 100%;
 		}
 		#dump5
 		{
@@ -185,10 +184,9 @@
 */
 		.bubble
 		{
-			position: absolute;
-			z-index: 8;
 
-			padding: 4px 9px;
+			padding: 3px 9px;
+			padding-bottom: 5px;
 			background: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 255, 0.2)), to(rgba(0, 0, 0, 0.2)));
 			background-color: red;
 			text-shadow: rgba(0, 0, 0, 0.3) 0px -1px 1px;
@@ -198,13 +196,17 @@
 			white-space: normal;
 
 			-webkit-border-radius: 5px;
-			-webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 6px;
-			-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 5px;
+				-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 5px;
 			
 			display: inline-block;
-			emargin: 1em;
 			margin-bottom: 2em;
-			max-width: 150px;
+			max-width: 160px;
+			emin-width: 80px;
+		}
+		.bubbleWrapper
+		{
+			position: absolute;
+			z-index: 8;
 		}
 		.warningContainer
 		{
@@ -221,9 +223,14 @@
 			border-right: solid 1px #eee;
 			background-color: #f8f8f8;
 		}
-		#highlighted
+		#highlightedContainer
 		{
-			margin-left: 30px;
+			padding-left: 30px;
+			position: relative;
+		}
+		#highlighted, #highlightedContainer
+		{
+			position: relative;
 		}
 		
 		.lineNumber
@@ -244,7 +251,7 @@
 
 <table eborder='1' style='table-layout: fixed; width: 100%; height: 800px' cellPadding='0' cellSpacing='0'><tr>
 <td>
-	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='highlighted'></div></div>
+	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='highlightedContainer'><div id='highlighted'></div></div></div>
 </td><td style='width: 200px'><div id='birdView'></div></tr></table>
 
 
@@ -256,18 +263,19 @@ var c = 'hello I\'m home'
 if ('blah'.match(/[a-zA-Z0-4]/))
 {
 	// do something
-	var d = 8.
+	var d = 8.0
 }
 
 function doSomething(pa, pb, pc)
 {
+	
 	function	fn2(pz)
 	{
 		return z+pa
 	}
 	function fn32(tryme)
 	{
-		return try me+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow
+		return tr yme+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow
 	}
 	function fn4(pz)
 	{
@@ -363,17 +371,16 @@ var c = 3+a2*5
 			
 			var src = []
 
-			// Typing on an empty line deletes trailing '\n'
-			// Now that I'm handling line breaking, no more problems
+			// Each line will be enclosed in a div, thereby enabling padding it to show info bubbles
 			var lineElementName = 'DIV'
-			// OK
-//			var lineElementName = 'SPAN'
 			var prefix = '<' + lineElementName + ' class="line">'
 			var suffix = '\n</' + lineElementName + '>'
+			// Display all lines as raw text
 			for (var i=0; i<lines.length; i++)
 			{
-				var l = prefix + htmlEncode(lines[i]) + suffix
+				var l = htmlEncode(lines[i])
 				l = replaceTabInLine(l, l)
+				l = prefix + l + suffix
 				src.push(l)
 			}
 			highlighted.innerHTML = src.join('')
@@ -486,7 +493,6 @@ var c = 3+a2*5
 				return	space					
 			}
 			
-			
 			function	replaceTabInLine(line, html)
 			{
 				var tabLengths = []
@@ -504,12 +510,14 @@ var c = 3+a2*5
 				{
 					// A tab is surrounded by a SPAN nulling its width (with negative letter-spacing) and padding it to the correct 4-size with charWidth (measured in fontWidthMeasurer)
 					return '<span class="fakeTab" style="letter-spacing: -' + charWidth + 'px; padding-right: ' + tabLengths[tabIndex++]*charWidth + 'px">	</span>'
+//					return '<span class="fakeTab" >	</span>'
 				}
 				var tabLength = 4
 				var deltaTabPosition = 0
 
 				line.replace(/\t/g, countTabs)
 				html = html.replace(/\t/g, replaceTabs)
+
 				return	html
 			}
 			function	writeTokensToLine(node, tokens, line)
@@ -566,9 +574,9 @@ var c = 3+a2*5
 					str += htmlEncode(space)
 				}
 				
-				// Treat newlines in empty lines as white-space: pre (so the caret lets you stop on them), use white-space: normal for the rest
-				if (line.match(/^\n$/))	str = str.replace(/\n/, '<span class="newline">\n</span>')
-				else 					str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
+				// Treat newlines in lines empty or containing only tabs as white-space: pre (so the caret lets you stop on them), use white-space: normal for the rest
+				if (line.match(/^(\t*)\n$/))	str = str.replace(/\n/, '<span class="newline">\n</span>')
+				else 							str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 
 				// TABS ! sized to any size you want.
 				str = replaceTabInLine(line, str)
@@ -745,7 +753,7 @@ var c = 3+a2*5
 						// Advance after tabbing
 						sel.modify('move', 'right', 'character')
 //alert('5')						
-				document.getElementById('dump6').innerHTML += '\nselectionAsLineAndOffset line=' + h.line + ', offset=' + h.offset
+//				document.getElementById('dump6').innerHTML += '\nselectionAsLineAndOffset line=' + h.line + ', offset=' + h.offset
 
 					}
 					else
@@ -974,11 +982,6 @@ alert('SEL TAB MULTIPLE LINES')
 //				alert(lines)
 				
 			}
-			function	keyup()
-			{
-//				dumpHighlighted()
-//				dumpInternalSource()
-			}
 
 			function	updateBirdView(line, functionLines)
 			{
@@ -1045,8 +1048,14 @@ alert('SEL TAB MULTIPLE LINES')
 */
 			}
 			
+			
+			var highlightCount = 0
 			function	highlightText()
 			{
+				document.getElementById('dump4').innerHTML = highlighted.childNodes.length + ' ' + highlighted.innerText.match(/\n/g).length
+
+				highlightCount++
+//				if (highlightCount > 1)	return
 				charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
 				lines = []
 				var f = highlighted.firstChild
@@ -1054,10 +1063,16 @@ alert('SEL TAB MULTIPLE LINES')
 				{
 					var text = readRawSourceFromLineQuicker(f)
 					lines.push(text)
+					
+					if (text.indexOf('<?') != -1)
+					{
+//						alert('ext start line=' + text)
+					}
+					
 					f = f.nextSibling
 				}
 				var src = lines.join('')
-				src = replaceExtensions(src)
+//				src = replaceExtensions(src)
 //				lines = src.split('\n')
 //				for (var i=0; i<lines.length-1; i++)	lines[i] += '\n'
 /*				if (src.match(/<\?/))
@@ -1090,12 +1105,12 @@ alert('SEL TAB MULTIPLE LINES')
 					if (!tokens) tokens = []
 					var line = lines[i]
 					writeTokensToLine(f, tokens, line)
+					
 					f = f.nextSibling
 					i++
 				}
 				
 				popCaretSelection()
-				
 				
 				//
 				// Bird view
@@ -1115,7 +1130,7 @@ alert('SEL TAB MULTIPLE LINES')
 				bubbleContainer.innerHTML = ''
 
 
-				var str = getTickCount() + ' highlight<br>'
+				var str = getTickCount() + ' highlight (' + highlightCount + ')<br>' 
 				
 				
 				
@@ -1126,6 +1141,7 @@ alert('SEL TAB MULTIPLE LINES')
 				// Remove padding from bubble lines
 				for (var i=0; i<paddedLines.length; i++)	nodeFromLineNumber(paddedLines[i]).style.padding = 0
 
+				var previousLineError
 				for (var i=0; i<lint.errors.length; i++)
 				{
 					
@@ -1135,6 +1151,10 @@ alert('SEL TAB MULTIPLE LINES')
 					
 					// This error will be made visible by the non-highlighted source
 					if (error['reason'].match(/unable to continue/))	continue
+
+					// Only show one error per line
+					if (error.line == previousLineError)				continue
+					previousLineError = error.line
 					
 					str += '<b>' + i + '</b>='
 //					str += JSLINT.errors[i].line
@@ -1192,16 +1212,22 @@ alert('SEL TAB MULTIPLE LINES')
 					if (line.className.match(/selectedLine/)) y++//, margin -= 2
 //					alert(margin)
 					
-					var bubble = document.createElement('DIV')
+					var bubbleWrapper	= document.createElement('DIV')
+					bubbleWrapper.className = 'bubbleWrapper'
+					bubbleWrapper.style.top = y + 'px'
+					bubbleWrapper.style.marginLeft = (span.offsetLeft + highlighted.offsetLeft) + 'px'
+//					alert(highlighted.offsetLeft)
+
+					var bubble			= document.createElement('DIV')
 					bubble.innerHTML = error.reason
 					bubble.className = 'bubble'
-					bubble.style.top = y + 'px'
-//					bubble.style.marginTop = '-' +  margin + 'px'
-					bubble.style.marginLeft = (span.offsetLeft + highlighted.offsetLeft) + 'px'
 //					n2.style.marginTop = '0px'
-					bubbleContainer.appendChild(bubble)
 					
-					line.style.paddingBottom = bubble.offsetHeight + 'px'
+					
+					bubbleWrapper.appendChild(bubble)
+					bubbleContainer.appendChild(bubbleWrapper)
+//					alert(bubbleWrapper.offsetHeight + '\n' + bubbleWrapper.clientHeight)
+					line.style.paddingBottom = bubbleWrapper.offsetHeight + 'px'
 					
 					paddedLines.push(error.line)
 
@@ -1240,17 +1266,15 @@ alert('SEL TAB MULTIPLE LINES')
 
 
 				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
-
 			}
 			
 			
-			highlighted.onkeyup = keyup
 			highlighted.onkeydown = keydown
 			
 			
 			function	selectstart()
 			{
-				document.getElementById('dump4').innerHTML = getTickCount() + ' selectstart'
+//				document.getElementById('dump4').innerHTML = getTickCount() + ' selectstart'
 			}
 			highlighted.onselectstart = selectstart
 			
@@ -1279,11 +1303,15 @@ alert('SEL TAB MULTIPLE LINES')
 		</script>
 
 <pre>
-	<h1 style='color: red'>* highlight happens on caret move : left/right + up/down on overflowing lines
+	<h1 style='color: red; margin-top: -50px'>
+* misselection of last line : MY FAULT
+* highlight happens on caret move : left/right + up/down on overflowing lines
 * try linting src, ie lines.join('')
 * clear selected line before numbering and erroring
 	</h1>
 	everything on the same line : white-space: wrap
 	retour lign : white-space: pre-wrap
+
+
 </body>
 </html>

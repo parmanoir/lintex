@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>content editable suppr</title>
+	<style>
+		body
+		{
+			font-size: 80%;
+		}
+		div
+		{
+			ewhite-space: pre-wrap;
+		}
+		span
+		{
+		}
+
+		#highlighted
+		{
+			position: relative;
+			white-space: pre-wrap;
+			emargin-left: 20px;
+			font-family: monaco;
+			font-size: 7pt;
+			outline: none;
+			eborder: solid 1px #aaa;
+			-webkit-user-modify: read-write;
+		}
+</style>
+</head>
+<body>
+
+	<div contentEditable='true' id='highlighted'>
+<div class="line"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">var</span> <span class="identifier-a">a</span> <span class="exps">=</span> <span class="string">'hello'</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="keyword">var</span> <span class="identifier-b">b</span> <span class="exps">=</span> <span class="string">"world"</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="keyword">var</span> <span class="identifier-c">c</span> <span class="exps">=</span> <span class="string">'hello I\'m home'</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="newline">
+</span></div><div class="line"><span class="exps"></span><span class="keyword">if</span> <span class="exps">(</span><span class="string">'blah'</span><span class="exps">.</span><span class="identifier-match">match</span><span class="exps">(</span><span class="exps">/[a-zA-Z0-4]/</span><span class="exps">)</span><span class="exps">)</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="exps">{</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="comment">// do something<span class="newline-normal">
+</span></span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">var</span> <span class="identifier-d">d</span> <span class="exps">=</span> <span class="number">8.0</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="exps">}</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="newline">
+</span></div><div class="line"><span class="exps"></span><span class="keyword">function</span> <span class="identifier-doSomething">doSomething</span><span class="exps">(</span><span class="identifier-pa">pa</span><span class="exps">,</span> <span class="identifier-pb">pb</span><span class="exps">,</span> <span class="identifier-pc">pc</span><span class="exps">)</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="exps">{</span><span class="newline-normal">
+</span></div><div class="line"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">function</span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="identifier-fn2">fn2</span><span class="exps">(</span><span class="identifier-pz">pz</span><span class="exps">)</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="exps">{</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">return</span> <span class="identifier-z">z</span><span class="exps">+</span><span class="identifier-pa">pa</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="exps">}</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">function</span> <span class="identifier-fn32">fn32</span><span class="exps">(</span><span class="identifier-tryme">tryme</span><span class="exps">)</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="exps">{</span><span class="newline-normal">
+</span></div><div class="line" style="padding-bottom: 63px; "><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">return</span> <span class="identifier-tr">tr</span> <span class="identifier-yme">yme</span><span class="exps">+</span><span class="identifier-pc">pc</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span> <span class="exps">+</span> <span class="identifier-longToOverflow">longToOverflow</span><span class="newline-normal">
+</span><span></span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="exps">}</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">function</span> <span class="identifier-fn4">fn4</span><span class="exps">(</span><span class="identifier-pz">pz</span><span class="exps">)</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="exps">{</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">return</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="exps">}</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">var</span> <span class="identifier-d">d</span> <span class="exps">=</span> <span class="identifier-pb">pb</span><span class="exps">+</span><span class="identifier-pc">pc</span><span class="exps">+</span><span class="identifier-globalVar">globalVar</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">return</span> <span class="identifier-a">a</span><span class="exps">*</span><span class="identifier-b">b</span><span class="exps">+</span><span class="identifier-c">c</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="exps">}</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="newline">
+</span></div><div class="line"><span class="exps"></span><span class="keyword">var</span> <span class="identifier-ccc">ccc</span> <span class="exps">=</span> <span class="string">'hello'</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="comment">/*md<span class="newline-normal">
+</span></span></div><div class="line"><span class="comment"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span>some comment<span class="newline-normal">
+</span></span></div><div class="line"><span class="comment">*/</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="keyword">function</span> <span class="identifier-somethingElse">somethingElse</span><span class="exps">(</span><span class="identifier-z">z</span><span class="exps">)</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="exps">{</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">if</span> <span class="exps">(</span><span class="exps">!</span><span class="identifier-z">z</span><span class="exps">)</span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 5px">	</span><span class="keyword">return</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">if</span> <span class="exps">(</span><span class="identifier-z">z</span> <span class="exps">==</span> <span class="number">2</span><span class="exps">)</span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 5px">	</span><span class="keyword">return</span> <span class="identifier-z">z</span><span class="exps">+</span><span class="number">2</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="keyword">return</span> <span class="identifier-z">z</span><span class="exps">*</span><span class="number">2</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="exps">}</span><span class="newline-normal">
+</span></div><div class="line"><span class="exps"></span><span class="newline">
+</span></div><div class="line" style="padding-bottom: 51px; "><span class="exps"></span><span class="exps"><span></span>&lt;</span><span class="exps">?</span>minitex ?&gt;<span class="newline-normal">
+</span></div><div class="line">for (var i=0; i&lt;10; i++)<span class="newline-normal">
+</span></div><div class="line">{<span class="newline-normal">
+</span></div><div class="line"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span>// do stuff ...<span class="newline-normal">
+</span></div><div class="line"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span>for (var i=10; i&gt;0; i--) { /* some more stuff ... */ }<span class="newline-normal">
+</span></div><div class="line"><span class="newline">
+</span></div><div class="line">}<span class="newline-normal">
+</span></div><div class="line"><span class="newline">
+</span></div><div class="line"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span>&lt;?minitex 2<span class="newline-normal">
+</span></div><div class="line"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span>hop<span class="newline-normal">
+</span></div><div class="line"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span>la<span class="newline-normal">
+</span></div><div class="line"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span>?&gt;<span class="newline-normal">
+</span></div><div class="line"><span class="fakeTab" style="letter-spacing: -5px; padding-right: 20px">	</span><span class="newline">
+</span></div><div class="line">// end line !<span class="newline-normal">
+</span></div><div class="line">var c = 3+a2*5<span class="newline-normal">
+</span></div><div class="line"><span class="newline">
+</span></div><div class="line"><span class="newline">
+</span></div>	</div>
+
+
+	<script>
+		function	f()
+		{
+			document.getElementsByTagName('DIV')[0].focus()
+				var s = getSelection()
+				s.collapseToStart()
+		}
+		setTimeout(f, 10)
+	</script>
+
+
+
+</body>
+</html>
