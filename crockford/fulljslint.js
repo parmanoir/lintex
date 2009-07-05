@@ -2336,7 +2336,10 @@ JSLINT = (function () {
 // Look for the final semicolon.
 
         if (!t.block) {
+//	alert(toStringToken(nexttoken) + ' line=' + t.line + ' nexttoken.line=' + nexttoken.line)
             if (nexttoken.id !== ';') {
+				if (token.line == nexttoken.line)
+                warningAt("Missing semicolon.", token.line, token.from + token.value.length);
 //##	
 //                warningAt("Missing semicolon.", token.line,
 //                        token.from + token.value.length);

@@ -59,8 +59,8 @@
 		.selectedLine
 		{
 			background-color: lime;
-			background: -webkit-gradient(linear, left top, left bottom, from(#eee), to(#ddd));
-			border: solid 1px #ccc;
+			background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#eee));
+			border: solid 1px #bbb;
 			border-left: 0;
 			border-right: 0;
 			margin: -1px 0;
@@ -130,11 +130,6 @@
 		}
 
 		/* source styling */
-
-		.lintError
-		{
-			background-color: rgba(255, 240, 240, 0.8);
-		}
 
 
 		.tabspaceviewer
@@ -455,10 +450,11 @@ var c = 3+a2*5
 			
 			
 			
-			function	toStringToken()
+			function	toStringToken(o)
 			{
+				if (!o)	o = this
 //				return this.value + '(' + this.line + ':' + this.from + '->' + this.character + ')'
-				return this.value + '(' + this.from + '->' + this.character + ')'
+				return o.value + '(' + o.from + '->' + o.character + ')'
 			}
 			
 			var tokensByLine
@@ -628,7 +624,10 @@ var c = 3+a2*5
 					ns[i].insertAdjacentElement('beforeBegin', n2)
 				} 
 */
-				return	line.innerText
+				var t = line.innerText
+				// innerText removes \n when using white-space: normal (we need it to make tabs show up)
+				if (line.lastChild && line.lastChild.nodeType == 1 && line.lastChild.className == 'newline-normal')	t += '\n'
+				return	t
 			}
 			
 			function	readRawSourceFromLine(line)
@@ -865,6 +864,12 @@ alert('SEL TAB MULTIPLE LINES')
 						if (!rightText.match(/\n/)) rightText += '\n'
 						// Get space (minus \n) on cursor left
 						var leftSpace = line.innerText.substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
+						
+						// Add a tab if we're pressing enter AFTER a brace
+						if (line.innerText.match(/^\s*\{/) && !rightText.match(/\{/))	leftSpace += '	'
+						
+//						alert(line.innerText)
+						
 						var text = leftSpace + rightText
 						text = replaceTabInLine(text, text)
 						n.innerHTML = text
@@ -947,6 +952,8 @@ alert('SEL TAB MULTIPLE LINES')
 				
 				var currentLineText2 	= readRawSourceFromLine(lineNodeFromNode(sel.anchorNode))
 
+				
+
 //alert(currentLineText + '\n\n' + currentLineText2 + '\n\n\nn1=' + currentLineNumber + '\nn2=' + currentLineNumber2)
 				
 				var mode = 'selecting'
@@ -954,7 +961,25 @@ alert('SEL TAB MULTIPLE LINES')
 				var lineChanged = !(currentLineNumber2 == currentLineNumber && currentLineText2 == currentLineText)
 				if (moved || lineChanged)
 					mode = 'typing'
+				
+				// Custom handling for having inserted specific characters
+				if (mode == 'typing' && currentLineNumber == currentLineNumber2 && currentLineText.length+1 == currentLineText2.length)
+				{
 					
+					var s = selectionAsLineAndOffset()
+					var addedChar = currentLineText2.charAt(s.offset-1)
+
+					// If closed a block, remove a tab in front of it
+					if (addedChar == '}' && currentLineText2.match(/\t\}/))
+					{
+						pushCaretSelection()
+						var text = currentLineText2.replace(/\t\}/, '}')
+						line.innerText = text
+						selectionStack[selectionStack.length-1].offset--
+						popCaretSelection()
+					}
+				}
+				
 /*				
 				var str  = getTickCount() + ' '
 				if (mode == 'typing') 	str += '<span style="color: red">' + mode + '</span>'
@@ -969,6 +994,7 @@ alert('SEL TAB MULTIPLE LINES')
 				// While forward or backward deleting, the next line SPAN came onto the current SPAN. Remove it
 				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
 				{
+					alert('Does this still happen ?')
 					pushCaretSelection()
 					line.innerText = readRawSourceFromLineQuicker(line)
 					line.nextSibling.innerText = readRawSourceFromLineQuicker(line.nextSibling)
@@ -1077,7 +1103,13 @@ alert('SEL TAB MULTIPLE LINES')
 				bubbleContainer.innerHTML = ''
 
 				// Remove padding from bubble lines
-				for (var i=0; i<paddedLines.length; i++)	nodeFromLineNumber(paddedLines[i]).style.padding = 0
+				for (var i=0; i<paddedLines.length; i++)	
+				{
+					var line = nodeFromLineNumber(paddedLines[i])
+					// Skip line if it's been deleted since
+					if (!line)	continue
+					line.style.padding = 0
+				}
 
 
 
@@ -1087,7 +1119,6 @@ alert('SEL TAB MULTIPLE LINES')
 				var previousLineError
 				for (var i=0; i<lint.errors.length; i++)
 				{
-					
 					var error = lint.errors[i]
 					// Last error is null
 					if (error == null)		break
@@ -1108,6 +1139,11 @@ alert('SEL TAB MULTIPLE LINES')
 //alert(dumpHash(e))
 //					str += i + '=' + e.line + '<br>'
 
+//					var s = ''
+//					for (var i=0; i<lines.length; i++) s += i + '=' + lines[i]
+//					alert(dumpHash(error) + '***\n***\n' + s)
+//						i = 54
+//						continue
 					
 					setSelectionAsLineAndOffset(error.line, error.character)
 					var sel = getSelection()
@@ -1115,6 +1151,10 @@ alert('SEL TAB MULTIPLE LINES')
 					
 					
 					var ll = nodeFromLineNumber(error.line)
+					if (!ll)
+					{
+						alert('NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length)
+					}
 					var t = ll.innerText
 					var str = ''
 					str += 'line=' + error.line + ' offset=' + error.character + ' lineLength=' + t.length + '\n'
@@ -1123,7 +1163,7 @@ alert('SEL TAB MULTIPLE LINES')
 					str += 'line=' + t.substr(0, offset) + '*' + t.substr(offset) + '!'
 //					alert(str)
 					
-					ll.innerText = t
+//					ll.innerText = t
 					setSelectionAsLineAndOffset(error.line, error.character)
 
 
@@ -1263,7 +1303,7 @@ alert('SEL TAB MULTIPLE LINES')
 					
 					f = f.nextSibling
 				}
-				var src = lines.join('')
+//				var src = lines.join('')
 //				src = replaceExtensions(src)
 //				lines = src.split('\n')
 //				for (var i=0; i<lines.length-1; i++)	lines[i] += '\n'
@@ -1281,7 +1321,6 @@ alert('SEL TAB MULTIPLE LINES')
 				var lint = lintLines(lines)
 //				var lint = lintLines(src)
 				
-//				highlighted.className = lint.res ? '' : 'lintError'
 
 
 				//
@@ -1389,10 +1428,11 @@ alert('SEL TAB MULTIPLE LINES')
 
 <pre>
 	<h1 style='color: red; margin-top: -50px'>
-* misselection of last line : MY FAULT
 * highlight happens on caret move : left/right + up/down on overflowing lines
 * try linting src, ie lines.join('')
-* clear selected line before numbering and erroring
+* when option/suppr, might delete an endline. need to restore it.
+* remove all innerText refs
+* post deleting everything : lint bubbles error without beeing able to find the matching line node
 	</h1>
 	everything on the same line : white-space: wrap
 	retour lign : white-space: pre-wrap
