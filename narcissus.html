@@ -96,6 +96,7 @@
 		.comment
 		{
 			color: rgb(83, 180, 255);
+			ecolor: #888;
 		}
 
 
@@ -270,7 +271,7 @@ function doSomething(pa, pb, pc)
 	}
 	function fn32(tryme)
 	{
-		return tr yme+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow
+		return tryme+pc + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow + longToOverflow
 	}
 	function fn4(pz)
 	{
@@ -291,7 +292,7 @@ function somethingElse(z)
 	return z*2
 }
 
-&lt;?minitex ?&gt;
+&lt;?math ?&gt;
 for (var i=0; i<10; i++)
 {
 	// do stuff ...
@@ -299,7 +300,7 @@ for (var i=0; i<10; i++)
 
 }
 
-	&lt;?minitex 2
+	&lt;?math 2
 		hop
 		la
 	?&gt;
@@ -1285,7 +1286,9 @@ alert('SEL TAB MULTIPLE LINES')
 			// 
 			function	highlightText()
 			{
-				document.getElementById('dump4').innerHTML = highlighted.childNodes.length + ' ' + highlighted.innerText.match(/\n/g).length
+				var str = 'childNodes.length=' + highlighted.childNodes.length + ' innerText.newlineCount=' + highlighted.innerText.match(/\n/g).length
+				str += ' newline-normal=' + document.getElementsByClassName('newline-normal').length + ' newline=' + document.getElementsByClassName('newline').length
+				document.getElementById('dump4').innerHTML = str
 
 				highlightCount++
 				charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
@@ -1430,7 +1433,13 @@ alert('SEL TAB MULTIPLE LINES')
 	<h1 style='color: red; margin-top: -50px'>
 * highlight happens on caret move : left/right + up/down on overflowing lines
 * try linting src, ie lines.join('')
-* when option/suppr, might delete an endline. need to restore it.
+* when option/suppr, might delete an endline. need to restore it
+	deleted newline : 
+		* enter to create a line
+		* new tab
+		* type some text
+		* option suppr
+		-> no newline
 * remove all innerText refs
 * post deleting everything : lint bubbles error without beeing able to find the matching line node
 	</h1>
