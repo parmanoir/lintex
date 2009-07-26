@@ -192,24 +192,39 @@
 			white-space: normal;
 
 			-webkit-border-radius: 5px;
-				-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 5px;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 5px;
 			
 			display: inline-block;
 			margin-bottom: 2em;
 			max-width: 160px;
 			emin-width: 80px;
+			position: relative;
+			z-index: 2;
+			margin-left: -14px;
+			margin-top: 2px;
 		}
 		.bubbleWrapper
 		{
 			position: absolute;
 			z-index: 8;
 		}
-		.warningContainer
+		.bubbleArrow
 		{
-			font-size: 9pt;
-			position: relative;
+			position: absolute;
+			top: -21px;
+			top: -3px;
+			font-size: 40pt;
+			-webkit-transform: rotate(180deg);
+			color: red;
+			margin-left: -14px;
+			margin-top: 2px;
 			eborder: solid 1px lime;
+			ebackground-color: rgba(0, 255, 0, 0.5);
+			ez-index: 20;
+			height: 45px;
+			overflow: hidden;
 		}
+
 
 
 		#lineNumbers
@@ -244,17 +259,27 @@
 </style>
 </head>
 <body>
-
-<table eborder='1' style='table-layout: fixed; width: 100%; height: 800px' cellPadding='0' cellSpacing='0'><tr>
+	
+<table eborder='1' style='table-layout: fixed; width: 100%; height: 800px; height: 100px' cellPadding='0' cellSpacing='0'><tr>
 <td>
 	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='highlightedContainer'><div id='highlighted'></div></div></div>
 </td><td style='width: 200px'><div id='birdView'></div></tr></table>
 
+	<textarea>function </textarea>
+	<textarea style='display: none'>var a = 4 £ 5 + 4
+var b = hello £ world
+for (var i=a £ b; i<10£2; i++,a£b) 
+{
+	log(i£j)
+	log(a£2)
+}
+</textarea>
 
 	<textarea style='display: none'>
 		var a = 'hello'
 var b = "world"
 var c = 'hello I\'m home'
+var newop = 5*4 £ 5 + 2 £ a
 
 if ('blah'.match(/[a-zA-Z0-4]/))
 {
@@ -375,6 +400,12 @@ var c = 3+a2*5
 				for (var i in o) str += i + '=' + (o[i]) + '\n'
 				return str
 			}
+			function	dumpHashNoFunction(o)
+			{
+				var str = ''
+				for (var i in o) { if (typeof o[i] == 'function') continue; str += i + '=' + (o[i].toString == toStringToken ? ('*TOKEN*'+o[i].value + '*') : o[i]) + '\n' }
+				return str
+			}
 
 
 			var charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
@@ -455,22 +486,51 @@ var c = 3+a2*5
 			{
 				if (!o)	o = this
 //				return this.value + '(' + this.line + ':' + this.from + '->' + this.character + ')'
+				return dumpHashNoFunction(o) + '<hr>'
+//				rez()
 				return o.value + '(' + o.from + '->' + o.character + ')'
 			}
 			
 			var tokensByLine
 			var functionLines
+			
+			
+			var	debugStr
+			var debugCount
+			
 			function	logToken(token)
 			{
 				var line = token.line
 				
-//				token.toString = toStringToken
+				token.toString = toStringToken
+//				alert('TOKEN\n' + token.value + '\n' + token.left + '\n' + token.right)
+				for (var i=0; i<debugCount; i++) debugStr += ' '
+//				debugStr += ' TOKEN ' + token.value + '\n'
+				debugStr += '<span style="color: blue">' + (token.value || token.id) + '</span>\n'
+//				alert(token+'\n'+dumpHash(token))
 				
 				if (!tokensByLine[line])	tokensByLine[line] = []
 				tokensByLine[line].push(token)
 			}
 			function	logStatement(statement)
 			{
+			}
+			
+			
+			function	logParseStart(rbp, initial)
+			{
+//				alert('parse start\n' + rbp + '\n' + initial)
+				for (var i=0; i<debugCount; i++) debugStr += ' '
+				debugStr += 'PSTART ' + rbp + ' ' + initial + '\n'
+				debugCount++
+			}
+			function	logParseEnd(rbp, initial)
+			{
+//				alert('parse END\n' + rbp + '\n' + initial)
+				debugCount--
+				for (var i=0; i<debugCount; i++) debugStr += ' '
+				debugStr += 'PEND ' + rbp + ' ' + initial + '\n'
+				if (initial) debugStr += '\n'
 			}
 
 
@@ -1098,6 +1158,8 @@ alert('SEL TAB MULTIPLE LINES')
 			
 			function	errorBubbles(lint)
 			{
+				pushCaretSelection()
+				
 				var str = ''
 				
 				var bubbleContainer = document.getElementById('bubbleContainer')
@@ -1117,7 +1179,8 @@ alert('SEL TAB MULTIPLE LINES')
 //				if (highlightCount > 1)	return
 //					pushSelection()
 
-				var previousLineError
+				var previousErrorLine
+				// Error list is null-terminated
 				for (var i=0; i<lint.errors.length; i++)
 				{
 					var error = lint.errors[i]
@@ -1128,8 +1191,8 @@ alert('SEL TAB MULTIPLE LINES')
 					if (error['reason'].match(/unable to continue/))	continue
 
 					// Only show one error per line
-					if (error.line == previousLineError)				continue
-					previousLineError = error.line
+					if (error.line == previousErrorLine)				continue
+					var errorLine = error.line
 					
 					str += '<b>' + i + '</b>='
 //					str += JSLINT.errors[i].line
@@ -1146,16 +1209,39 @@ alert('SEL TAB MULTIPLE LINES')
 //						i = 54
 //						continue
 					
-					setSelectionAsLineAndOffset(error.line, error.character)
-					var sel = getSelection()
+//					setSelectionAsLineAndOffset(errorLine, error.character)
+//					var sel = getSelection()
 //					var str2 = '\nanchorNode in selection=' + (sel.anchorNode) + ' parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML).substr(0, 40)
+//					alert(error.line)
 					
-					
-					var ll = nodeFromLineNumber(error.line)
+					var ll = nodeFromLineNumber(errorLine)
+
+					// JSLint will sometimes give the error one (non existant) line ahead,
+					// Try getting previous line
+					if (!ll /*&& error.reason == 'Unexpected early end of program.'*/)
+					{
+						ll = nodeFromLineNumber(errorLine-1)
+						if (ll) 
+						{
+							errorLine--
+							if (errorLine == previousErrorLine)	continue
+						}
+						
+//						alert(ll?ll.outerHTML:'(null)')
+					}
+					previousErrorLine = errorLine
+
 					if (!ll)
 					{
 						alert('NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length)
 					}
+					
+					var sel = getSelection()
+					if (!sel.anchorNode)
+					{
+						alert(getSelection().type + '\n' + error.line + '(' + errorLine + ')' + ',' + error.character)
+					}
+					
 					var t = ll.innerText
 					var str = ''
 					str += 'line=' + error.line + ' offset=' + error.character + ' lineLength=' + t.length + '\n'
@@ -1165,7 +1251,7 @@ alert('SEL TAB MULTIPLE LINES')
 //					alert(str)
 					
 //					ll.innerText = t
-					setSelectionAsLineAndOffset(error.line, error.character)
+					setSelectionAsLineAndOffset(errorLine, error.character)
 
 
 					// Create an empty span to measure position
@@ -1180,9 +1266,7 @@ alert('SEL TAB MULTIPLE LINES')
 						}
 						else
 						{
-//							alert('IN THERE')
 							n.parentNode.appendChild(span)
-//							span.style.cssText = 'display: inline-block; width: 2px; height: 10px; background-color: red'
 							// Split text node at anchorOffset : original text node, SPAN, new text node
 							var n3 = document.createTextNode(sel.anchorNode.nodeValue.substr(sel.anchorOffset))
 							n.parentNode.appendChild(n3)
@@ -1211,7 +1295,7 @@ alert('SEL TAB MULTIPLE LINES')
 					n.parentNode.insertBefore(n2, n3)
 					sel.anchorNode.nodeValue 
 */
-					var line = nodeFromLineNumber(error.line)
+					var line = nodeFromLineNumber(errorLine)
 					var x = (span.offsetLeft + highlighted.offsetLeft)
 					var y = /*span.offsetTop +*/ line.offsetTop + line.offsetHeight
 					var margin = span.offsetHeight
@@ -1222,6 +1306,8 @@ alert('SEL TAB MULTIPLE LINES')
 					bubbleWrapper.className = 'bubbleWrapper'
 					bubbleWrapper.style.top = y + 'px'
 					bubbleWrapper.style.marginLeft = 0 + 'px'
+					
+					bubbleWrapper.innerHTML = "<span class='bubbleArrow'>▾</span>"
 //					alert(highlighted.offsetLeft)
 
 					var bubble			= document.createElement('DIV')
@@ -1245,7 +1331,7 @@ alert('SEL TAB MULTIPLE LINES')
 
 					line.style.paddingBottom = bubbleWrapper.offsetHeight + 'px'
 					
-					paddedLines.push(error.line)
+					paddedLines.push(errorLine)
 
 					
 //					document.getElementById('dump6').innerHTML += str2
@@ -1257,6 +1343,8 @@ alert('SEL TAB MULTIPLE LINES')
 
 				str = '\n<span style="color: red">' + str + '</span>'
 				document.getElementById('dump5').innerHTML += str
+
+				popCaretSelection()
 			}
 			
 			function	lineNumbers()
@@ -1286,9 +1374,17 @@ alert('SEL TAB MULTIPLE LINES')
 			// 
 			function	highlightText()
 			{
-				var str = 'childNodes.length=' + highlighted.childNodes.length + ' innerText.newlineCount=' + highlighted.innerText.match(/\n/g).length
+				var str = ''
+				try
+				{
+					str = 'childNodes.length=' + highlighted.childNodes.length + ' innerText.newlineCount=' + highlighted.innerText.match(/\n/g).length
+				}
+				catch (e) { str = 'NOT EVENT ONE LINE RETURN'}
 				str += ' newline-normal=' + document.getElementsByClassName('newline-normal').length + ' newline=' + document.getElementsByClassName('newline').length
 				document.getElementById('dump4').innerHTML = str
+
+
+
 
 				highlightCount++
 				charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
@@ -1321,10 +1417,14 @@ alert('SEL TAB MULTIPLE LINES')
 				}
 */				
 //				alert(lines.join('').substr(0, 200))
+
+
+				debugStr = ''
+				debugCount = 0
+
 				var lint = lintLines(lines)
 //				var lint = lintLines(src)
 				
-
 
 				//
 				// Highlight
@@ -1344,7 +1444,18 @@ alert('SEL TAB MULTIPLE LINES')
 					i++
 				}
 				
-				
+
+
+				var str = getTickCount()
+				str += '\ntokens=' + dumpHash(lint.tokens)
+				for (var i=0; i<lint.tokens.length; i++)
+				{
+					str += lint.tokens[i]
+					str += i + '*'
+				}
+				document.getElementById('dump3').innerHTML = str
+				document.getElementById('dump2').innerHTML = debugStr
+//				alert(lines)
 				//
 				// Bird view
 				// 
@@ -1376,6 +1487,7 @@ alert('SEL TAB MULTIPLE LINES')
 				// Show error bubbles
 				// 
 				
+				popCaretSelection()
 				errorBubbles(lint)
 //return
 //				alert(lint.errors[0].reason)
@@ -1389,7 +1501,6 @@ alert('SEL TAB MULTIPLE LINES')
 
 //					popSelection()
 
-				popCaretSelection()
 
 
 				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
@@ -1441,7 +1552,7 @@ alert('SEL TAB MULTIPLE LINES')
 		* option suppr
 		-> no newline
 * remove all innerText refs
-* post deleting everything : lint bubbles error without beeing able to find the matching line node
+
 	</h1>
 	everything on the same line : white-space: wrap
 	retour lign : white-space: pre-wrap

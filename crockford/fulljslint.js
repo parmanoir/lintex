@@ -776,6 +776,42 @@ JSLINT = (function () {
 		// That's too broad. Maybe check if eval('var supposedIdentifier') throws ?
 		// added ext <?
         tx = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/,
+
+		// added dummy £
+        tx = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|£|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/,
+
+/*
+        tx = 
+^\s*([(){}\[.,:;'"~\?\]#@]
+==?=?
+\/(\*(global
+extern
+jslint
+member
+members)?
+=
+\/)?
+\*[\/=]?
+\+[+=]?
+-[\-=]?
+%=?
+&[&=]?
+\
+[
+=]?
+>>?>?=?
+<([\/=!]
+\!(\[
+--)?
+<=?)?
+\^=?
+\!=?=?
+[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*
+[0-9]+([xX][0-9a-fA-F]+
+\.[0-9]*)?([eE][+\-]?[0-9]+)?)
+
+*/
+
 // html token
         hx = /^\s*(['"=>\/&#]|<(?:\/|\!(?:--)?)?|[a-zA-Z][a-zA-Z0-9_\-]*|[0-9]+|--|.)/,
 // characters in strings that need escapement
@@ -1880,9 +1916,19 @@ JSLINT = (function () {
 //  rbp     Right binding power
 
 // They are key to the parsing method called Top Down Operator Precedence.
+/*
+// http://javascript.crockford.com/tdop/tdop.html
+;; NUD -- NUll left Denotation (op has nothing to its left (prefix))
+;; LED -- LEft Denotation      (op has something to left (postfix or infix))
 
+;; LBP -- Left Binding Power  (the stickiness to the left)
+;; RBP -- Right Binding Power (the stickiness to the right)
+
+*/
     function parse(rbp, initial) {
         var left, o;
+		// ## notify of expression parsing start
+		logParseStart(rbp, initial)
         if (nexttoken.id === '(end)') {
             error("Unexpected early end of program.", token);
         }
@@ -1907,6 +1953,8 @@ JSLINT = (function () {
 "A leading decimal point can be confused with a dot: '.{a}'.",
                             token, nexttoken.value);
                     advance();
+					// ## notify of expression parsing end
+					logParseEnd(rbp, initial)
                     return token;
                 } else {
                     error("Expected an identifier and instead saw '{a}'.",
@@ -1928,6 +1976,8 @@ JSLINT = (function () {
                 warning("Expected an assignment or function call and instead saw an expression.",                        token);
             }
         }
+		// ## notify of expression parsing end
+		logParseEnd(rbp, initial)
         return left;
     }
 
@@ -3768,6 +3818,8 @@ JSLINT = (function () {
     reservevar('this');
     reservevar('true');
     reservevar('undefined');
+
+
     assignop('=', 'assign', 20);
     assignop('+=', 'assignadd', 20);
     assignop('-=', 'assignsub', 20);
@@ -3848,6 +3900,7 @@ JSLINT = (function () {
     }, 130);
     prefix('+', 'num');
     infix('-', 'sub', 130);
+    infix('£', 'sterling', 135);
     prefix('-', 'neg');
     infix('*', 'mult', 140);
     infix('/', 'div', 140);
