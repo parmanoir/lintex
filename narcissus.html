@@ -57,7 +57,7 @@
 			line-height: 1.3em;
 			min-height: 1.3em;
 		}
-		.selectedLine
+		#selectedLine
 		{
 			background-color: lime;
 			background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#eee));
@@ -65,6 +65,8 @@
 			border-left: 0;
 			border-right: 0;
 			margin: -1px 0;
+			position: absolute;
+			width: 100%;
 		}
 		
 		#dumpHighlighted
@@ -125,10 +127,14 @@
 
 		.newline
 		{
+			display: inline-block; border: solid 1px red; height : 7px; width: 7px;
+			
 		}
 		.newline-normal
 		{
 			white-space: normal;
+			display: inline-block; border: solid 1px lime; height : 7px; width: 7px;
+			
 		}
 
 		/* source styling */
@@ -251,6 +257,8 @@
 			color: #ccc;
 			text-align: right;
 			padding-right: 1px;
+			position: relative;
+			z-index: 4;
 		}
 		.l10
 		{
@@ -259,8 +267,8 @@
 		
 		#whiteSpaceRevealer div
 		{
-			color: lime;
 			color: rgb(83, 180, 255);
+/*			color: #800; text-shadow: red 0px 0px 1px, red 0px 0px 0px, red 0px 0px 2px, red 0px 0px 2px;*/
 			position: absolute;
 		}
 		
@@ -270,13 +278,21 @@
 	
 <table eborder='1' style='table-layout: fixed; width: 100%; height: 800px; height: 200px' cellPadding='0' cellSpacing='0'><tr>
 <td>
-	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='highlightedContainer'><div id='whiteSpaceRevealer'></div><div id='highlighted'></div></div></div>
+	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='selectedLine'></div><div id='highlightedContainer'><div id='whiteSpaceRevealer'></div><div id='highlighted'></div></div></div>
 </td><td style='width: 200px'><div id='birdView'></div></tr></table>
+
+	<textarea style='display: none'>var a = 4
+	// hello
+	a = 8
+		// hello ce ci coe pe rlmrkez mrlkmlezkrmelz mlkrez mrlkemlzrk ezlmezkr mlezkrmlezkml mlezkr ezmlkremzlkr mlek lmkerzmlezrkmlezkr mlzekr mmlekr ezmlrk mlkezrmlkezrm lmekrmlrk mlezkr ezmlkr emlzkr mlezrzelrkzzzzzzzzzzzzz ermlk zmlrk ezmlrk ezlmrka aopilmklmk rezrezr zr krmzelrkezlrm mlkze rlmezkr lzemkrmlzekr zelrkzmzmmmmmaaaaaaaaaa CHECK BLANK LINES : MUST KEEP ORIGINAL TEXT, JUST INVISIBLE
+	a = 13
+	</textarea>
 
 	<textarea style='display: none'>var a = 4 £ 5 + 4
 var b = hello £ world
 for (var i=a £ b; i<10£2; i++,a£b) 
 {
+	// hello
 	log(i£j)
 	log(a£2)
 }
@@ -615,6 +631,7 @@ var c = 3+a2*5
 				while (tokens[i])
 				{
 					var token = tokens[i]
+//alert('value=' + token.value + '\nlength=' + token.value.length + '\nrange=' + token.from + ',' + token.character)
 //					keep an index of current char, copy from source string with splice or substring if not there
 					if (token.value && token.from > lastIndex)
 					{
@@ -638,6 +655,7 @@ var c = 3+a2*5
 					if (token.type == '(comment)') 
 					{
 						c = 'comment'
+//						alert(line + '*\ncharacter=' + token.character + '\nline.length=' + line.length + '\nv=' + v + '*')
 /*
 						// Single line markdown comment
 						if (v.match(/^\/\/md/))
@@ -659,11 +677,12 @@ var c = 3+a2*5
 				{
 					var space = line.substr(lastIndex)
 					str += htmlEncode(space)
+//					alert('COPY\n*' + str + '*' + '\n===\n' + line.substr(lastIndex) + '*')
 				}
 				
 				// Treat newlines in lines empty or containing only tabs as white-space: pre (so the caret lets you stop on them), use white-space: normal for the rest
-				if (line.match(/^(\t*)\n$/))	str = str.replace(/\n/, '<span class="newline">\n</span>')
-				else 							str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
+//				if (line.match(/^(\t*)\n$/))	str = str.replace(/\n/, '<span class="newline">\n</span>')
+//				else 							str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 
 				// TABS ! sized to any size you want.
 				str = replaceTabsInLine(line, str)
@@ -791,6 +810,11 @@ var c = 3+a2*5
 //				alert(event.keyCode)
 				var keyCode = event.keyCode
 				
+				if (event.shiftKey)	
+				{
+					alert('SELEX')
+					alert('mark newlines as normal')
+				}
 				
 				
 				var sel = getSelection()
@@ -974,7 +998,7 @@ alert('SEL TAB MULTIPLE LINES')
 				*/
 			}
 			
-			var previouslySelectedLine
+//			var previouslySelectedLine
 			function	postKeydown()
 			{
 				var sel = getSelection()
@@ -1010,13 +1034,18 @@ alert('SEL TAB MULTIPLE LINES')
 					var line = lineNodeFromNode(sel.anchorNode)
 				}
 				
-				if (previouslySelectedLine)	previouslySelectedLine.className = 'line'
-				previouslySelectedLine = null
+//				if (previouslySelectedLine)	previouslySelectedLine.className = 'line'
+//				previouslySelectedLine = null
+				var selectedLine = document.getElementById('selectedLine')
 				if (sel.type == 'Caret')
 				{
-					previouslySelectedLine = line
-					line.className += ' selectedLine'
+					selectedLine.style.top = line.offsetTop + 'px'
+					selectedLine.style.height = line.offsetHeight + 'px'
+//					previouslySelectedLine = line
+//					line.className += ' selectedLine'
 				}
+				else
+					selectedLine.style.top = '-30000px'
 				
 				var lineCount2			= highlighted.childNodes.length
 				var currentLineNumber2 	= lineNumberFromNode(sel.anchorNode)
@@ -1311,7 +1340,7 @@ alert('SEL TAB MULTIPLE LINES')
 					var x = (span.offsetLeft + highlighted.offsetLeft)
 					var y = /*span.offsetTop +*/ line.offsetTop + line.offsetHeight
 					var margin = span.offsetHeight
-					if (line.className.match(/selectedLine/)) y++//, margin -= 2
+//					if (line.className.match(/selectedLine/)) y++//, margin -= 2
 //					alert(margin)
 					
 					var bubbleWrapper	= document.createElement('DIV')
@@ -1478,13 +1507,14 @@ alert('SEL TAB MULTIPLE LINES')
 				//
 				// Save selected line's className
 				// 
+/*
 				var selectedLineClassName
 				if (previouslySelectedLine)
 				{
 					selectedLineClassName = previouslySelectedLine.className
 					previouslySelectedLine.className = 'line'
 				}
-				
+*/				
 				
 				
 
@@ -1520,7 +1550,7 @@ alert('SEL TAB MULTIPLE LINES')
 
 
 
-				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
+//				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
 			}
 			
 			function	revealWhiteSpace()
@@ -1528,9 +1558,9 @@ alert('SEL TAB MULTIPLE LINES')
 				var revealer = document.getElementById('whiteSpaceRevealer')
 				revealer.innerHTML = ''
 				
-				
 				function	replaceTab(tabSize)
 				{
+//					alert(tabSize + '\n*\n' + text)
 					var t = '→'
 					if (tabSize == 2) t += ' '
 					if (tabSize == 3) t += '  '
@@ -1538,17 +1568,28 @@ alert('SEL TAB MULTIPLE LINES')
 					return t
 				}
 				
+				function	revealWhite(match)
+				{
+					var str = String(match)
+					if (str.length == 1)
+					{
+						if (str == ' ')		return '<span style="position: absolute">·</span> '
+						if (str == '\n')	return '¶' 
+						if (str == '\t')	return str
+					}
+					return '<span style="opacity: 0">' + str + '</span>'
+				}
+				
 				var f = highlighted.firstChild
 				while (f)
 				{
 					var text = readRawSourceFromLineQuicker(f)
 					var n2 = document.createElement('DIV')
-//					text = text.replace(/[^\s]/g, ' ')
-					text = text.replace(/ /g, '·')
-					text = text.replace(/\n/g, '¶')
-					text = replaceTabsInLine(text, text, replaceTab)
+
+					var html = text					
+					var html = text.replace(/(\S+|\s|\t|\n)/g, revealWhite)
+					text = replaceTabsInLine(text, html, replaceTab)
 					n2.innerHTML = text
-//					n2.className = 'whiteSpaceLine'
 					
 					var y = f.offsetTop
 					n2.style.top = y + 'px'
@@ -1560,15 +1601,15 @@ alert('SEL TAB MULTIPLE LINES')
 			
 			function	copy()
 			{
-				
+				alert('handle copy cut paste')
 			}
 			function	cut()
 			{
-			
+				alert('handle copy cut paste')
 			}
 			function	paste()
 			{
-				
+				alert('handle copy cut paste')
 			}
 			
 			

@@ -1053,6 +1053,7 @@ members)?
             t.line = line;
             t.character = character;
             t.from = from;
+//alert('NEWTOKEN\ntype=' + type + '\nvalue=' + value + '\nfrom=' + t.from + '\ncharacter=' + t.character)
             i = t.id;
             if (i !== '(endline)') {
                 prereg = i &&
@@ -1247,6 +1248,7 @@ members)?
                 }
 
                 for (;;) {
+					// ## s is the current line being eaten token after token
                     if (!s) {
                         return it(nextLine() ? '(endline)' : '(end)', '');
                     }
@@ -3886,6 +3888,9 @@ members)?
     infix('instanceof', 'instanceof', 120);
     infix('+', function (left, that) {
         var right = parse(130);
+/*
+## String constant folding messes up token stream : logToken outputs token stream on the fly.
+## Disabled.
         if (left && right && left.id === '(string)' && right.id === '(string)') {
             left.value += right.value;
             left.character = right.character;
@@ -3894,6 +3899,7 @@ members)?
             }
             return left;
         }
+*/
         that.left = left;
         that.right = right;
         return that;
