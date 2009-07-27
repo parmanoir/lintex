@@ -30,15 +30,16 @@
 			vertical-align: top;
 			width: 50%;
 		}
-		#highlighted, #fontWidthMeasurer
+		#highlighted, #fontWidthMeasurer, #whiteSpaceRevealer
 		{
 			position: relative;
 			white-space: pre-wrap;
-			emargin-left: 20px;
 			font-family: monaco;
 			font-size: 7pt;
 			outline: none;
-			eborder: solid 1px #aaa;
+		}
+		#highlighted
+		{
 			-webkit-user-modify: read-write;
 		}
 		#sourceContainer
@@ -256,16 +257,22 @@
 			color: #888;
 		}
 		
+		#whiteSpaceRevealer div
+		{
+			color: lime;
+			color: rgb(83, 180, 255);
+			position: absolute;
+		}
+		
 </style>
 </head>
 <body>
 	
-<table eborder='1' style='table-layout: fixed; width: 100%; height: 800px; height: 100px' cellPadding='0' cellSpacing='0'><tr>
+<table eborder='1' style='table-layout: fixed; width: 100%; height: 800px; height: 200px' cellPadding='0' cellSpacing='0'><tr>
 <td>
-	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='highlightedContainer'><div id='highlighted'></div></div></div>
+	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='highlightedContainer'><div id='whiteSpaceRevealer'></div><div id='highlighted'></div></div></div>
 </td><td style='width: 200px'><div id='birdView'></div></tr></table>
 
-	<textarea>function </textarea>
 	<textarea style='display: none'>var a = 4 £ 5 + 4
 var b = hello £ world
 for (var i=a £ b; i<10£2; i++,a£b) 
@@ -426,7 +433,7 @@ var c = 3+a2*5
 			for (var i=0; i<lines.length; i++)
 			{
 				var l = htmlEncode(lines[i])
-				l = replaceTabInLine(l, l)
+				l = replaceTabsInLine(l, l)
 				l = prefix + l + suffix
 				src.push(l)
 			}
@@ -570,7 +577,9 @@ var c = 3+a2*5
 				return	space					
 			}
 			
-			function	replaceTabInLine(line, html)
+			// 'line' is used to compute tab size
+			// tabs are replaced in 'html' 
+			function	replaceTabsInLine(line, html, customReplaceFunction)
 			{
 				var tabLengths = []
 				function	countTabs(str, idx)
@@ -593,7 +602,8 @@ var c = 3+a2*5
 				var deltaTabPosition = 0
 
 				line.replace(/\t/g, countTabs)
-				html = html.replace(/\t/g, replaceTabs)
+				var fn = customReplaceFunction ? function () { return customReplaceFunction(tabLengths[tabIndex++]) } : replaceTabs
+				html = html.replace(/\t/g, fn)
 
 				return	html
 			}
@@ -656,7 +666,7 @@ var c = 3+a2*5
 				else 							str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
 
 				// TABS ! sized to any size you want.
-				str = replaceTabInLine(line, str)
+				str = replaceTabsInLine(line, str)
 				
 				node.innerHTML = str
 			}
@@ -827,7 +837,7 @@ var c = 3+a2*5
 //						alert(left + '<CARET>' + right)
 //						alert('offset=' + offset + '\ntext=' + t + '\n\n\nleft=' + left + '\n\n\nright=' + right)
 						var text = left + '\t' + right
-						lineNode.innerHTML = replaceTabInLine(text, text)
+						lineNode.innerHTML = replaceTabsInLine(text, text)
 //alert('4')						
 						popCaretSelection()
 						// Advance after tabbing
@@ -932,13 +942,13 @@ alert('SEL TAB MULTIPLE LINES')
 //						alert(line.innerText)
 						
 						var text = leftSpace + rightText
-						text = replaceTabInLine(text, text)
+						text = replaceTabsInLine(text, text)
 						n.innerHTML = text
 						
 						line.insertAdjacentElement('afterEnd', n)
 //						line.innerText = line.innerText.substr(0, leftLength) + '\n'
 						var text = line.innerText.substr(0, leftLength) + '\n'
-						lineNode.innerHTML = replaceTabInLine(text, text)
+						lineNode.innerHTML = replaceTabsInLine(text, text)
 
 						if (keyCode == 13)
 						{
@@ -1192,7 +1202,9 @@ alert('SEL TAB MULTIPLE LINES')
 
 					// Only show one error per line
 					if (error.line == previousErrorLine)				continue
+					// These can be modified
 					var errorLine = error.line
+					var errorReason = error.reason
 					
 					str += '<b>' + i + '</b>='
 //					str += JSLINT.errors[i].line
@@ -1233,7 +1245,7 @@ alert('SEL TAB MULTIPLE LINES')
 
 					if (!ll)
 					{
-						alert('NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length)
+//						alert('NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length)
 					}
 					
 					var sel = getSelection()
@@ -1311,7 +1323,7 @@ alert('SEL TAB MULTIPLE LINES')
 //					alert(highlighted.offsetLeft)
 
 					var bubble			= document.createElement('DIV')
-					bubble.innerHTML = error.reason
+					bubble.innerHTML = errorReason
 					bubble.className = 'bubble'
 //					n2.style.marginTop = '0px'
 					
@@ -1498,6 +1510,11 @@ alert('SEL TAB MULTIPLE LINES')
 				// Line numbers
 				//
 				lineNumbers()
+				
+				//
+				// White space
+				// 
+				revealWhiteSpace()
 
 //					popSelection()
 
@@ -1506,8 +1523,59 @@ alert('SEL TAB MULTIPLE LINES')
 				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
 			}
 			
+			function	revealWhiteSpace()
+			{
+				var revealer = document.getElementById('whiteSpaceRevealer')
+				revealer.innerHTML = ''
+				
+				
+				function	replaceTab(tabSize)
+				{
+					var t = '→'
+					if (tabSize == 2) t += ' '
+					if (tabSize == 3) t += '  '
+					if (tabSize == 4) t += '   '
+					return t
+				}
+				
+				var f = highlighted.firstChild
+				while (f)
+				{
+					var text = readRawSourceFromLineQuicker(f)
+					var n2 = document.createElement('DIV')
+//					text = text.replace(/[^\s]/g, ' ')
+					text = text.replace(/ /g, '·')
+					text = text.replace(/\n/g, '¶')
+					text = replaceTabsInLine(text, text, replaceTab)
+					n2.innerHTML = text
+//					n2.className = 'whiteSpaceLine'
+					
+					var y = f.offsetTop
+					n2.style.top = y + 'px'
+					revealer.appendChild(n2)
+					f = f.nextSibling
+				}
+			}
+			
+			
+			function	copy()
+			{
+				
+			}
+			function	cut()
+			{
+			
+			}
+			function	paste()
+			{
+				
+			}
+			
 			
 			highlighted.onkeydown = keydown
+			highlighted.oncopy	= copy
+			highlighted.onpaste	= paste
+			highlighted.oncut 	= cut
 			
 			
 			function	selectstart()
