@@ -452,14 +452,22 @@ var c = 3+a2*5
 //			var prefix = '<' + lineElementName + ' class="line">'
 //			var suffix = '\n</' + lineElementName + '>'
 			// Display all lines as raw text
-			for (var i=0; i<lines.length; i++)
+
+
+			function	displayRawText(lines)
 			{
-				var l = htmlEncode(lines[i])
-				l = replaceTabsInLine(l, l)
-				l = '<div class="line">' + l + '</div>'
-				src.push(l)
+
+				for (var i=0; i<lines.length; i++)
+				{
+					var l = htmlEncode(lines[i])
+					l = replaceTabsInLine(l, l)
+					l = '<div class="line">' + l + '\n</div>'
+					src.push(l)
+				}
+				highlighted.innerHTML = src.join('')
 			}
-			highlighted.innerHTML = src.join('')
+			displayRawText(lines)
+//			displayRawText([])
 			
 			function	dumpHighlighted()
 			{
@@ -1597,6 +1605,7 @@ alert('SEL TAB MULTIPLE LINES')
 				}
 				
 				var f = highlighted.firstChild
+
 				while (f)
 				{
 					var text = rawSourceFromLineQuicker(f)
@@ -1624,6 +1633,9 @@ alert('SEL TAB MULTIPLE LINES')
 				alert('handle copy cut paste')
 			}
 */
+			//
+			// If we could reenter after Webkit's right after paste, we'd just have to fixup existing text
+			// 
 			// http://developer.apple.com/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Tasks/CopyAndPaste.html#//apple_ref/doc/uid/30001234
 			function	paste()
 			{
@@ -1750,6 +1762,7 @@ alert('SEL TAB MULTIPLE LINES')
 		-> no newline
 * remove all innerText refs
 * cmd-a plant parfois
+* check displayRawText([])
 
 	</h1>
 	everything on the same line : white-space: wrap
