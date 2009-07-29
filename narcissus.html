@@ -76,6 +76,8 @@
 			margin-right: 10px;
 			font-size: 50%;
 			opacity: 0.3;
+			z-index: 300;
+			cursor: pointer;
 		}
 		
 		#dumpHighlighted
@@ -290,12 +292,6 @@
 	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='selectedLine'><div id='selectedLinePosition'></div></div><div id='highlightedContainer'><div id='whiteSpaceRevealer'></div><div id='highlighted'></div></div></div>
 </td><td style='width: 200px'><div id='birdView'></div></tr></table>
 
-	<textarea style='display: none'>var a = 4
-	// hello
-	a = 8
-		// hello ce ci coe pe rlmrkez mrlkmlezkrmelz mlkrez mrlkemlzrk ezlmezkr mlezkrmlezkml mlezkr ezmlkremzlkr mlek lmkerzmlezrkmlezkr mlzekr mmlekr ezmlrk mlkezrmlkezrm lmekrmlrk mlezkr ezmlkr emlzkr mlezrzelrkzzzzzzzzzzzzz ermlk zmlrk ezmlrk ezlmrka aopilmklmk rezrezr zr krmzelrkezlrm mlkze rlmezkr lzemkrmlzekr zelrkzmzmmmmmaaaaaaaaaa CHECK BLANK LINES : MUST KEEP ORIGINAL TEXT, JUST INVISIBLE
-	a = 13
-	</textarea>
 
 	<textarea style='display: none'>var a = 4 £ 5 + 4
 var b = hello £ world
@@ -413,6 +409,7 @@ var c = 3+a2*5
 	<script src='showdown.js'></script>
 
 		<script>
+		
 			var MarkDownConverter = new Showdown.converter()
 
 			function	htmlEncode(str)
@@ -452,14 +449,14 @@ var c = 3+a2*5
 
 			// Each line will be enclosed in a div, thereby enabling padding it to show info bubbles
 			var lineElementName = 'DIV'
-			var prefix = '<' + lineElementName + ' class="line">'
-			var suffix = '\n</' + lineElementName + '>'
+//			var prefix = '<' + lineElementName + ' class="line">'
+//			var suffix = '\n</' + lineElementName + '>'
 			// Display all lines as raw text
 			for (var i=0; i<lines.length; i++)
 			{
 				var l = htmlEncode(lines[i])
 				l = replaceTabsInLine(l, l)
-				l = prefix + l + suffix
+				l = '<div class="line">' + l + '</div>'
 				src.push(l)
 			}
 			highlighted.innerHTML = src.join('')
@@ -702,7 +699,7 @@ var c = 3+a2*5
 			//
 			// Get raw text from highlighted line
 			//
-			function	readRawSourceFromLineQuicker(line)
+			function	rawSourceFromLineQuicker(line)
 			{
 /*
 				// Restore newlines
@@ -729,7 +726,7 @@ var c = 3+a2*5
 				return	t
 			}
 			
-			function	readRawSourceFromLine(line)
+			function	rawSourceFromLine(line)
 			{
 /*
 				var n = document.getElementById('rawSourceFromLineExtractor')
@@ -738,7 +735,7 @@ var c = 3+a2*5
 //				return ''
 */
 //				return	readRawSourceFromLineQuicker(n.firstChild)
-				return	readRawSourceFromLineQuicker(line)
+				return	rawSourceFromLineQuicker(line)
 			}
 			
 			
@@ -819,10 +816,11 @@ var c = 3+a2*5
 //				alert(event.keyCode)
 				var keyCode = event.keyCode
 				
-				if (event.shiftKey)	
+				//  Check control key to account for emacs shortcuts
+				if (event.shiftKey || event.ctrlKey)	
 				{
-					alert('SELEX')
-					alert('mark newlines as normal')
+//					alert('SELEX')
+//					alert('mark newlines as normal')
 				}
 				
 				
@@ -842,7 +840,7 @@ var c = 3+a2*5
 				lineCount			= highlighted.childNodes.length
 				currentLineNumber 	= lineNumberFromNode(sel.anchorNode)
 //				currentLineText 	= lineNode.innerText
-				currentLineText		= readRawSourceFromLine(lineNode)
+				currentLineText		= rawSourceFromLine(lineNode)
 //				previousLineText	= lineNode.previousSibling ? lineNode.previousSibling.innerText : null
 //				nextLineText		= lineNode.nextSibling ? lineNode.nextSibling.innerText : null
 				
@@ -939,7 +937,7 @@ alert('SEL TAB MULTIPLE LINES')
 					{
 						event.preventDefault()
 						pushCaretSelection()
-						lineNode.innerText = readRawSourceFromLineQuicker(lineNode)
+						lineNode.innerText = rawSourceFromLineQuicker(lineNode)
 						popCaretSelection()
 						var l = lineNumberFromNode(sel.anchorNode)
 						
@@ -1020,7 +1018,6 @@ alert('SEL TAB MULTIPLE LINES')
 					* backspace or delete
 						-> two spans on the same line					
 				*/
-				
 				var line = lineNodeFromNode(sel.anchorNode)
 				if (!line)
 				{
@@ -1065,7 +1062,7 @@ alert('SEL TAB MULTIPLE LINES')
 				var lineCount2			= highlighted.childNodes.length
 				var currentLineNumber2 	= lineNumberFromNode(sel.anchorNode)
 				
-				var currentLineText2 	= readRawSourceFromLine(lineNodeFromNode(sel.anchorNode))
+				var currentLineText2 	= rawSourceFromLine(lineNodeFromNode(sel.anchorNode))
 
 				
 
@@ -1111,9 +1108,9 @@ alert('SEL TAB MULTIPLE LINES')
 				{
 					alert('Does this still happen ?')
 					pushCaretSelection()
-					line.innerText = readRawSourceFromLineQuicker(line)
-					line.nextSibling.innerText = readRawSourceFromLineQuicker(line.nextSibling)
-					line.innerText += readRawSourceFromLine(line.nextSibling)
+					line.innerText = rawSourceFromLineQuicker(line)
+					line.nextSibling.innerText = rawSourceFromLineQuicker(line.nextSibling)
+					line.innerText += rawSourceFromLine(line.nextSibling)
 					line.nextSibling.parentNode.removeChild(line.nextSibling)
 					popCaretSelection()
 					// Selection stays the same, nice !
@@ -1138,6 +1135,7 @@ alert('SEL TAB MULTIPLE LINES')
 				
 				if (mode != 'typing')	return
 				
+				if (sel.type == 'Range') alert('HIGHLIGHT WITH RANGE SELECTION')
 				highlightText()
 
 //				alert(lines)
@@ -1289,7 +1287,8 @@ alert('SEL TAB MULTIPLE LINES')
 
 					if (!ll)
 					{
-//						alert('NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length)
+						alert('NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length)
+						return
 					}
 					
 					var sel = getSelection()
@@ -1448,7 +1447,7 @@ alert('SEL TAB MULTIPLE LINES')
 				var f = highlighted.firstChild
 				while (f)
 				{
-					var text = readRawSourceFromLineQuicker(f)
+					var text = rawSourceFromLineQuicker(f)
 					lines.push(text)
 					
 					if (text.indexOf('<?') != -1)
@@ -1486,6 +1485,7 @@ alert('SEL TAB MULTIPLE LINES')
 				// Highlight
 				//
 				pushCaretSelection()
+//				alert(dumpHash(caretSelectionOnStack()))
 				
 				var f = highlighted.firstChild
 				var i = 0
@@ -1509,6 +1509,7 @@ alert('SEL TAB MULTIPLE LINES')
 					str += lint.tokens[i]
 					str += i + '*'
 				}
+				str = 'STACKLENGTH=' + selectionStack.length + '\n' + str
 				document.getElementById('dump3').innerHTML = str
 				document.getElementById('dump2').innerHTML = debugStr
 //				alert(lines)
@@ -1598,7 +1599,7 @@ alert('SEL TAB MULTIPLE LINES')
 				var f = highlighted.firstChild
 				while (f)
 				{
-					var text = readRawSourceFromLineQuicker(f)
+					var text = rawSourceFromLineQuicker(f)
 					var n2 = document.createElement('DIV')
 
 					var html = text					
@@ -1613,7 +1614,7 @@ alert('SEL TAB MULTIPLE LINES')
 				}
 			}
 			
-			
+/*			
 			function	copy()
 			{
 				alert('handle copy cut paste')
@@ -1622,16 +1623,88 @@ alert('SEL TAB MULTIPLE LINES')
 			{
 				alert('handle copy cut paste')
 			}
+*/
+			// http://developer.apple.com/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Tasks/CopyAndPaste.html#//apple_ref/doc/uid/30001234
 			function	paste()
 			{
-				alert('handle copy cut paste')
+//				alert('handle copy cut paste - CHECK WHEN SELECTION RANGE')
+				var sel = getSelection()
+//				if (sel.type == 'Range')
+				var clipboard = event.clipboardData
+//				alert(dumpHash(clipboard))
+				clipboard.clearData()
+//				alert('->' + clipboard.types)
+				
+//				alert('TEXT=' + clipboard.getData('Text'))
+				
+//				clipboard.setData('Text', 'HO')
+//				alert('TEXT=' + clipboard.getData('Text'))
+				
+				// We'll handle paste as we need to create one DIV per line
+				event.preventDefault()
+
+				// Delete selection if we have a range
+				if (sel.type == 'Range')
+				{
+					sel.deleteFromDocument()
+					sel.collapseToStart()
+				}
+//				alert(sel.anchorOffset)
+				
+				var text = clipboard.getData('Text')
+				var lines = text.split('\n')
+//				alert(lines.length)
+//				alert('*' + lines + '$')
+				
+/*				if (lines.length == 1)
+				{
+					sel
+				}
+*/
+				var caret = selectionAsLineAndOffset()
+//				alert(dumpHash(caret))
+				var ll = nodeFromLineNumber(caret.line)
+//				alert(ll.outerHTML)
+				
+				// Split line according to caret : prefix (caret) suffix
+				var text = rawSourceFromLine(ll)
+				var prefix = text.substr(0, caret.offset)
+				var suffix = text.substr(caret.offset)
+
+//				alert('text=' + text + '\nprefix=' + prefix + '\nsuffix=' + suffix)
+
+				// The first line becomes prefix + first line of selection (+ suffix in one line pastes)
+				ll.innerText = prefix + lines[0]
+				var currentLine = ll
+				
+				var newLineForCaret = caret.line
+
+				// Each of the remaining lines gets its own html node
+				for (var i=1; i<lines.length; i++)
+				{
+					var n2 = document.createElement('DIV')
+					n2.className = ll.className
+					n2.innerText = lines[i]
+//					if (i < lines.length-1) n2.innerText += '\n'
+//					else					n2.innerText += suffix
+					currentLine.insertAdjacentElement('afterEnd', n2)
+					currentLine = n2
+					newLineForCaret++
+				}
+				// Append suffix to last line
+				var newOffsetForCaret = currentLine.innerText.length
+				currentLine.innerText += suffix
+				
+				setSelectionAsLineAndOffset(newLineForCaret, newOffsetForCaret)
+				highlightText()
+//				currentLine.
 			}
 			
 			
 			highlighted.onkeydown = keydown
-			highlighted.oncopy	= copy
+//			highlighted.oncopy	= copy
+//			highlighted.oncut 	= cut
 			highlighted.onpaste	= paste
-			highlighted.oncut 	= cut
 			
 			
 			function	selectstart()
@@ -1676,6 +1749,7 @@ alert('SEL TAB MULTIPLE LINES')
 		* option suppr
 		-> no newline
 * remove all innerText refs
+* cmd-a plant parfois
 
 	</h1>
 	everything on the same line : white-space: wrap

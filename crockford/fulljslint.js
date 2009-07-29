@@ -1165,11 +1165,14 @@ members)?
                             return it('(string)', r, x);
                         }
                         if (c < ' ') {
+/*
+## Why exit on newlines ?
                             if (c === '\n' || c === '\r') {
                                 break;
                             }
-                            warningAt("Control character in string: {a}.",
+                          warningAt("Control character in string: {a}.",
                                     line, character + j, s.slice(0, j));
+*/  
                         } else if (c === xquote) {
                             warningAt("Bad HTML string", line, character + j);
                         } else if (c === '<') {
