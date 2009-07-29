@@ -1050,22 +1050,6 @@ alert('SEL TAB MULTIPLE LINES')
 				
 //				if (previouslySelectedLine)	previouslySelectedLine.className = 'line'
 //				previouslySelectedLine = null
-				var selectedLine = document.getElementById('selectedLine')
-				if (sel.type == 'Caret')
-				{
-					selectedLine.style.top = line.offsetTop + 'px'
-					selectedLine.style.height = line.offsetHeight + 'px'
-
-					var s = selectionAsLineAndOffset()
-					
-					var selectedLinePosition = document.getElementById('selectedLinePosition')
-					selectedLinePosition.innerHTML = (s.line+1) + ',' + (s.offset+1)
-//					alert(dumpHash(s))
-//					previouslySelectedLine = line
-//					line.className += ' selectedLine'
-				}
-				else
-					selectedLine.style.top = '-30000px'
 				
 				var lineCount2			= highlighted.childNodes.length
 				var currentLineNumber2 	= lineNumberFromNode(sel.anchorNode)
@@ -1569,6 +1553,28 @@ alert('SEL TAB MULTIPLE LINES')
 				// White space
 				// 
 				revealWhiteSpace()
+				
+				//
+				// Selected line
+				// 
+				var sel = getSelection()
+				var selectedLine = document.getElementById('selectedLine')
+				if (sel.type == 'Caret')
+				{
+					var line = lineNodeFromNode(sel.anchorNode)
+					selectedLine.style.top = line.offsetTop + 'px'
+					selectedLine.style.height = line.offsetHeight + 'px'
+
+					var s = selectionAsLineAndOffset()
+					
+					var selectedLinePosition = document.getElementById('selectedLinePosition')
+					selectedLinePosition.innerHTML = (s.line+1) + ',' + (s.offset+1)
+//					alert(dumpHash(s))
+//					previouslySelectedLine = line
+//					line.className += ' selectedLine'
+				}
+				else
+					selectedLine.style.top = '-30000px'
 
 //					popSelection()
 
