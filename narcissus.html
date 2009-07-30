@@ -730,7 +730,7 @@ var c = 3+a2*5
 */
 				var t = line.innerText
 				// innerText removes \n when using white-space: normal (we need it to make tabs show up)
-				if (line.lastChild && line.lastChild.nodeType == 1 && line.lastChild.className == 'newline-normal')	t += '\n'
+//				if (line.lastChild && line.lastChild.nodeType == 1 && line.lastChild.className == 'newline-normal')	t += '\n'
 				return	t
 			}
 			
@@ -753,7 +753,7 @@ var c = 3+a2*5
 			function	rawSelection()
 			{
 				var sel = getSelection()
-//				return { anchorNode : sel.anchorNode, anchorOffset : sel.anchorOffset, extentNode : sel.extentNode, extentOffset : sel.extentOffset }
+//				return { baseNode : sel.baseNode, baseOffset : sel.baseOffset, extentNode : sel.extentNode, extentOffset : sel.extentOffset }
 				return sel.getRangeAt(0)
 			}
 			function	setRawSelection(r)
@@ -761,8 +761,37 @@ var c = 3+a2*5
 				var sel = getSelection()
 				sel.removeAllRanges()
 				sel.addRange(r)
-//				sel.setBaseAndExtent(r.anchorNode, r.anchorOffset, r.extentNode, r.extentOffset)
+//				sel.setBaseAndExtent(r.baseNode, r.baseOffset, r.extentNode, r.extentOffset)
 			}
+			
+			function	lineAndOffsetFromNodeAndOffset(node, offset)
+			{
+				var n = node
+				var lineNumber = lineNumberFromNode(n), offset2
+				// This is a line node
+				if (n.className == 'line')
+				{
+					offset2 = offset
+				}
+				// Walk up to the node having the line node as parent, then walk up its siblings to count offset from line start
+				else
+				{
+					while (n && n.parentNode && n.parentNode.className != 'line') n = n.parentNode
+					if (n)
+					{
+						offset2 = offset
+						var n2 = n.previousSibling
+						while (n2)
+						{
+							if (n2.nodeType == 1)	offset2 += n2.innerText.length
+							if (n2.nodeType == 3)	offset2 += n2.nodeValue.length
+							n2 = n2.previousSibling
+						}
+					}
+				}
+				return	{ line : lineNumber, offset : offset2}
+			}
+			
 			function	selectionAsLineAndOffset()
 			{
 				var sel = getSelection()
@@ -772,12 +801,13 @@ var c = 3+a2*5
 				var selectionText = sel.toString()
 				var length = selectionText.length
 				var range = sel.getRangeAt(0)
-				var h = { type : 'Caret', line : lineNumberFromNode(sel.anchorNode), offset : length }
+				var h = { type : 'Caret', line : lineNumberFromNode(sel.baseNode), offset : length }
 
 				setRawSelection(raw)
 
 				return h
 			}
+
 			function	setSelectionAsLineAndOffset(line, offset)
 			{
 				var line = nodeFromLineNumber(line)
@@ -786,6 +816,24 @@ var c = 3+a2*5
 				for (var i=0; i<offset; i++)
 					sel.modify('move', 'right', 'character')
 			}
+
+			function	rangeSelectionAsLineAndOffset()
+			{
+				var sel = getSelection()
+
+				var names = ['anchor', 'extent', 'focus', 'base']
+				var base = { line : 999999999, offset : 999999999 }
+				var extent = { line : -1, offset : -1 }
+				for (var i=0; i<names.length; i++)
+				{
+					var name = names[i]
+					var s = lineAndOffsetFromNodeAndOffset(sel[name + 'Node'], sel[name + 'Offset'])
+					if (s.line <= base.line && s.offset <= base.offset)		base = s
+					if (s.line >= extent.line && s.offset >= extent.offset)	extent = s
+				}
+				return { base : base, extent : extent }
+			}
+
 			function	pushCaretSelection()
 			{
 				selectionStack.push(selectionAsLineAndOffset())
@@ -836,7 +884,7 @@ var c = 3+a2*5
 				
 				if (sel.type != 'Caret' && sel.type != 'Range')	return
 				
-				var line = lineNodeFromNode(sel.anchorNode)
+				var line = lineNodeFromNode(sel.baseNode)
 
 				if (!line)
 				{
@@ -844,16 +892,16 @@ var c = 3+a2*5
 					return
 				}
 					
-				var lineNode 		= lineNodeFromNode(sel.anchorNode)
+				var lineNode 		= lineNodeFromNode(sel.baseNode)
 				lineCount			= highlighted.childNodes.length
-				currentLineNumber 	= lineNumberFromNode(sel.anchorNode)
+				currentLineNumber 	= lineNumberFromNode(sel.baseNode)
 //				currentLineText 	= lineNode.innerText
 				currentLineText		= rawSourceFromLine(lineNode)
 //				previousLineText	= lineNode.previousSibling ? lineNode.previousSibling.innerText : null
 //				nextLineText		= lineNode.nextSibling ? lineNode.nextSibling.innerText : null
 				
 
-				var lineNumber = lineNumberFromNode(sel.anchorNode)
+				var lineNumber = lineNumberFromNode(sel.baseNode)
 
 				//  Insert tab
 				if (keyCode == 9)
@@ -894,7 +942,7 @@ var c = 3+a2*5
 //						pushRangeSelection()
 /*
 						var str = 'when shift selecting keyboard, selection differs and selects part of the first line'
-						str += '\nanchor=(' + sel.anchorOffset + ')' + lineNodeFromNode(sel.anchorNode).innerText
+						str += '\nanchor=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
 						str += '\nextent=(' + sel.extentOffset + ')' + lineNodeFromNode(sel.extentNode).innerText
 						str += '\nbase=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
 						str += '\noffset=(' + sel.focusOffset + ')' + lineNodeFromNode(sel.focusNode).innerText
@@ -947,13 +995,13 @@ alert('SEL TAB MULTIPLE LINES')
 						pushCaretSelection()
 						lineNode.innerText = rawSourceFromLineQuicker(lineNode)
 						popCaretSelection()
-						var l = lineNumberFromNode(sel.anchorNode)
+						var l = lineNumberFromNode(sel.baseNode)
 						
-						var line = lineNodeFromNode(sel.anchorNode)
+						var line = lineNodeFromNode(sel.baseNode)
 						
-						sel.setBaseAndExtent(line, 0, sel.anchorNode, sel.anchorOffset)
+						sel.setBaseAndExtent(line, 0, sel.baseNode, sel.baseOffset)
 //						alert(line.innerText + '\n' + l)
-//						var c = characterOffsetFromLineAndNode(sel.anchorNode, sel.anchorOffset)
+//						var c = characterOffsetFromLineAndNode(sel.baseNode, sel.baseOffset)
 						
 //						sel.modify('extend', 'left', 'line')
 						
@@ -1017,7 +1065,7 @@ alert('SEL TAB MULTIPLE LINES')
 			function	postKeydown()
 			{
 				var sel = getSelection()
-//				var lineNumber = lineNumberFromNode(sel.anchorNode)
+//				var lineNumber = lineNumberFromNode(sel.baseNode)
 				
 				/*
 					Maybe 
@@ -1026,7 +1074,7 @@ alert('SEL TAB MULTIPLE LINES')
 					* backspace or delete
 						-> two spans on the same line					
 				*/
-				var line = lineNodeFromNode(sel.anchorNode)
+				var line = lineNodeFromNode(sel.baseNode)
 				if (!line)
 				{
 					// Will be called even after ALT-L (select address bar), check if we have a selection
@@ -1045,16 +1093,16 @@ alert('SEL TAB MULTIPLE LINES')
 					}
 					// Select the text node
 					sel.setPosition(highlighted.firstChild.firstChild, 0)
-					var line = lineNodeFromNode(sel.anchorNode)
+					var line = lineNodeFromNode(sel.baseNode)
 				}
 				
 //				if (previouslySelectedLine)	previouslySelectedLine.className = 'line'
 //				previouslySelectedLine = null
 				
 				var lineCount2			= highlighted.childNodes.length
-				var currentLineNumber2 	= lineNumberFromNode(sel.anchorNode)
+				var currentLineNumber2 	= lineNumberFromNode(sel.baseNode)
 				
-				var currentLineText2 	= rawSourceFromLine(lineNodeFromNode(sel.anchorNode))
+				var currentLineText2 	= rawSourceFromLine(lineNodeFromNode(sel.baseNode))
 
 				
 
@@ -1257,7 +1305,7 @@ alert('SEL TAB MULTIPLE LINES')
 					
 //					setSelectionAsLineAndOffset(errorLine, error.character)
 //					var sel = getSelection()
-//					var str2 = '\nanchorNode in selection=' + (sel.anchorNode) + ' parentNode=' + htmlEncode(sel.anchorNode.parentNode.outerHTML).substr(0, 40)
+//					var str2 = '\nbaseNode in selection=' + (sel.baseNode) + ' parentNode=' + htmlEncode(sel.baseNode.parentNode.outerHTML).substr(0, 40)
 //					alert(error.line)
 					
 					var ll = nodeFromLineNumber(errorLine)
@@ -1284,7 +1332,7 @@ alert('SEL TAB MULTIPLE LINES')
 					}
 					
 					var sel = getSelection()
-					if (!sel.anchorNode)
+					if (!sel.baseNode)
 					{
 						alert(getSelection().type + '\n' + error.line + '(' + errorLine + ')' + ',' + error.character)
 					}
@@ -1292,7 +1340,7 @@ alert('SEL TAB MULTIPLE LINES')
 					var t = ll.innerText
 					var str = ''
 					str += 'line=' + error.line + ' offset=' + error.character + ' lineLength=' + t.length + '\n'
-					str += 'anchorOffset=' + sel.anchorOffset + ' text=' + sel.anchorNode.nodeValue + '!'
+					str += 'baseOffset=' + sel.baseOffset + ' text=' + sel.baseNode.nodeValue + '!'
 					var offset = error.character
 					str += 'line=' + t.substr(0, offset) + '*' + t.substr(offset) + '!'
 //					alert(str)
@@ -1302,7 +1350,7 @@ alert('SEL TAB MULTIPLE LINES')
 
 
 					// Create an empty span to measure position
-					var n = sel.anchorNode
+					var n = sel.baseNode
 					if (n.nodeType == 3)
 					{
 						var span = document.createElement('SPAN')
@@ -1314,10 +1362,10 @@ alert('SEL TAB MULTIPLE LINES')
 						else
 						{
 							n.parentNode.appendChild(span)
-							// Split text node at anchorOffset : original text node, SPAN, new text node
-							var n3 = document.createTextNode(sel.anchorNode.nodeValue.substr(sel.anchorOffset))
+							// Split text node at baseOffset : original text node, SPAN, new text node
+							var n3 = document.createTextNode(sel.baseNode.nodeValue.substr(sel.baseOffset))
 							n.parentNode.appendChild(n3)
-							sel.anchorNode.nodeValue = sel.anchorNode.nodeValue.substr(0, sel.anchorOffset)
+							sel.baseNode.nodeValue = sel.baseNode.nodeValue.substr(0, sel.baseOffset)
 						}
 					}
 					else
@@ -1330,17 +1378,17 @@ alert('SEL TAB MULTIPLE LINES')
 //					span.innerHTML = '*'
 					
 //					span.innerHTML = ''
-//					alert('*' + sel.anchorNode.nodeValue + '-' + sel.anchorOffset)
+//					alert('*' + sel.baseNode.nodeValue + '-' + sel.baseOffset)
 /*
-					var n = sel.anchorNode
+					var n = sel.baseNode
 					var n2 = document.createElement('SPAN')
 					n2.innerHTML = '<div class="bubble" contentEditable="false">' + error.reason + '</div>'
 					var n3 = document.createTextNode('')
-//					alert(n.nodeValue + sel.anchorOffset)
+//					alert(n.nodeValue + sel.baseOffset)
 					if (n.nextSibling)	n.parentNode.insertBefore(n3, n.nextSibling)
 					else				n.parentNode.appendChild(n3)
 					n.parentNode.insertBefore(n2, n3)
-					sel.anchorNode.nodeValue 
+					sel.baseNode.nodeValue 
 */
 					var line = nodeFromLineNumber(errorLine)
 					var x = (span.offsetLeft + highlighted.offsetLeft)
@@ -1495,13 +1543,15 @@ alert('SEL TAB MULTIPLE LINES')
 
 
 				var str = getTickCount()
+/*				
 				str += '\ntokens=' + dumpHash(lint.tokens)
 				for (var i=0; i<lint.tokens.length; i++)
 				{
 					str += lint.tokens[i]
 					str += i + '*'
 				}
-				str = 'STACKLENGTH=' + selectionStack.length + '\n' + str
+*/
+				str = 'STACKLENGTH=' + selectionStack.length + '\n'// + str
 				document.getElementById('dump3').innerHTML = str
 				document.getElementById('dump2').innerHTML = debugStr
 //				alert(lines)
@@ -1561,7 +1611,7 @@ alert('SEL TAB MULTIPLE LINES')
 				var selectedLine = document.getElementById('selectedLine')
 				if (sel.type == 'Caret')
 				{
-					var line = lineNodeFromNode(sel.anchorNode)
+					var line = lineNodeFromNode(sel.baseNode)
 					selectedLine.style.top = line.offsetTop + 'px'
 					selectedLine.style.height = line.offsetHeight + 'px'
 
@@ -1661,13 +1711,22 @@ alert('SEL TAB MULTIPLE LINES')
 				// We'll handle paste as we need to create one DIV per line
 				event.preventDefault()
 
+
+				var caret = selectionAsLineAndOffset()
+				var caret = rangeSelectionAsLineAndOffset().base
+//				alert(dumpHash(caret))
+
 				// Delete selection if we have a range
 				if (sel.type == 'Range')
 				{
+//					alert('paste1 ' + dumpHash(caret))
+//					alert('SELECTIONASLINEANDOFFSET FROM RANGE')
 					sel.deleteFromDocument()
 					sel.collapseToStart()
+//					alert('paste2' + dumpHash(caret))
 				}
-//				alert(sel.anchorOffset)
+				var ll = nodeFromLineNumber(caret.line)
+//				alert(sel.baseOffset)
 				
 				var text = clipboard.getData('Text')
 				var lines = text.split('\n')
@@ -1679,9 +1738,6 @@ alert('SEL TAB MULTIPLE LINES')
 					sel
 				}
 */
-				var caret = selectionAsLineAndOffset()
-//				alert(dumpHash(caret))
-				var ll = nodeFromLineNumber(caret.line)
 //				alert(ll.outerHTML)
 				
 				// Split line according to caret : prefix (caret) suffix
@@ -1705,6 +1761,7 @@ alert('SEL TAB MULTIPLE LINES')
 					n2.innerText = lines[i]
 //					if (i < lines.length-1) n2.innerText += '\n'
 //					else					n2.innerText += suffix
+					currentLine.innerText += '\n'
 					currentLine.insertAdjacentElement('afterEnd', n2)
 					currentLine = n2
 					newLineForCaret++
@@ -1740,6 +1797,96 @@ alert('SEL TAB MULTIPLE LINES')
 				highlightText()
 			}
 			setTimeout(focusHighlighted, 10)
+			
+			
+			function	dumpSelection()
+			{
+				var str = getTickCount()
+				var sel = getSelection()
+				str += '\ntype=' + sel.type
+//				if (sel.type == 'Caret')
+				{
+
+					function dumpSelectionNode(name)
+					{
+						var node = sel[name + 'Node']
+						var offset = sel[name + 'Offset']
+						var t = ''
+						if (node.nodeType == 3) t = node.nodeValue
+						if (node.nodeType == 1) t = node + '->' + htmlEncode(node.innerText.substr(0, 80))
+						str += '\n' + name + '(' + offset + ')=' + (t) + '<span style="color:red">*</span>'
+
+						var o = lineAndOffsetFromNodeAndOffset(node, offset)
+						var lineNumber = o.line
+						var offset2 = o.offset
+/*						
+						var n = node
+						if (!n)	str += 'NULL'
+						
+						var lineNumber, offset2
+						if (n.className == 'line')
+						{
+							lineNumber = lineNumberFromNode(n)
+							offset2 = offset
+							str += '<b>DIV</b> '
+						}
+						else
+						{
+							while (n && n.parentNode.className != 'line') n = n.parentNode
+							if (n)
+							{
+								lineNumber = lineNumberFromNode(n)
+								offset2 = offset
+								var n2 = n.previousSibling
+								while (n2)
+								{
+									if (n2.nodeType == 1)	offset2 += n2.innerText.length
+									if (n2.nodeType == 3)	offset2 += n2.nodeValue.length
+//									else 				str += '*' + n2 + '*'
+									n2 = n2.previousSibling
+								}
+							}
+						}
+*/
+						str += '<span style="color: blue">' + (lineNumber+1) + ',' + (offset2+1) + ' <span style="font-size: 50%; opacity: 0.5">' + lineNumber + ',' + offset2 +  '</span></span>'
+						
+//						alert(n.parentNode.outerHTML)
+//						rez()
+//						str += 'line=' + lineNumberFromNode(n.parentNode)
+					}
+					
+					dumpSelectionNode('base')
+					dumpSelectionNode('anchor')
+					dumpSelectionNode('extent')
+					dumpSelectionNode('focus')
+					str += '\nselection=<span style="color:red">*</span>' + sel.toString() + '<span style="color:red">*</span>'
+					
+					str += '\n'
+					var s = rangeSelectionAsLineAndOffset()
+					str += '\nbase=<span style="color: blue">' + s.base.line + ',' + s.base.offset + '</span>'
+					str += '\nextent=<span style="color: blue">' + s.extent.line + ',' + s.extent.offset + '</span>'
+
+/*
+type=Range
+focusOffset=14
+baseNode=[object Text]
+baseNode=[object Text]
+baseOffset=279
+baseOffset=289
+isCollapsed=false
+type=Range
+focusNode=[object Text]
+extentNode=[object Text]
+rangeCount=1
+extentOffset=18
+collapseToStart=function collapseToStart() {
+    [native code]
+*/
+				}
+//				str += dumpHash(sel)
+				document.getElementById('dump3').innerHTML = str
+			}
+			setInterval(dumpSelection, 100)
 			
 			
 			
