@@ -60,7 +60,7 @@
 		#selectedLine
 		{
 			background-color: lime;
-			background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#eee));
+			background: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 255, 0.8)), to(rgba(240, 240, 240, 0.8)));
 			border: solid 1px #bbb;
 			border-left: 0;
 			border-right: 0;
@@ -292,7 +292,7 @@
 	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='selectedLine'><div id='selectedLinePosition'></div></div><div id='highlightedContainer'><div id='tracesContainer'></div><div id='whiteSpaceRevealer'></div><div id='highlighted'></div></div></div>
 </td><td style='width: 200px'><div id='birdView'></div></tr></table>
 
-	<textarea style='display: none'>var a
+	<textarea style='display: none'>var a b
 	function fn1(a, b)
 	{
 		if (a)	{
@@ -304,7 +304,7 @@
 			b++
 			if (a)
 			{
-				return a
+				return a; 4
 			}			
 			return b
 		}
@@ -326,7 +326,7 @@
 			return 'BLAH'
 		do		{
 		
-		} while (K
+		} while (K)
 	}
 	
 	function zz()
@@ -1264,6 +1264,11 @@ alert('SEL TAB MULTIPLE LINES')
 				if (sel.type == 'Range') alert('HIGHLIGHT WITH RANGE SELECTION')
 				highlightText()
 
+				//
+				// Selected line
+				// 
+				showSelectedLine()
+
 //				alert(lines)
 				
 			}
@@ -1358,7 +1363,10 @@ alert('SEL TAB MULTIPLE LINES')
 //				if (highlightCount > 1)	return
 //					pushSelection()
 
-				var errors = lint.errors.slice()
+				// Copy error list and remove trailing null
+				var errors = []
+				for (var i=0; i<lint.errors.length; i++) { if (lint.errors[i])	errors.push(lint.errors[i]) } 
+				
 				// Sort errors as they can come non ordered
 				errors.sort(function (a, b)
 							{
@@ -1372,9 +1380,7 @@ alert('SEL TAB MULTIPLE LINES')
 				for (var i=0; i<errors.length; i++)
 				{
 					var error = errors[i]
-					// Last error is null
-					if (error == null)		break
-					
+
 					// This error will be made visible by the non-highlighted source
 					if (error['reason'].match(/unable to continue/))	continue
 
@@ -1384,25 +1390,6 @@ alert('SEL TAB MULTIPLE LINES')
 					var errorLine = error.line
 					var errorReason = error.reason
 					
-					str += '<b>' + i + '</b>='
-//					str += JSLINT.errors[i].line
-					str += dumpHash(error)
-					str += '<br>'
-//					str += error['reason'] + '<br>'
-//					str += i + '=' + error.reason + '<br>'
-//alert(dumpHash(e))
-//					str += i + '=' + e.line + '<br>'
-
-//					var s = ''
-//					for (var i=0; i<lines.length; i++) s += i + '=' + lines[i]
-//					alert(dumpHash(error) + '***\n***\n' + s)
-//						i = 54
-//						continue
-					
-//					setSelectionAsLineAndOffset(errorLine, error.character)
-//					var sel = getSelection()
-//					var str2 = '\nbaseNode in selection=' + (sel.baseNode) + ' parentNode=' + htmlEncode(sel.baseNode.parentNode.outerHTML).substr(0, 40)
-//					alert(error.line)
 					
 					var ll = nodeFromLineNumber(errorLine)
 
@@ -1416,8 +1403,6 @@ alert('SEL TAB MULTIPLE LINES')
 							errorLine--
 							if (errorLine == previousErrorLine)	continue
 						}
-						
-//						alert(ll?ll.outerHTML:'(null)')
 					}
 					previousErrorLine = errorLine
 
@@ -1426,109 +1411,48 @@ alert('SEL TAB MULTIPLE LINES')
 						alert('NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length)
 						return
 					}
-					
+
 					var sel = getSelection()
 					if (!sel.baseNode)
 					{
 						alert(getSelection().type + '\n' + error.line + '(' + errorLine + ')' + ',' + error.character)
 					}
 					
-					var t = ll.innerText
-					var str = ''
-					str += 'line=' + error.line + ' offset=' + error.character + ' lineLength=' + t.length + '\n'
-					str += 'baseOffset=' + sel.baseOffset + ' text=' + sel.baseNode.nodeValue + '!'
-					var offset = error.character
-					str += 'line=' + t.substr(0, offset) + '*' + t.substr(offset) + '!'
-//					alert(str)
-					
-//					ll.innerText = t
 					setSelectionAsLineAndOffset(errorLine, error.character)
 
-
 					// Create an empty span to measure position
-					var n = sel.baseNode
-					if (n.nodeType == 3)
-					{
-						var span = document.createElement('SPAN')
-						// Special case for tabs — as they're made by adding padding, need to go up one node
-						if (n.parentNode.className == 'fakeTab')
-						{
-							n.parentNode.parentNode.insertBefore(span, n.parentNode.nextSibling)
-						}
-						else
-						{
-							n.parentNode.appendChild(span)
-							// Split text node at baseOffset : original text node, SPAN, new text node
-							var n3 = document.createTextNode(sel.baseNode.nodeValue.substr(sel.baseOffset))
-							n.parentNode.appendChild(n3)
-							sel.baseNode.nodeValue = sel.baseNode.nodeValue.substr(0, sel.baseOffset)
-						}
-					}
-					else
-						alert('Cannot create lint error bubble\n' + dumpHash(error))
+					var span = document.createElement('SPAN')
+					sel.getRangeAt(0).insertNode(span)
 
-//					span.style.borderLeft = 'solid 1px red'
-//					var t = document.createTextNode('')
-//					span.appendChild(t)
-//					span.className = 'HOOOOOO'
-//					span.innerHTML = '*'
-					
-//					span.innerHTML = ''
-//					alert('*' + sel.baseNode.nodeValue + '-' + sel.baseOffset)
-/*
-					var n = sel.baseNode
-					var n2 = document.createElement('SPAN')
-					n2.innerHTML = '<div class="bubble" contentEditable="false">' + error.reason + '</div>'
-					var n3 = document.createTextNode('')
-//					alert(n.nodeValue + sel.baseOffset)
-					if (n.nextSibling)	n.parentNode.insertBefore(n3, n.nextSibling)
-					else				n.parentNode.appendChild(n3)
-					n.parentNode.insertBefore(n2, n3)
-					sel.baseNode.nodeValue 
-*/
+
+					// Create bubble
 					var line = nodeFromLineNumber(errorLine)
 					var x = (span.offsetLeft + highlighted.offsetLeft)
 					var y = /*span.offsetTop +*/ line.offsetTop + line.offsetHeight
 					var margin = span.offsetHeight
-//					if (line.className.match(/selectedLine/)) y++//, margin -= 2
-//					alert(margin)
 					
 					var bubbleWrapper	= document.createElement('DIV')
 					bubbleWrapper.className = 'bubbleWrapper'
 					bubbleWrapper.style.top = y + 'px'
 					bubbleWrapper.style.marginLeft = 0 + 'px'
-					
 					bubbleWrapper.innerHTML = "<span class='bubbleArrow'>▾</span>"
-//					alert(highlighted.offsetLeft)
 
 					var bubble			= document.createElement('DIV')
 					bubble.innerHTML = errorReason
 					bubble.className = 'bubble'
-//					n2.style.marginTop = '0px'
-					
 					
 					bubbleWrapper.appendChild(bubble)
 					bubbleContainer.appendChild(bubbleWrapper)
-//					alert(bubbleWrapper.offsetHeight + '\n' + bubbleWrapper.clientHeight)
 
-//					alert('x=' + x + '\nspan.offsetLeft=' + span.offsetLeft + '\nhighlighted.offsetLeft=' + highlighted.offsetLeft + '\nbubbleWrapper.offsetWidth=' + bubbleWrapper.offsetWidth + '\nhighlighted.offsetWidth=' + highlighted.offsetWidth)
-					
+					// Clamp bubble position so it doesn't overflow on the right side
 					if (x+bubbleWrapper.offsetWidth > highlighted.offsetWidth)
-					{
 						x = highlighted.offsetWidth - bubbleWrapper.offsetWidth
-					}
+
 					bubbleWrapper.style.marginLeft = x + 'px'
-					
 
+					// Pad line bottom to leave space for the bubble, stored one layer down
 					line.style.paddingBottom = bubbleWrapper.offsetHeight + 'px'
-					
 					paddedLines.push( { lineNumber : errorLine, line : line } )
-
-					
-//					document.getElementById('dump6').innerHTML += str2
-
-//					break
-
 				}
 
 
@@ -1647,7 +1571,7 @@ alert('SEL TAB MULTIPLE LINES')
 					str += i + '*'
 				}
 */
-				str = 'STACKLENGTH=' + selectionStack.length + '\n'// + str
+				str += '\nSTACKLENGTH=' + selectionStack.length + '\n'// + str
 				str += 'traceTokens count=' + traceTokens.length + '\n'
 				for (var i=0; i<traceTokens.length; i++)
 				{
@@ -1718,9 +1642,21 @@ alert('SEL TAB MULTIPLE LINES')
 				// 
 //				revealWhiteSpace()
 				
-				//
-				// Selected line
-				// 
+
+//					popSelection()
+
+
+
+//				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
+			}
+			
+			function	traces()
+			{
+				var n = document.getElementById('tracesContainer')
+			}
+			
+			function	showSelectedLine()
+			{
 				var sel = getSelection()
 				var selectedLine = document.getElementById('selectedLine')
 				if (sel.type == 'Caret')
@@ -1739,17 +1675,6 @@ alert('SEL TAB MULTIPLE LINES')
 				}
 				else
 					selectedLine.style.top = '-30000px'
-
-//					popSelection()
-
-
-
-//				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
-			}
-			
-			function	traces()
-			{
-				var n = document.getElementById('tracesContainer')
 			}
 			
 			function	revealWhiteSpace()
@@ -1914,6 +1839,7 @@ alert('SEL TAB MULTIPLE LINES')
 				var s = getSelection()
 				s.collapseToStart()
 				highlightText()
+				showSelectedLine()
 			}
 			setTimeout(focusHighlighted, 10)
 			
@@ -2037,7 +1963,6 @@ collapseToStart=function collapseToStart() {
 * cmd-a plant parfois
 * check displayRawText([])
 * cmd-a, delete all, type -> newline disappears
-* errorbubbles : save RAW LINE instead of line number. while deleting, padding will remain on the original line and be zeroed out on the line now newly referenced by the old index
 
 	</h1>
 	everything on the same line : white-space: wrap

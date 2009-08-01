@@ -2393,9 +2393,10 @@ members)?
 
         if (!t.block) {
 //	alert(toStringToken(nexttoken) + ' line=' + t.line + ' nexttoken.line=' + nexttoken.line)
+			// ## Only warn about missing semicolons when next token is on same line and not a closing brace (like in one line closures)
             if (nexttoken.id !== ';') {
-				if (token.line == nexttoken.line)
-                warningAt("Missing semicolon.", token.line, token.from + token.value.length);
+				if (token.line == nexttoken.line && nexttoken.id != '}' )
+                	warningAt("Missing semicolon.", token.line, token.from + token.value.length);
 //##	
 //                warningAt("Missing semicolon.", token.line,
 //                        token.from + token.value.length);
