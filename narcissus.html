@@ -30,7 +30,7 @@
 			vertical-align: top;
 			width: 50%;
 		}
-		#highlighted, #fontWidthMeasurer, #whiteSpaceRevealer
+		#highlighted, #fontWidthMeasurer, #whiteSpaceRevealer, #tracesContainer
 		{
 			position: relative;
 			white-space: pre-wrap;
@@ -287,11 +287,59 @@
 </head>
 <body>
 	
-<table eborder='1' style='table-layout: fixed; width: 100%; height: 800px; height: 200px' cellPadding='0' cellSpacing='0'><tr>
+<table eborder='1' style='table-layout: fixed; width: 100%; height: 800px; height: 650px' cellPadding='0' cellSpacing='0'><tr>
 <td>
-	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='selectedLine'><div id='selectedLinePosition'></div></div><div id='highlightedContainer'><div id='whiteSpaceRevealer'></div><div id='highlighted'></div></div></div>
+	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='selectedLine'><div id='selectedLinePosition'></div></div><div id='highlightedContainer'><div id='tracesContainer'></div><div id='whiteSpaceRevealer'></div><div id='highlighted'></div></div></div>
 </td><td style='width: 200px'><div id='birdView'></div></tr></table>
 
+	<textarea style='display: none'>var a
+	function fn1(a, b)
+	{
+		if (a)	{
+			return a
+		}
+		
+		while (b)
+		{
+			b++
+			if (a)
+			{
+				return a
+			}			
+			return b
+		}
+		
+		/* HA
+			HOP !
+		*/
+		for (var z = 0; z&lt;4; z++)
+		{
+			/* world */ var i
+			return z
+		}
+	}
+	
+	a++
+	
+	function z()	{
+		if (z)
+			return 'BLAH'
+		do		{
+		
+		} while (K
+	}
+	
+	function zz()
+	{
+		if (a)
+			for (a=0; a<4; a++)
+			{
+				if (b)
+					for (z=0; z<4; z++)
+						a=b
+			}
+	}
+	</textarea>
 
 	<textarea style='display: none'>var a = 4 £ 5 + 4
 var b = hello £ world
@@ -535,6 +583,13 @@ var c = 3+a2*5
 			var	debugStr
 			var debugCount
 			
+			
+			var traceTokens
+			
+			
+			var	tokensToTrace = { 'function' : true, 'if' : true, 'while' : true, 'do' : true, 'for' : true }
+			
+//			var currentlyOpenTraceIndex
 			function	logToken(token)
 			{
 				var line = token.line
@@ -543,8 +598,38 @@ var c = 3+a2*5
 //				alert('TOKEN\n' + token.value + '\n' + token.left + '\n' + token.right)
 				for (var i=0; i<debugCount; i++) debugStr += ' '
 //				debugStr += ' TOKEN ' + token.value + '\n'
-				debugStr += '<span style="color: blue">' + (token.value || token.id) + '</span>\n'
+				debugStr += '<span style="color: blue">' + (token.value || token.id) + '(' + token.line + ',' + token.character + ')</span>\n'
+//				debugStr += '<span style="color: blue">' + (token.id) + '(' + token.line + ',' + token.character + ')</span>\n'
 //				alert(token+'\n'+dumpHash(token))
+				
+				/*
+					Log traces
+					
+					functions : can start from 'function' tokens or next brace token if it's on a different line.
+					
+				*/
+				 
+				if (tokensToTrace[token.id])
+				{
+					traceTokens.push( { type : token.id, token : token, openingToken : token, closingToken : null } )
+					var topTrace = traceTokens[traceTokens.length-1]
+//					currentlyOpenTraceIndex = topTrace
+				}
+				if (traceTokens.length)
+				{
+					var topTrace = traceTokens[traceTokens.length-1]
+					if (token.id == '{')
+					{
+						if (topTrace.openingToken.line != token.line) topTrace.openingToken = token
+					}
+					if (token.id == '}')
+					{
+						topTrace.closingToken = token
+						topTrace = null
+						
+//						currentlyOpenTraceToken.
+					}
+				}
 				
 				if (!tokensByLine[line])	tokensByLine[line] = []
 				tokensByLine[line].push(token)
@@ -587,6 +672,7 @@ var c = 3+a2*5
 				
 				tokensByLine = {}
 				functionLines = []
+				traceTokens = []
     			tree = JSLINT(lines, options)
 //alert(lines + '\n********\n' + tree)
 //				alert(dumpHash(tokensByLine))
@@ -607,7 +693,7 @@ var c = 3+a2*5
 				return	space					
 			}
 			
-			// 'line' is used to compute tab size
+			// 'line' is raw text, used to compute tab size
 			// tabs are replaced in 'html' 
 			function	replaceTabsInLine(line, html, customReplaceFunction)
 			{
@@ -1260,7 +1346,8 @@ alert('SEL TAB MULTIPLE LINES')
 				// Remove padding from bubble lines
 				for (var i=0; i<paddedLines.length; i++)	
 				{
-					var line = nodeFromLineNumber(paddedLines[i])
+//					var line = nodeFromLineNumber(paddedLines[i].lineNumber)
+					var line = paddedLines[i].line
 					// Skip line if it's been deleted since
 					if (!line)	continue
 					line.style.padding = 0
@@ -1271,11 +1358,20 @@ alert('SEL TAB MULTIPLE LINES')
 //				if (highlightCount > 1)	return
 //					pushSelection()
 
+				var errors = lint.errors.slice()
+				// Sort errors as they can come non ordered
+				errors.sort(function (a, b)
+							{
+								if (a.line < b.line)	return -1
+								if (a.line > b.line)	return 1
+								return 0
+							})
+
 				var previousErrorLine
 				// Error list is null-terminated
-				for (var i=0; i<lint.errors.length; i++)
+				for (var i=0; i<errors.length; i++)
 				{
-					var error = lint.errors[i]
+					var error = errors[i]
 					// Last error is null
 					if (error == null)		break
 					
@@ -1426,7 +1522,7 @@ alert('SEL TAB MULTIPLE LINES')
 
 					line.style.paddingBottom = bubbleWrapper.offsetHeight + 'px'
 					
-					paddedLines.push(errorLine)
+					paddedLines.push( { lineNumber : errorLine, line : line } )
 
 					
 //					document.getElementById('dump6').innerHTML += str2
@@ -1516,7 +1612,7 @@ alert('SEL TAB MULTIPLE LINES')
 
 				debugStr = ''
 				debugCount = 0
-
+				
 				var lint = lintLines(lines)
 //				var lint = lintLines(src)
 				
@@ -1552,8 +1648,21 @@ alert('SEL TAB MULTIPLE LINES')
 				}
 */
 				str = 'STACKLENGTH=' + selectionStack.length + '\n'// + str
+				str += 'traceTokens count=' + traceTokens.length + '\n'
+				for (var i=0; i<traceTokens.length; i++)
+				{
+					var trace = traceTokens[i]
+					var l1 = trace.token.line
+					var l2 = trace.openingToken.line
+					str += trace.token.id + '=' + (l1==l2 ? l1 : (l1 + '(' + l2 + ')'))
+					if (trace.closingToken)
+						str += '->' + trace.closingToken.line
+					str += '\n'
+				}
+				str += getTickCount() + ' highlight'
 				document.getElementById('dump3').innerHTML = str
 				document.getElementById('dump2').innerHTML = debugStr
+//				alert(debugStr)
 //				alert(lines)
 				//
 				// Bird view
@@ -1600,9 +1709,14 @@ alert('SEL TAB MULTIPLE LINES')
 				lineNumbers()
 				
 				//
+				// Traces
+				// 
+				traces()
+				
+				//
 				// White space
 				// 
-				revealWhiteSpace()
+//				revealWhiteSpace()
 				
 				//
 				// Selected line
@@ -1631,6 +1745,11 @@ alert('SEL TAB MULTIPLE LINES')
 
 
 //				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
+			}
+			
+			function	traces()
+			{
+				var n = document.getElementById('tracesContainer')
 			}
 			
 			function	revealWhiteSpace()
@@ -1811,6 +1930,7 @@ alert('SEL TAB MULTIPLE LINES')
 					{
 						var node = sel[name + 'Node']
 						var offset = sel[name + 'Offset']
+						if (!node)	return str += '(null)'
 						var t = ''
 						if (node.nodeType == 3) t = node.nodeValue
 						if (node.nodeType == 1) t = node + '->' + htmlEncode(node.innerText.substr(0, 80))
@@ -1886,7 +2006,7 @@ collapseToStart=function collapseToStart() {
 //				str += dumpHash(sel)
 				document.getElementById('dump3').innerHTML = str
 			}
-			setInterval(dumpSelection, 100)
+//			setInterval(dumpSelection, 100)
 			
 			
 			
@@ -1916,6 +2036,8 @@ collapseToStart=function collapseToStart() {
 * remove all innerText refs
 * cmd-a plant parfois
 * check displayRawText([])
+* cmd-a, delete all, type -> newline disappears
+* errorbubbles : save RAW LINE instead of line number. while deleting, padding will remain on the original line and be zeroed out on the line now newly referenced by the old index
 
 	</h1>
 	everything on the same line : white-space: wrap

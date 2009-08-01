@@ -1357,6 +1357,7 @@ members)?
                             }
 							var commentLineIndex = 0
 							var firstCommentPrefix = '/*'
+							// First line misses '*' in '/*'
                             for (;;) {
                                 i = s.search(lx);
                                 if (i >= 0) {
@@ -1373,7 +1374,7 @@ members)?
 								{
 									// ##
 									// All comment lines but the last one go through here
-									logToken({ type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : lines[line].substr(from).length })
+									logToken({ type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : lines[line].substr(from).length+1 })
 									from = 0
 								}
                                 if (!nextLine()) {
