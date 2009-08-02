@@ -613,7 +613,7 @@ var c = 3+a2*5
 				if (tokensToTrace[token.id])
 				{
 					traceTokens.push( { type : token.id, token : token, openingToken : token, closingToken : null, openingBrace : null, closingBrace : null } )
-					var topTrace = traceTokens[traceTokens.length-1]
+//					var topTrace = traceTokens[traceTokens.length-1]
 //					currentlyOpenTraceIndex = topTrace
 				}
 				if (traceTokens.length)
@@ -622,22 +622,41 @@ var c = 3+a2*5
 					if (token.id == '{')
 					{
 						topTrace.openingBrace = token
+//						alert('OPEN ' + topTrace.token.value + ' line ' + (topTrace.openingBrace.line+1))
+						document.getElementById('dump3').innerHTML += '\n' + 'OPEN   ' + topTrace.token.value + ' line ' + (topTrace.openingBrace.line+1)
 						if (topTrace.openingToken.line != token.line) 
 						{
 //							if (topTrace.openingToken) alert('DUAL')
+//						topTrace.openingBrace = token
 							topTrace.openingToken = token
 						}
-					}
-					if (token.id == '}')
-					{
+
+/*
+//						for (var idx = 0; idx<traceTokens.lenght; idx++)
 						for (var idx = traceTokens.length-1; idx--; idx >= 0)
 						{
 							var trace = traceTokens[idx]
+							if (trace.openingBrace) continue
+							trace.openingToken = trace.openingBrace = token
+						}
+*/
+					}
+					if (token.id == '}')
+					{
+						for (var idx = traceTokens.length; idx--; idx >= 0)
+						{
+							trace = traceTokens[idx]
+							document.getElementById('dump3').innerHTML += '\n' + 'EXAM   ' + trace.token.value + '  idx=' + idx + ' traceTokens.length=' + traceTokens.length
+//							alert('idx=' + idx + '\ntraceTokens.length=' + traceTokens.length + '\n\ntrace=' + dumpHash(trace))
 							if (!trace.openingBrace || trace.closingBrace) continue
-							alert(dumpHash(trace))
+//							alert(dumpHash(trace))
 							trace.closingToken = trace.closingBrace = token
+
+//							alert('open ' + trace.token.value + ' line ' + (trace.openingBrace.line+1) + ' closed ' + (trace.closingBrace.line+1))
+							document.getElementById('dump3').innerHTML += '\n' + 'CLOSED ' + trace.token.value + ' line ' + (trace.openingBrace.line+1) + ' closed ' + (trace.closingBrace.line+1)
 							break
 						}
+//						rez()
 						
 //						topTrace.closingToken = token
 //						topTrace = null
@@ -1512,6 +1531,7 @@ alert('SEL TAB MULTIPLE LINES')
 				document.getElementById('dump4').innerHTML = str
 
 
+document.getElementById('dump3').innerHTML = getTickCount()
 
 
 				highlightCount++
@@ -1589,15 +1609,17 @@ alert('SEL TAB MULTIPLE LINES')
 				for (var i=0; i<traceTokens.length; i++)
 				{
 					var trace = traceTokens[i]
-					var l1 = trace.token.line
-					var l2 = trace.openingToken.line
+					var l1 = trace.token.line+1
+					var l2 = trace.openingToken.line+1
 					str += trace.token.id + '=' + (l1==l2 ? l1 : (l1 + '(' + l2 + ')'))
 					if (trace.closingToken)
-						str += '->' + trace.closingToken.line
+						str += '->' + (trace.closingToken.line+1)
+//					if (trace.closingBrace)
+//						str += '->' + trace.closingBrace.line
 					str += '\n'
 				}
 				str += getTickCount() + ' highlight'
-				document.getElementById('dump3').innerHTML = str
+//				document.getElementById('dump3').innerHTML = str
 				document.getElementById('dump2').innerHTML = debugStr
 //				alert(debugStr)
 //				alert(lines)
