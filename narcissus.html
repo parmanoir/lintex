@@ -571,7 +571,7 @@ var c = 3+a2*5
 			{
 				if (!o)	o = this
 //				return this.value + '(' + this.line + ':' + this.from + '->' + this.character + ')'
-				return dumpHashNoFunction(o) + '<hr>'
+//				return dumpHashNoFunction(o) + '<hr>'
 //				rez()
 				return o.value + '(' + o.from + '->' + o.character + ')'
 			}
@@ -609,9 +609,10 @@ var c = 3+a2*5
 					
 				*/
 				 
+//				if (token.value == 'function')	alert(dumpHash(token)), er()
 				if (tokensToTrace[token.id])
 				{
-					traceTokens.push( { type : token.id, token : token, openingToken : token, closingToken : null } )
+					traceTokens.push( { type : token.id, token : token, openingToken : token, closingToken : null, openingBrace : null, closingBrace : null } )
 					var topTrace = traceTokens[traceTokens.length-1]
 //					currentlyOpenTraceIndex = topTrace
 				}
@@ -620,12 +621,26 @@ var c = 3+a2*5
 					var topTrace = traceTokens[traceTokens.length-1]
 					if (token.id == '{')
 					{
-						if (topTrace.openingToken.line != token.line) topTrace.openingToken = token
+						topTrace.openingBrace = token
+						if (topTrace.openingToken.line != token.line) 
+						{
+//							if (topTrace.openingToken) alert('DUAL')
+							topTrace.openingToken = token
+						}
 					}
 					if (token.id == '}')
 					{
-						topTrace.closingToken = token
-						topTrace = null
+						for (var idx = traceTokens.length-1; idx--; idx >= 0)
+						{
+							var trace = traceTokens[idx]
+							if (!trace.openingBrace || trace.closingBrace) continue
+							alert(dumpHash(trace))
+							trace.closingToken = trace.closingBrace = token
+							break
+						}
+						
+//						topTrace.closingToken = token
+//						topTrace = null
 						
 //						currentlyOpenTraceToken.
 					}
@@ -1681,11 +1696,9 @@ alert('SEL TAB MULTIPLE LINES')
 //					var offset = 
 //x = 1
 
-if (!traceToken.closingToken)	continue
 
 					var span = insertMeasuringSpanAtLineAndOffset(traceToken.openingToken.line, traceToken.openingToken.from)
 
-					var span2 = insertMeasuringSpanAtLineAndOffset(traceToken.closingToken.line, traceToken.closingToken.from)
 					
 					var ll = nodeFromLineNumber(traceToken.openingToken.line)
 //					alert(ll.outerHTML)
@@ -1697,7 +1710,11 @@ if (!traceToken.closingToken)	continue
 					n2.style.left = x + 'px'
 					n2.style.top = y + 'px'
 					tracesContainer.appendChild(n2)
+
+if (!traceToken.closingToken)	continue
+
 					var n3 = n2
+					var span2 = insertMeasuringSpanAtLineAndOffset(traceToken.closingToken.line, traceToken.closingToken.from)
 
 					var ll2 = nodeFromLineNumber(traceToken.closingToken.line)
 					var n2 = document.createElement('DIV')
@@ -1712,7 +1729,7 @@ if (!traceToken.closingToken)	continue
 					
 					var n5 = document.createElement('DIV')
 					tracesContainer.appendChild(n5)
-					n5.style.cssText = 'width: 4px; background-color: orange; position: absolute'
+					n5.style.cssText = 'width: 4px; background-color: rgba(0, 0, 0, 0.5); position: absolute'
 					n5.style.top = n3.offsetTop + 'px'
 					n5.style.left = n3.style.left
 					var h = n4.offsetTop - n3.offsetTop + n4.offsetHeight
