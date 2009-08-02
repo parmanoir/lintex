@@ -643,8 +643,11 @@ var c = 3+a2*5
 					}
 					if (token.id == '}')
 					{
-						for (var idx = traceTokens.length; idx--; idx >= 0)
+//						alert(traceTokens.length)
+//						var l = traceTokens.length
+						for (var idx=traceTokens.length-1; idx >= 0; idx--)
 						{
+//							alert('idx=' + idx + ' length=' + traceTokens.length)
 							trace = traceTokens[idx]
 							document.getElementById('dump3').innerHTML += '\n' + 'EXAM   ' + trace.token.value + '  idx=' + idx + ' traceTokens.length=' + traceTokens.length
 //							alert('idx=' + idx + '\ntraceTokens.length=' + traceTokens.length + '\n\ntrace=' + dumpHash(trace))
