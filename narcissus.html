@@ -292,7 +292,7 @@
 	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='selectedLine'><div id='selectedLinePosition'></div></div><div id='highlightedContainer'><div id='tracesContainer'></div><div id='whiteSpaceRevealer'></div><div id='highlighted'></div></div></div>
 </td><td style='width: 200px'><div id='birdView'></div></tr></table>
 
-	<textarea style='display: none'>var a b
+	<textarea style='display: none'>var a
 	function fn1(a, b)
 	{
 		if (a)	{
@@ -304,7 +304,7 @@
 			b++
 			if (a)
 			{
-				return a; 4
+				return a
 			}			
 			return b
 		}
@@ -1337,7 +1337,7 @@ alert('SEL TAB MULTIPLE LINES')
 				}
 */
 			}
-			
+
 			
 			function	errorBubbles(lint)
 			{
@@ -1381,12 +1381,13 @@ alert('SEL TAB MULTIPLE LINES')
 				{
 					var error = errors[i]
 
-					// This error will be made visible by the non-highlighted source
+					// This error will be made visible by the non-highlighted source appearing black
 					if (error['reason'].match(/unable to continue/))	continue
 
 					// Only show one error per line
 					if (error.line == previousErrorLine)				continue
-					// These can be modified
+
+					// Copy these as they can be modified
 					var errorLine = error.line
 					var errorReason = error.reason
 					
@@ -1418,12 +1419,8 @@ alert('SEL TAB MULTIPLE LINES')
 						alert(getSelection().type + '\n' + error.line + '(' + errorLine + ')' + ',' + error.character)
 					}
 					
-					setSelectionAsLineAndOffset(errorLine, error.character)
-
-					// Create an empty span to measure position
-					var span = document.createElement('SPAN')
-					sel.getRangeAt(0).insertNode(span)
-
+					// Create an empty span to measure position of caret in line
+					var span = insertMeasuringSpanAtLineAndOffset(errorLine, error.character)
 
 					// Create bubble
 					var line = nodeFromLineNumber(errorLine)
@@ -1480,6 +1477,7 @@ alert('SEL TAB MULTIPLE LINES')
 				}
 				lineNumbers.innerHTML = numbers.join('')
 			}
+			
 			
 			
 			var highlightCount = 0
@@ -1650,9 +1648,86 @@ alert('SEL TAB MULTIPLE LINES')
 //				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
 			}
 			
+			
+			function	insertMeasuringSpanAtLineAndOffset(line, offset)
+			{
+				var sel = getSelection()
+				setSelectionAsLineAndOffset(line, offset)
+				var range = sel.getRangeAt(0)
+				// Special case for tabs : insert them in front of the next node instead of the end of current tab
+				if (sel.baseOffset == 1 && sel.baseNode && sel.baseNode.parentNode && sel.baseNode.parentNode.className == 'fakeTab' && sel.baseNode.parentNode.nextSibling)
+				{
+					range = range.cloneRange()
+					var n = sel.baseNode.parentNode.nextSibling
+					range.selectNode(n)
+				}
+
+				// Create an empty span to measure position
+				var span = document.createElement('SPAN')
+				range.insertNode(span)
+				return span
+			}
+			
 			function	traces()
 			{
-				var n = document.getElementById('tracesContainer')
+				pushCaretSelection()
+				var tracesContainer = document.getElementById('tracesContainer')
+				tracesContainer.innerHTML = ''
+				for (var i=0; i<traceTokens.length; i++)
+				{
+					var traceToken = traceTokens[i]
+
+//					var offset = traceToken.openingToken.character-traceToken.openingToken.value.length
+//					var offset = 
+//x = 1
+
+if (!traceToken.closingToken)	continue
+
+					var span = insertMeasuringSpanAtLineAndOffset(traceToken.openingToken.line, traceToken.openingToken.from)
+
+					var span2 = insertMeasuringSpanAtLineAndOffset(traceToken.closingToken.line, traceToken.closingToken.from)
+					
+					var ll = nodeFromLineNumber(traceToken.openingToken.line)
+//					alert(ll.outerHTML)
+					var n2 = document.createElement('DIV')
+					n2.style.cssText = 'width: 10px; height: 15px; background-color: lime; position: absolute'
+//					n2.innerHTML = '*'
+					var x = span.offsetLeft
+					var y = ll.offsetTop
+					n2.style.left = x + 'px'
+					n2.style.top = y + 'px'
+					tracesContainer.appendChild(n2)
+					var n3 = n2
+
+					var ll2 = nodeFromLineNumber(traceToken.closingToken.line)
+					var n2 = document.createElement('DIV')
+					n2.style.cssText = 'width: 10px; height: 15px; background-color: lime; position: absolute'
+//					n2.innerHTML = '*'
+					var x = span2.offsetLeft
+					var y = ll2.offsetTop
+					n2.style.left = x + 'px'
+					n2.style.top = y + 'px'
+					tracesContainer.appendChild(n2)
+					var n4 = n2
+					
+					var n5 = document.createElement('DIV')
+					tracesContainer.appendChild(n5)
+					n5.style.cssText = 'width: 4px; background-color: orange; position: absolute'
+					n5.style.top = n3.offsetTop + 'px'
+					n5.style.left = n3.style.left
+					var h = n4.offsetTop - n3.offsetTop + n4.offsetHeight
+					n5.style.height = h + 'px'
+					
+//					alert(h + '*' + n5.outerHTML)
+//					return
+					
+//					document.getElementById('dump3').innerHTML += '\nl=' + span.offsetLeft + ' x=' + x + ' offset=' + offset
+
+
+//alert(dumpHash(sel))
+//return
+				}
+				popCaretSelection()
 			}
 			
 			function	showSelectedLine()
