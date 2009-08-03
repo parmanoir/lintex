@@ -7,6 +7,7 @@
 		body
 		{
 			font-size: 80%;
+			margin-left: 200px;
 		}
 		#circle
 		{
@@ -34,6 +35,27 @@
 			-webkit-border-radius: 2px;
 			width: 4px;
 		}
+		
+		#line3
+		{
+			eborder-right: solid 1px lime;
+			height: 120px;
+			width: 1px;
+			-webkit-box-shadow: rgba(0, 0, 0, 1) 0px 0px 4px;
+			position: absolute;
+		}
+
+		#line4
+		{
+			margin-top: 200px;
+			eborder-right: solid 1px lime;
+			height: 120px;
+			width: 1px;
+			-webkit-box-shadow: rgba(0, 0, 0, 1) 0px 0px 4px;
+			position: absolute;
+			clip: rect(-10px, 100000px, 100000px, 0px);
+			-webkit-transform: rotate(180deg);
+		}
 </style>
 </head>
 <body>
@@ -41,6 +63,12 @@
 	<div id='circle'></div><div id='line'></div><div id='circle'></div>
 <p>
 	<div id='line2'></div>
+
+<p>
+	<div id='line3'></div>
+
+<p>
+	<div id='line4'></div>
 
 
 	<script>

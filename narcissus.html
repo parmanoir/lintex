@@ -283,6 +283,18 @@
 			position: absolute;
 		}
 		
+		.trace
+		{
+			-webkit-box-shadow: rgba(0, 0, 0, 0.8) 0px 0px 20px;
+			-webkit-box-shadow: rgba(83, 180, 255, 4.8) 0px 0px 20px;
+			width: 1px; 
+			position: absolute; 
+			ebackground-color: #ddd;
+			margin-left: 3px;
+			clip: rect(-10px, 100000px, 100000px, 0px);
+			-webkit-transform: rotate(180deg);
+		}
+		
 </style>
 </head>
 <body>
@@ -446,9 +458,9 @@ var c = 3+a2*5
 	<pre id='dump2'></pre>
 <td>
 	<pre id='dump3'></pre>
+	<pre id='dump4'></pre>
 </tr></table>
 	<button onclick="clearDumps()">Clear</button>
-	<pre id='dump4'></pre>
 	<pre id='dump5'></pre>
 	<pre id='dump6'></pre>
 
@@ -611,7 +623,7 @@ var c = 3+a2*5
 				 
 				if (tokensToTrace[token.id])
 				{
-					traceTokens.push( { type : token.id, token : token, openingToken : token, closingToken : null, openingBrace : null, closingBrace : null } )
+					traceTokens.push( { type : token.id, token : token, openingBrace : null, closingBrace : null } )
 				}
 				if (traceTokens.length)
 				{
@@ -619,8 +631,6 @@ var c = 3+a2*5
 					if (token.id == '{')
 					{
 						topTrace.openingBrace = token
-						if (topTrace.openingToken.line != token.line) 
-							topTrace.openingToken = token
 					}
 					if (token.id == '}')
 					{
@@ -628,7 +638,7 @@ var c = 3+a2*5
 						{
 							trace = traceTokens[idx]
 							if (!trace.openingBrace || trace.closingBrace) continue
-							trace.closingToken = trace.closingBrace = token
+							trace.closingBrace = token
 							break
 						}
 					}
@@ -796,43 +806,9 @@ var c = 3+a2*5
 			//
 			// Get raw text from highlighted line
 			//
-			function	rawSourceFromLineQuicker(line)
-			{
-/*
-				// Restore newlines
-				var ns = line.getElementsByClassName('newline')
-				for (var i=0; i<ns.length; i++) 
-				{
-					var n = ns[i]
-					n.className = ''
-				}
-				
-				// Restore tabs
-				var ns = line.getElementsByClassName('fakeTab')
-				for (var i=0; i<ns.length; i++) 
-				{
-					var n2 = document.createElement('SPAN')
-					n2.className = 'realTab'
-					n2.innerText = '\t'
-					ns[i].insertAdjacentElement('beforeBegin', n2)
-				} 
-*/
-				var t = line.innerText
-				// innerText removes \n when using white-space: normal (we need it to make tabs show up)
-//				if (line.lastChild && line.lastChild.nodeType == 1 && line.lastChild.className == 'newline-normal')	t += '\n'
-				return	t
-			}
-			
 			function	rawSourceFromLine(line)
 			{
-/*
-				var n = document.getElementById('rawSourceFromLineExtractor')
-				n.innerHTML = '<div>' + line.innerHTML + '</div>'
-//				alert(n.innerHTML)
-//				return ''
-*/
-//				return	readRawSourceFromLineQuicker(n.firstChild)
-				return	rawSourceFromLineQuicker(line)
+				return	line.innerText
 			}
 			
 			
@@ -872,7 +848,7 @@ var c = 3+a2*5
 						var n2 = n.previousSibling
 						while (n2)
 						{
-							if (n2.nodeType == 1)	offset2 += n2.innerText.length
+							if (n2.nodeType == 1)	offset2 += rawSourceFromLine(n2).length
 							if (n2.nodeType == 3)	offset2 += n2.nodeValue.length
 							n2 = n2.previousSibling
 						}
@@ -1054,13 +1030,12 @@ alert('SEL TAB MULTIPLE LINES')
 						
 						for (var i=lineNumber; i<=lineNumber2; i++)
 						{
-							alert('change innerText to READ')
 							var line = nodeFromLineNumber(i)
 							if (!event.shiftKey)
-								line.innerText = '\t' + line.innerText
+								line.innerText = '\t' + rawSourceFromLine(line)
 							else
 							{
-								line.innerText = line.innerText.toString().replace(/^\s/, '')
+								line.innerText = rawSourceFromLine(line).toString().replace(/^\s/, '')
 							}
 						}
 //						popRangeSelection()
@@ -1082,7 +1057,7 @@ alert('SEL TAB MULTIPLE LINES')
 					{
 						event.preventDefault()
 						pushCaretSelection()
-						lineNode.innerText = rawSourceFromLineQuicker(lineNode)
+						lineNode.innerText = rawSourceFromLine(lineNode)
 						popCaretSelection()
 						var l = lineNumberFromNode(sel.baseNode)
 						
@@ -1107,13 +1082,13 @@ alert('SEL TAB MULTIPLE LINES')
 						n.className = 'line'
 						
 						// Add \n if it's not here (happens on one-line documents)
-						var rightText = line.innerText.substr(leftLength)
+						var rightText = rawSourceFromLine(line).substr(leftLength)
 						if (!rightText.match(/\n/)) rightText += '\n'
 						// Get space (minus \n) on cursor left
-						var leftSpace = line.innerText.substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
+						var leftSpace = rawSourceFromLine(line).substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
 						
 						// Add a tab if we're pressing enter AFTER a brace
-						if (line.innerText.match(/^\s*\{/) && !rightText.match(/\{/))	leftSpace += '	'
+						if (rawSourceFromLine(line).match(/^\s*\{/) && !rightText.match(/\{/))	leftSpace += '	'
 						
 //						alert(line.innerText)
 						
@@ -1123,7 +1098,7 @@ alert('SEL TAB MULTIPLE LINES')
 						
 						line.insertAdjacentElement('afterEnd', n)
 //						line.innerText = line.innerText.substr(0, leftLength) + '\n'
-						var text = line.innerText.substr(0, leftLength) + '\n'
+						var text = rawSourceFromLine(line).substr(0, leftLength) + '\n'
 						lineNode.innerHTML = replaceTabsInLine(text, text)
 
 						if (keyCode == 13)
@@ -1237,14 +1212,15 @@ alert('SEL TAB MULTIPLE LINES')
 				{
 					alert('Does this still happen ?')
 					pushCaretSelection()
-					line.innerText = rawSourceFromLineQuicker(line)
-					line.nextSibling.innerText = rawSourceFromLineQuicker(line.nextSibling)
+					line.innerText = rawSourceFromLine(line)
+					line.nextSibling.innerText = rawSourceFromLine(line.nextSibling)
 					line.innerText += rawSourceFromLine(line.nextSibling)
 					line.nextSibling.parentNode.removeChild(line.nextSibling)
 					popCaretSelection()
 					// Selection stays the same, nice !
 				}
-/*
+
+var str = getTickCount()
 				str += '\nchildNodesCount=' + highlighted.childNodes.length + ' \\n count=' + (highlighted.innerText.match(/\n/g)||0).length
 				
 				str += '\nlineCount=' + lineCount
@@ -1257,8 +1233,10 @@ alert('SEL TAB MULTIPLE LINES')
 				str += '\n!=currentLineNumber=' + (currentLineNumber2 != currentLineNumber)
 				str += '\n!=currentLineText=' + (currentLineText2 != currentLineText)
 				
+				str += '\n<span style="color: blue">' + mode + '</span>'
+				
 				document.getElementById('dump4').innerHTML = str
-*/				
+				
 //				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
 				
 				
@@ -1496,8 +1474,8 @@ alert('SEL TAB MULTIPLE LINES')
 					str = 'childNodes.length=' + highlighted.childNodes.length + ' innerText.newlineCount=' + highlighted.innerText.match(/\n/g).length
 				}
 				catch (e) { str = 'NOT EVENT ONE LINE RETURN'}
-				str += ' newline-normal=' + document.getElementsByClassName('newline-normal').length + ' newline=' + document.getElementsByClassName('newline').length
-				document.getElementById('dump4').innerHTML = str
+//				str += ' newline-normal=' + document.getElementsByClassName('newline-normal').length + ' newline=' + document.getElementsByClassName('newline').length
+//				document.getElementById('dump4').innerHTML = str
 
 
 document.getElementById('dump3').innerHTML = getTickCount()
@@ -1509,7 +1487,7 @@ document.getElementById('dump3').innerHTML = getTickCount()
 				var f = highlighted.firstChild
 				while (f)
 				{
-					var text = rawSourceFromLineQuicker(f)
+					var text = rawSourceFromLine(f)
 					lines.push(text)
 					
 					if (text.indexOf('<?') != -1)
@@ -1579,10 +1557,10 @@ document.getElementById('dump3').innerHTML = getTickCount()
 				{
 					var trace = traceTokens[i]
 					var l1 = trace.token.line+1
-					var l2 = trace.openingToken.line+1
+					var l2 = (trace.openingBrace ? trace.openingBrace : trace.token) .line+1
 					str += trace.token.id + '=' + (l1==l2 ? l1 : (l1 + '(' + l2 + ')'))
-					if (trace.closingToken)
-						str += '->' + (trace.closingToken.line+1)
+					if (trace.closingBrace)
+						str += '->' + (trace.closingBrace.line+1)
 //					if (trace.closingBrace)
 //						str += '->' + trace.closingBrace.line
 					str += '\n'
@@ -1682,63 +1660,60 @@ document.getElementById('dump3').innerHTML = getTickCount()
 				for (var i=0; i<traceTokens.length; i++)
 				{
 					var traceToken = traceTokens[i]
-
-//					var offset = traceToken.openingToken.character-traceToken.openingToken.value.length
-//					var offset = 
-//x = 1
-
-
-					var span = insertMeasuringSpanAtLineAndOffset(traceToken.openingToken.line, traceToken.openingToken.from)
-
 					
-					var ll = nodeFromLineNumber(traceToken.openingToken.line)
-//					alert(ll.outerHTML)
-					var n2 = document.createElement('DIV')
-//					n2.style.cssText = 'width: 10px; height: 15px; background-color: lime; position: absolute'
-//					n2.innerHTML = '*'
-					var x = span.offsetLeft
+					// Only show traces of tokens having braces
+					if (!traceToken.closingBrace)	continue
+
+					// Insert two blank spans to measure position of opening tokens
+					// Opening token is a keyword or a brace on a following line
+					var openingToken = traceToken.token.line == traceToken.openingBrace.line ? traceToken.token : traceToken.openingBrace
+					var topSpan 	= insertMeasuringSpanAtLineAndOffset(openingToken.line, openingToken.from)
+					var bottomSpan	= insertMeasuringSpanAtLineAndOffset(traceToken.closingBrace.line, traceToken.closingBrace.from)
+
+					// Top position
+					var ll = nodeFromLineNumber(openingToken.line)
+					var topPosition = document.createElement('DIV')
+					var x = topSpan.offsetLeft
 					var y = ll.offsetTop
-					n2.style.position = 'absolute'
-					n2.style.left = x + 'px'
-					n2.style.top = y + 'px'
-					tracesContainer.appendChild(n2)
+					topPosition.style.position = 'absolute'
+					topPosition.style.left = x + 'px'
+					topPosition.style.top = y + 'px'
+					tracesContainer.appendChild(topPosition)
 
-if (!traceToken.closingToken)	continue
-
-					var n3 = n2
-					var span2 = insertMeasuringSpanAtLineAndOffset(traceToken.closingToken.line, traceToken.closingToken.from)
-
-					var ll2 = nodeFromLineNumber(traceToken.closingToken.line)
-					var n2 = document.createElement('DIV')
-//					n2.style.cssText = 'width: 10px; height: 15px; background-color: lime; position: absolute'
-//					n2.innerHTML = '*'
-					var x = span2.offsetLeft
+					// Bottom position
+					var ll2 = nodeFromLineNumber(traceToken.closingBrace.line)
+					var bottomPosition = document.createElement('DIV')
+					var x = bottomSpan.offsetLeft
 					var y = ll2.offsetTop
-					n2.style.position = 'absolute'
-					n2.style.left = x + 'px'
-					n2.style.top = y + 'px'
-					tracesContainer.appendChild(n2)
-					var n4 = n2
+					bottomPosition.style.position = 'absolute'
+					bottomPosition.style.left = x + 'px'
+					bottomPosition.style.top = y + 'px'
+					tracesContainer.appendChild(bottomPosition)
 					
-					var n5 = document.createElement('DIV')
-					tracesContainer.appendChild(n5)
-//					n5.style.cssText = 'width: 4px; background-color: rgba(0, 0, 0, 0.1); position: absolute; -webkit-border-radius: 2px'
-					n5.style.cssText = 'width: 1px; background-color: #ddd; eborder-right: solid 1px #bbb; position: absolute; -webkit-border-radius: 2px'
-					n5.style.top = (n3.offsetTop+span.offsetHeight) + 'px'
-					n5.style.left = n3.style.left
-					var h = n4.offsetTop - n3.offsetTop + n4.offsetHeight - span2.offsetHeight
-					n5.style.height = h + 'px'
+					//
+					// Trace div
+					// 
+					var trace = document.createElement('DIV')
+					tracesContainer.appendChild(trace)
+					trace.className = 'trace'
+					trace.style.left = topPosition.style.left
 					
 					
-					
-//					alert(h + '*' + n5.outerHTML)
-//					return
-					
-//					document.getElementById('dump3').innerHTML += '\nl=' + span.offsetLeft + ' x=' + x + ' offset=' + offset
-
-
-//alert(dumpHash(sel))
-//return
+					var traceEncompassesTokenHeight = false
+					// Exclude top and bottom token height
+					if (!traceEncompassesTokenHeight)
+					{
+						var x = topPosition.offsetTop + topSpan.offsetHeight
+						var h = bottomPosition.offsetTop - topPosition.offsetTop + bottomPosition.offsetHeight - bottomSpan.offsetHeight
+					}
+					// Include top and bottom token height
+					else
+					{
+						var x = topPosition.offsetTop
+						var h = bottomPosition.offsetTop - topPosition.offsetTop + bottomSpan.offsetHeight
+					}
+					trace.style.top = x + 'px'
+					trace.style.height = h + 'px'
 				}
 				popCaretSelection()
 			}
@@ -1796,7 +1771,7 @@ if (!traceToken.closingToken)	continue
 
 				while (f)
 				{
-					var text = rawSourceFromLineQuicker(f)
+					var text = rawSourceFromLine(f)
 					var n2 = document.createElement('DIV')
 
 					var html = text					
@@ -1899,7 +1874,7 @@ if (!traceToken.closingToken)	continue
 					newLineForCaret++
 				}
 				// Append suffix to last line
-				var newOffsetForCaret = currentLine.innerText.length
+				var newOffsetForCaret = rawSourceFromLine(currentLine).length
 				currentLine.innerText += suffix
 				
 				setSelectionAsLineAndOffset(newLineForCaret, newOffsetForCaret)
@@ -1947,7 +1922,7 @@ if (!traceToken.closingToken)	continue
 						if (!node)	return str += '(null)'
 						var t = ''
 						if (node.nodeType == 3) t = node.nodeValue
-						if (node.nodeType == 1) t = node + '->' + htmlEncode(node.innerText.substr(0, 80))
+						if (node.nodeType == 1) t = node + '->' + htmlEncode(rawSourceFromLine(node).substr(0, 80))
 						str += '\n' + name + '(' + offset + ')=' + (t) + '<span style="color:red">*</span>'
 
 						var o = lineAndOffsetFromNodeAndOffset(node, offset)
@@ -2047,7 +2022,6 @@ collapseToStart=function collapseToStart() {
 		* type some text
 		* option suppr
 		-> no newline
-* remove all innerText refs
 * cmd-a plant parfois
 * check displayRawText([])
 * cmd-a, delete all, type -> newline disappears
