@@ -886,7 +886,14 @@ var c = 3+a2*5
 
 			function	setRangeSelectionAsLinesAndOffsets(line1, offset1, line2, offset2)
 			{
-				alert('HO')
+				var sel = getSelection()
+				setSelectionAsLineAndOffset(line1, offset1)
+				var baseNode	= sel.baseNode
+				var baseOffset	= sel.baseOffset
+				setSelectionAsLineAndOffset(line2, offset2)
+				var extentNode	= sel.extentNode
+				var extentOffset= sel.extentOffset
+				sel.setBaseAndExtent(baseNode, baseOffset, extentNode, extentOffset)
 			}
 			/*
 				Return the current range selection as 
@@ -1061,12 +1068,16 @@ var c = 3+a2*5
 						var s = rangeSelectionAsLineAndOffset()
 						var lineNumber1 = s.base.line
 						var lineNumber2 = s.extent.line
+						// Full line selections have an extent that starts to the next line with an offset of 0. (1 if line starts with a fake tab)
 						if (s.extent.offset == 0 || s.extent.offset == 1) lineNumber2--
 						for (var i=lineNumber1; i<=lineNumber2; i++)
 						{
 							var line = nodeFromLineNumber(i)
-							if (!event.shiftKey)	line.innerText = '\t' + rawSourceFromLine(line)
-							else					line.innerText = rawSourceFromLine(line).toString().replace(/^\s/, '')
+							var t
+							if (!event.shiftKey)	t = '\t' + rawSourceFromLine(line)
+							else					t = rawSourceFromLine(line).toString().replace(/^\s/, '')
+							
+							line.innerHTML = replaceTabsInLine(t, t)
 						}
 						popRangeSelection()
 					}
