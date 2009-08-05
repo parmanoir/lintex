@@ -290,7 +290,7 @@
 			width: 1px; 
 			position: absolute; 
 			ebackground-color: #ddd;
-			margin-left: 3px;
+			emargin-left: 3px;
 			clip: rect(-10px, 100000px, 100000px, 0px);
 			-webkit-transform: rotate(180deg);
 		}
@@ -724,8 +724,10 @@ var c = 3+a2*5
 				function	replaceTabs(str, idx)
 				{
 					// A tab is surrounded by a SPAN nulling its width (with negative letter-spacing) and padding it to the correct 4-size with charWidth (measured in fontWidthMeasurer)
-					return '<span class="fakeTab" style="letter-spacing: -' + charWidth + 'px; padding-right: ' + tabLengths[tabIndex++]*charWidth + 'px">	</span>'
-//					return '<span class="fakeTab" >	</span>'
+//					return '<span class="fakeTab">	</span>'
+					var w1 = charWidth
+					var w2 = tabLengths[tabIndex++]*charWidth
+					return '<span class="fakeTab" style="letter-spacing: -' + w1 + 'px; padding-right: ' + w2 + 'px">	</span>'
 				}
 				var tabLength = 4
 				var deltaTabPosition = 0
@@ -882,6 +884,17 @@ var c = 3+a2*5
 					sel.modify('move', 'right', 'character')
 			}
 
+			function	setRangeSelectionAsLinesAndOffsets(line1, offset1, line2, offset2)
+			{
+				alert('HO')
+			}
+			/*
+				Return the current range selection as 
+				{ 
+					 base : { line, offset }
+					,extent : { line, offset }
+				}
+			*/
 			function	rangeSelectionAsLineAndOffset()
 			{
 				var sel = getSelection()
@@ -893,8 +906,10 @@ var c = 3+a2*5
 				{
 					var name = names[i]
 					var s = lineAndOffsetFromNodeAndOffset(sel[name + 'Node'], sel[name + 'Offset'])
-					if (s.line <= base.line && s.offset <= base.offset)		base = s
-					if (s.line >= extent.line && s.offset >= extent.offset)	extent = s
+					if (s.line < base.line) 	base = s
+					if (s.line == base.line && s.offset < base.offset)		base = s
+					if (s.line > extent.line)	extent = s
+					if (s.line == extent.line && s.offset > extent.offset)	extent = s
 				}
 				return { base : base, extent : extent }
 			}
@@ -906,8 +921,16 @@ var c = 3+a2*5
 			function	popCaretSelection()
 			{
 				var s = selectionStack.pop()
-//				alert(s.line + ' ' + s.offset)
 				setSelectionAsLineAndOffset(s.line, s.offset)
+			}
+			function	pushRangeSelection()
+			{
+				selectionStack.push(rangeSelectionAsLineAndOffset())
+			}
+			function	popRangeSelection()
+			{
+				var s = selectionStack.pop()
+				setRangeSelectionAsLinesAndOffsets(s.base.line, s.base.offset, s.extent.line, s.extent.offset)
 			}
 			function	caretSelectionOnStack()
 			{
@@ -971,6 +994,12 @@ var c = 3+a2*5
 				//  Insert tab
 				if (keyCode == 9)
 				{
+						var s = rangeSelectionAsLineAndOffset()
+						var lineNumber1 = s.base.line
+						var lineNumber2 = s.extent.line
+//						if (s.extent.offset == 0) lineNumber2--
+
+
 					event.preventDefault()
 					var lineNumber2 = lineNumberFromNode(sel.extentNode)
 					// Insert a single tab
@@ -1004,7 +1033,7 @@ var c = 3+a2*5
 //						alert(sel.extentNode.parentNode.innerText + ' ' + sel.extentOffset)
 //						alert('tab selection TODO, account shift')
 						
-//						pushRangeSelection()
+						pushRangeSelection()
 /*
 						var str = 'when shift selecting keyboard, selection differs and selects part of the first line'
 						str += '\nanchor=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
@@ -1013,7 +1042,8 @@ var c = 3+a2*5
 						str += '\noffset=(' + sel.focusOffset + ')' + lineNodeFromNode(sel.focusNode).innerText
 						alert(str)
 */
-alert('SEL TAB MULTIPLE LINES')
+/*
+	alert('SEL TAB MULTIPLE LINES')
 						// Keyboard selecting lines will select the next line with a zero offset
 						// happens on triple-clicking left space on tabs on a function
 						if (sel.extentOffset == 0) lineNumber2--
@@ -1027,18 +1057,18 @@ alert('SEL TAB MULTIPLE LINES')
 							lineNumber2 = lineNumber
 							lineNumber = tmp
 						}
-						
-						for (var i=lineNumber; i<=lineNumber2; i++)
+*/
+						var s = rangeSelectionAsLineAndOffset()
+						var lineNumber1 = s.base.line
+						var lineNumber2 = s.extent.line
+						if (s.extent.offset == 0 || s.extent.offset == 1) lineNumber2--
+						for (var i=lineNumber1; i<=lineNumber2; i++)
 						{
 							var line = nodeFromLineNumber(i)
-							if (!event.shiftKey)
-								line.innerText = '\t' + rawSourceFromLine(line)
-							else
-							{
-								line.innerText = rawSourceFromLine(line).toString().replace(/^\s/, '')
-							}
+							if (!event.shiftKey)	line.innerText = '\t' + rawSourceFromLine(line)
+							else					line.innerText = rawSourceFromLine(line).toString().replace(/^\s/, '')
 						}
-//						popRangeSelection()
+						popRangeSelection()
 					}
 				}
 				
@@ -1143,11 +1173,11 @@ alert('SEL TAB MULTIPLE LINES')
 				{
 					// Will be called even after ALT-L (select address bar), check if we have a selection
 					if (sel.type == 'None')	return
-					
-					alert('ADD READ')
+
+					// Read the whole highlighted source
 					var newLines = highlighted.innerText.split('\n')
 					highlighted.innerHTML = ''
-//					alert(newLines.length)
+
 					for (var i=0; i<newLines.length; i++)
 					{
 						var n = document.createElement(lineElementName)
@@ -1526,7 +1556,7 @@ document.getElementById('dump3').innerHTML = getTickCount()
 				//
 				pushCaretSelection()
 //				alert(dumpHash(caretSelectionOnStack()))
-				
+
 				var f = highlighted.firstChild
 				var i = 0
 				while (f)
@@ -1540,7 +1570,6 @@ document.getElementById('dump3').innerHTML = getTickCount()
 					i++
 				}
 				
-
 
 				var str = getTickCount()
 /*				
@@ -1567,7 +1596,7 @@ document.getElementById('dump3').innerHTML = getTickCount()
 				}
 				str += getTickCount() + ' highlight'
 //				document.getElementById('dump3').innerHTML = str
-				document.getElementById('dump2').innerHTML = debugStr
+//				document.getElementById('dump2').innerHTML = debugStr
 //				alert(debugStr)
 //				alert(lines)
 				//
@@ -1593,7 +1622,7 @@ document.getElementById('dump3').innerHTML = getTickCount()
 
 
 
-				var str = getTickCount() + ' highlight (' + highlightCount + ')<br>' 
+				var str = getTickCount() + ' highlight (' + highlightCount + ') selectionStack.length=' + selectionStack.length + '<br>' 
 				document.getElementById('dump5').innerHTML = str
 				
 				
@@ -1974,6 +2003,14 @@ document.getElementById('dump3').innerHTML = getTickCount()
 					var s = rangeSelectionAsLineAndOffset()
 					str += '\nbase=<span style="color: blue">' + s.base.line + ',' + s.base.offset + '</span>'
 					str += '\nextent=<span style="color: blue">' + s.extent.line + ',' + s.extent.offset + '</span>'
+					
+					var ll = nodeFromLineNumber(s.extent.line)
+					if (ll)
+					{
+						var t = ll.innerText
+						str += '\nline(' + s.extent.line + ')=' + t + '*'
+						str += '\nline(' + s.extent.line + ').length=' + t.length + '*'
+					}
 
 /*
 type=Range
@@ -1995,7 +2032,7 @@ collapseToStart=function collapseToStart() {
 //				str += dumpHash(sel)
 				document.getElementById('dump3').innerHTML = str
 			}
-//			setInterval(dumpSelection, 100)
+			setInterval(dumpSelection, 100)
 			
 			
 			
@@ -2025,6 +2062,8 @@ collapseToStart=function collapseToStart() {
 * cmd-a plant parfois
 * check displayRawText([])
 * cmd-a, delete all, type -> newline disappears
+* on typing : should only show upstream errors as collapsed bubbles, opening after typing a bit
+* handle invisible caret on second tab before brace
 
 	</h1>
 	everything on the same line : white-space: wrap
