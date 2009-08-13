@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Highlighter</title>
+	<style>
+		#highlighted
+		{
+			white-space: pre-wrap;
+		}
+</style>
+</head>
+<body>
+	<div id='highlighted'></div>
+	<button onclick='crash()'>Click to crash</button>
+		<script>
+			var str = '____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________'
+			highlighted.innerHTML = '<div>' + str + '\n</div>'
+			function	crash()
+			{
+				var sel = getSelection()
+				sel.setPosition(highlighted.firstChild, 0)
+
+				var range = sel.getRangeAt(0)
+				var span = document.createElement('SPAN')
+				range.insertNode(span)
+			}
+	</script>
+
+</body>
+</html>

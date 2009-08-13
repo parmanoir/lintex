@@ -8,6 +8,12 @@
 		{
 			margin: 0;
 			padding: 0;
+			font-family: Lucida Grande;
+		}
+		pre, code
+		{
+			font-family: Monaco;
+			font-size: 8.2px;
 		}
 		body
 		{
@@ -285,14 +291,16 @@
 		
 		.trace
 		{
-			-webkit-box-shadow: rgba(0, 0, 0, 0.8) 0px 0px 20px;
-			-webkit-box-shadow: rgba(83, 180, 255, 4.8) 0px 0px 20px;
+			-webkit-box-shadow: rgba(83, 180, 255, .9) 0px 0px 20px, rgba(83, 180, 255, .3) 0px 0px 20px;
+			-webkit-box-shadow: rgba(83, 180, 255, 0.6) 0px 0px 16px;
 			width: 1px; 
 			position: absolute; 
 			ebackground-color: #ddd;
-			emargin-left: 3px;
+			margin-left: 2px;
 			clip: rect(-10px, 100000px, 100000px, 0px);
 			-webkit-transform: rotate(180deg);
+			border-right: solid 1px rgba(83, 180, 255, 0.2);
+			eopacity: 0.7;
 		}
 		
 </style>
@@ -321,8 +329,10 @@
 			return b
 		}
 		
-		/* HA
-			HOP !
+		/*md
+			Hello
+			=
+			world *test*			
 		*/
 		for (var z = 0; z&lt;4; z++)
 		{
@@ -505,7 +515,6 @@ var c = 3+a2*5
 			
 			var lines = source.split('\n')
 			
-			var src = []
 
 			// Each line will be enclosed in a div, thereby enabling padding it to show info bubbles
 			var lineElementName = 'DIV'
@@ -514,9 +523,10 @@ var c = 3+a2*5
 			// Display all lines as raw text
 
 
-			function	displayRawText(lines)
+			function	loadRawLines(lines)
 			{
-
+				var src = []
+				if (lines.length == 0) lines = ['']
 				for (var i=0; i<lines.length; i++)
 				{
 					var l = htmlEncode(lines[i])
@@ -526,8 +536,19 @@ var c = 3+a2*5
 				}
 				highlighted.innerHTML = src.join('')
 			}
-			displayRawText(lines)
-//			displayRawText([])
+//			loadRawLines(lines)
+			loadRawLines(['CHECK SAFARI CRASH'])
+					//loadRawLines(['__________________________________________________________________________________________________________________________________________________________________________________________'])
+			
+			function	loadRawText(text)
+			{
+				var lines = text.split('\n')
+				loadRawLines(lines)
+			}
+			function	rawText()
+			{
+				return highlighted.innerText
+			}
 			
 			function	dumpHighlighted()
 			{
@@ -1277,6 +1298,13 @@ var str = getTickCount()
 				str += '\n<span style="color: blue">' + mode + '</span>'
 				
 				document.getElementById('dump4').innerHTML = str
+				var str = getTickCount()
+				var context = 'which function ?'
+				str += '\n<span style="color: red">CONTEXT=' + context + '</span>'
+				str += '\n<span style="color: red">extent of change=' + context + '</span>'
+				str += '\n<span style="color: red">last key pressed definetely makes it a MOVE (arrow keys)=' + context + '</span>'
+				document.getElementById('dump2').innerHTML = str
+				
 				
 //				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
 				
@@ -2043,7 +2071,7 @@ collapseToStart=function collapseToStart() {
 //				str += dumpHash(sel)
 				document.getElementById('dump3').innerHTML = str
 			}
-			setInterval(dumpSelection, 100)
+//			setInterval(dumpSelection, 100)
 			
 			
 			
@@ -2060,7 +2088,7 @@ collapseToStart=function collapseToStart() {
 		</script>
 
 <pre>
-	<h1 style='color: red; margin-top: -50px'>
+	<h3 style='color: red; margin-top: -30px; font-weight: normal'>
 * highlight happens on caret move : left/right + up/down on overflowing lines
 * try linting src, ie lines.join('')
 * when option/suppr, might delete an endline. need to restore it
@@ -2073,8 +2101,10 @@ collapseToStart=function collapseToStart() {
 * cmd-a plant parfois
 * check displayRawText([])
 * cmd-a, delete all, type -> newline disappears
-* on typing : should only show upstream errors as collapsed bubbles, opening after typing a bit
+* on typing : should only show upstream errors as collapsed bubbles, opening after typing a bit 
+	OR don't padd top errors, just bubble them up with zIndex, no padding (downwards arrow)
 * handle invisible caret on second tab before brace
+* mousedown on DIV with one line : focus last line
 
 	</h1>
 	everything on the same line : white-space: wrap
