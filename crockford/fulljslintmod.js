@@ -4143,19 +4143,30 @@ members)?
     });
 
 
+	//
+	// ## ObjC call handling
+	// 
 	function	ObjCParams(firstToken)
 	{
-//		if (token.value != ']')	
-		token.isFirstObjCCall = true
-		token.isObjCCall = true
-		nexttoken.isObjCCall = true
-		firstToken.isObjCCallOpener = true
 		logObjCStart(token)
+//		if (token.value != ']')	
+
+		token.isObjCFirstCall		= true
+		token.isObjCCall			= true
+		nexttoken.isObjCCall		= true
+		nexttoken.isObjCFirstParam	= true
+		firstToken.isObjCCallOpener = true
+		
+		instanceToken = token
+
+		var parameterCount = 0
 		// Advance parameter name
 		advance()
 		// Parameter(s)
 		if (nexttoken.id == ':')
 		{
+			nexttoken.isObjCParameterSeparator = true
+			parameterCount++
 			// Advance parameter name
 			advance()
 			// Parameter value : any javascript expression, including anon function
@@ -4163,11 +4174,13 @@ members)?
 			// Remaining parameters
 			while (nexttoken && nexttoken.value != ']')
 			{
+				parameterCount++
 				nexttoken.isObjCCall = true
 				// Advance parameter name
 				advance()
 				// Next token must be a semicolon
 				if (nexttoken.id != ':')	warning("ObjC message missing last paramater")
+				nexttoken.isObjCParameterSeparator = true
 				advance()
 				// Parameter value
 				parse(0)
@@ -4176,6 +4189,8 @@ members)?
 		
 		if (nexttoken.value != ']')	warning('ObjC call not closed')
 		nexttoken.isObjCCallCloser = true
+		instanceToken.objCParameterCount	= parameterCount
+		nexttoken.objCParameterCount		= parameterCount
 	}
 
     infix('[', function (left, that) {
@@ -4201,7 +4216,7 @@ members)?
             }
         }
 
-		// ## Parse an ObjC message (a statement)
+		// ## Parse an ObjC message (as a statement)
 		if (nexttoken.value != ']')
 			ObjCParams(firstToken)
 
@@ -4254,11 +4269,10 @@ members)?
 
 
 //alert(dumpHashNoFunction(token) + '\n*****************\n' + dumpHashNoFunction(nexttoken))
-		// ## Parse an ObjC message (in an assign expression)
+		// ## Parse an ObjC message (as an assign expression)
 		if (nexttoken.value != ']')
 			ObjCParams(firstToken)
 		
-
         advance(']', this);
         return;
     }, 160);
