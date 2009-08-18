@@ -1,0 +1,148 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>ObjC Syntax</title>
+	<style>
+	
+		table
+		{
+			width: 100%;
+		}
+		td
+		{
+			width: 50%;
+			border: solid 1px #eee;
+			vertical-align: top;
+		}
+		#dump
+		{
+			font-size: 80%;
+			white-space: pre;
+			font-family: monaco;
+		}
+		textarea
+		{
+			width: 100%;
+			height: 400px;
+		}
+		
+</style>
+</head>
+<body>
+	<script src='crockford/fulljslintmod.js'></script>
+	<script src='lintex.js'></script>
+<table><tr><td>
+<textarea estyle='display: none'>
+		var a, b, p = [a, b]
+		var o = [[NSObject alloc] init]
+		[this performSelector:'hello' withObject:2*6/3-Math.round(6) afterDelay:'HOP']
+		
+		var c = [someObject doThis] + [someOtherObject handle1:a1 and2:b1]
+		var d = a + c
+</textarea>
+<td>
+	<div id='dump'></div>
+</table>
+
+	<script>
+
+			function	htmlEncode(str)
+			{
+//				return str
+				return str.replace(/</g, '&lt;')
+				return str.replace(/</g, '&lt;')
+				return str.replace(/</g, '&lt;')
+			}
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + (o[i]) + '\n'
+				return str
+			}
+			function	dumpHashNoFunction(o)
+			{
+				var str = ''
+				for (var i in o) { if (typeof o[i] == 'function') continue; str += i + '=' + (o[i].toString == 'toStringToken' in this ? ('*TOKEN*'+o[i].value + '*') : o[i]) + '\n' }
+				return str
+			}
+
+
+		//
+		// JSLint logging
+		// 
+		function	logToken(token)
+		{
+//			dump.innerHTML += '\n' + token.value
+			dump.innerHTML += ' ' + token.value
+		}
+		function	logStatement(statement)
+		{
+		}
+
+		function	logParseStart(rbp, initial)
+		{
+			
+		}
+		function	logParseEnd(rbp, initial)
+		{
+			
+		}
+
+		function	logFunctionStart(startToken)
+		{
+			functionLines.push(startToken.line)
+		}
+		function	logFunctionEnd(startToken, endToken)
+		{
+		}
+		
+		function	logObjCStart()
+		{
+			dump.innerHTML += '\n***OBJC***'
+		}
+
+
+		//
+		// 
+		// 
+		var dump = document.getElementById('dump')
+		
+		var textarea = document.getElementsByTagName('TEXTAREA')[0]
+
+		function	lint()
+		{
+			var src = textarea.value
+			var lines = src.split('\n')
+		
+			dump.innerHTML = getTickCount()
+			var options = { forin : true, laxbreak : true, indent : true }
+			var lintRes = JSLINT(lines, options)
+		
+			var str = 'tree=' + lintRes
+			if (JSLINT.errors) JSLINT.errors.pop()
+			for (var i=0; i<JSLINT.errors.length; i++)
+			{
+				var e = JSLINT.errors[i]
+				str += '\n' + dumpHash(e)
+			}
+			dump.innerHTML += '<hr>' + str
+		}
+		lint()
+		
+		function	keyup()
+		{
+			setTimeout(lint, 0)
+		}
+		textarea.onkeyup = keyup
+
+	</script>
+
+	
+
+</body>
+</html>

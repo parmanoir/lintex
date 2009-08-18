@@ -1,5 +1,4 @@
 
-
 	class	JSCocoaDocument < NSDocument
 	{
 
@@ -28,9 +27,10 @@
 		- (BOOL)readFromURL:(NSURL *)absoluteURL ofType:(NSString *)typeName error:(NSError **)outError
 		{
 //			NSString* str = [NSString stringWithContentsOfURL:absoluteURL encoding:NSUTF8StringEncoding error:outError];
+//absoluteURL = NSURL.fileURLWithPath('/azlekzalekazmlek')
 //			var str = NSString.stringWithContentsOfURL_encoding_error(absoluteURL, NSUTF8StringEncoding, outError)
 			var str = NSString.stringWithContentsOfURL_encoding_error(absoluteURL, NSUTF8StringEncoding, nil)
-			
+
 			this.initialText = str
 			this.loadInitialText()
 			return	true
@@ -61,7 +61,7 @@
 
 		- (void)webView:(WebView *)sender didFinishLoadForFrame:(WebFrame *)frame
 		{
-			log('done loading frame, initialText=' + this.initialText + ' this=' + this)
+//			log('done loading frame, initialText=' + this.initialText + ' this=' + this + ' context=' + this.webView.mainFrame.globalContext)
 			this.loadInitialText()
 		}
 		

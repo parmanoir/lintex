@@ -226,6 +226,12 @@
 			z-index: 2;
 			margin-left: -14px;
 			margin-top: 2px;
+			color: rgba(255, 255, 255, 0.9);
+		}
+		.bubble b
+		{
+			color: white;
+			margin: 0 2px;
 		}
 		.bubbleWrapper
 		{
@@ -247,6 +253,13 @@
 			ez-index: 20;
 			height: 45px;
 			overflow: hidden;
+
+			font-size: 14pt;
+			-webkit-transform: rotate(90deg);
+			ez-index: 10;
+			ecolor: lime;
+			left: -17px;
+			top: -11px;
 		}
 
 
@@ -260,7 +273,7 @@
 		}
 		#highlightedContainer
 		{
-			padding-left: 30px;
+			padding-left: 34px;
 			position: relative;
 		}
 		#highlighted, #highlightedContainer
@@ -306,11 +319,30 @@
 </style>
 </head>
 <body>
-	
 <table eborder='1' style='table-layout: fixed; width: 100%; height: 800px; height: 650px' cellPadding='0' cellSpacing='0'><tr>
 <td>
 	<div id='sourceContainer'><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='selectedLine'><div id='selectedLinePosition'></div></div><div id='highlightedContainer'><div id='tracesContainer'></div><div id='whiteSpaceRevealer'></div><div id='highlighted'></div></div></div>
 </td><td style='width: 200px'><div id='birdView'></div></tr></table>
+
+	<textarea style='display: none'>a function va(a, b, c)
+{
+	if (a)
+		return 
+	if (a)
+	{
+		
+		log('ehll'
+		
+		
+		
+		
+	}
+	
+	return a + b
+}
+</textarea>
+
+
 
 	<textarea style='display: none'>var a
 	function fn1(a, b)
@@ -475,7 +507,7 @@ var c = 3+a2*5
 	<pre id='dump6'></pre>
 
 	<script src="crockford/json2.js"></script>
-	<script src="crockford/fulljslint.js"></script>
+	<script src="crockford/fulljslintmod.js"></script>
 	<script src='showdown.js'></script>
 
 		<script>
@@ -537,8 +569,8 @@ var c = 3+a2*5
 				highlighted.innerHTML = src.join('')
 			}
 //			loadRawLines(lines)
-			loadRawLines(['CHECK SAFARI CRASH'])
-					//loadRawLines(['__________________________________________________________________________________________________________________________________________________________________________________________'])
+//			loadRawLines([''])
+			loadRawText(source)
 			
 			function	loadRawText(text)
 			{
@@ -549,6 +581,7 @@ var c = 3+a2*5
 			{
 				return highlighted.innerText
 			}
+			
 			
 			function	dumpHighlighted()
 			{
@@ -877,7 +910,7 @@ var c = 3+a2*5
 						}
 					}
 				}
-				return	{ line : lineNumber, offset : offset2}
+				return	{ line : lineNumber, offset : offset2 }
 			}
 			
 			function	selectionAsLineAndOffset()
@@ -1477,6 +1510,10 @@ var str = getTickCount()
 					var x = (span.offsetLeft + highlighted.offsetLeft)
 					var y = /*span.offsetTop +*/ line.offsetTop + line.offsetHeight
 					var margin = span.offsetHeight
+
+//##					
+					x = span.offsetLeft+60
+					y = line.offsetTop-6
 					
 					var bubbleWrapper	= document.createElement('DIV')
 					bubbleWrapper.className = 'bubbleWrapper'
@@ -1484,6 +1521,17 @@ var str = getTickCount()
 					bubbleWrapper.style.marginLeft = 0 + 'px'
 					bubbleWrapper.innerHTML = "<span class='bubbleArrow'>▾</span>"
 
+					var quoteCount = 0
+					function	boldQuotes(r)
+					{
+						quoteCount++
+						return quoteCount&1 ? '<b>' : '</b>'
+					}
+					// Bold quotes
+					errorReason = errorReason.replace(/\'/g, boldQuotes)
+					// Remove trailing dot
+					errorReason = errorReason.replace(/\.$/g, '')
+					
 					var bubble			= document.createElement('DIV')
 					bubble.innerHTML = errorReason
 					bubble.className = 'bubble'
@@ -1498,7 +1546,11 @@ var str = getTickCount()
 					bubbleWrapper.style.marginLeft = x + 'px'
 
 					// Pad line bottom to leave space for the bubble, stored one layer down
-					line.style.paddingBottom = bubbleWrapper.offsetHeight + 'px'
+					var paddingBottom = bubbleWrapper.offsetHeight
+//##
+					paddingBottom = 0
+
+					line.style.paddingBottom = paddingBottom + 'px'
 					paddedLines.push( { lineNumber : errorLine, line : line } )
 				}
 

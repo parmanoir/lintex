@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		1DDD582C0DA1D0D100B32029 /* JSCocoaDocument.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58280DA1D0D100B32029 /* JSCocoaDocument.xib */; };
 		1DDD582D0DA1D0D100B32029 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD582A0DA1D0D100B32029 /* MainMenu.xib */; };
+		3D395BE010350A9600108264 /* console.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3D395BDD10350A9600108264 /* console.tiff */; };
+		3D395BE110350A9600108264 /* stop.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3D395BDE10350A9600108264 /* stop.tiff */; };
+		3D395BE210350A9600108264 /* run.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3D395BDF10350A9600108264 /* run.tiff */; };
 		3DBBD95F10324714009AEF05 /* BridgeSupportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DBBD93810324714009AEF05 /* BridgeSupportController.m */; };
 		3DBBD96010324714009AEF05 /* class.js in Resources */ = {isa = PBXBuildFile; fileRef = 3DBBD93910324714009AEF05 /* class.js */; };
 		3DBBD96B10324714009AEF05 /* JSCocoaController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DBBD95610324714009AEF05 /* JSCocoaController.m */; };
@@ -18,6 +21,8 @@
 		3DBBD96F10324714009AEF05 /* JSCocoaPrivateObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DBBD95E10324714009AEF05 /* JSCocoaPrivateObject.m */; };
 		3DBBD9821032474E009AEF05 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DBBD9811032474E009AEF05 /* JavaScriptCore.framework */; };
 		3DBBD9A310324CE8009AEF05 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DBBD9A210324CE8009AEF05 /* WebKit.framework */; };
+		3DED26F210366F220093C660 /* tests in Resources */ = {isa = PBXBuildFile; fileRef = 3DED26EF10366F220093C660 /* tests */; };
+		3DED28C2103850870093C660 /* fulljslintmod.js in Resources */ = {isa = PBXBuildFile; fileRef = 3DED28C1103850870093C660 /* fulljslintmod.js */; };
 		3DFF03B010331DA50072D0A7 /* ApplicationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DFF03AF10331DA50072D0A7 /* ApplicationController.m */; };
 		3DFF03D810331E350072D0A7 /* lintexTester.js in Resources */ = {isa = PBXBuildFile; fileRef = 3DFF03D710331E350072D0A7 /* lintexTester.js */; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
@@ -37,6 +42,9 @@
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32DBCF750370BD2300C91783 /* LintexTester_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LintexTester_Prefix.pch; sourceTree = "<group>"; };
+		3D395BDD10350A9600108264 /* console.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = console.tiff; path = images/console.tiff; sourceTree = "<group>"; };
+		3D395BDE10350A9600108264 /* stop.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = stop.tiff; path = images/stop.tiff; sourceTree = "<group>"; };
+		3D395BDF10350A9600108264 /* run.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = run.tiff; path = images/run.tiff; sourceTree = "<group>"; };
 		3DBBD93710324714009AEF05 /* BridgeSupportController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgeSupportController.h; sourceTree = "<group>"; };
 		3DBBD93810324714009AEF05 /* BridgeSupportController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BridgeSupportController.m; sourceTree = "<group>"; };
 		3DBBD93910324714009AEF05 /* class.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = class.js; sourceTree = "<group>"; };
@@ -55,6 +63,8 @@
 		3DBBD9811032474E009AEF05 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = /System/Library/Frameworks/JavaScriptCore.framework; sourceTree = "<absolute>"; };
 		3DBBD9A210324CE8009AEF05 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		3DBBDA101032551E009AEF05 /* defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = defaults.plist; sourceTree = "<group>"; };
+		3DED26EF10366F220093C660 /* tests */ = {isa = PBXFileReference; lastKnownFileType = folder; name = tests; path = ../tests; sourceTree = SOURCE_ROOT; };
+		3DED28C1103850870093C660 /* fulljslintmod.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = fulljslintmod.js; path = ../crockford/fulljslintmod.js; sourceTree = SOURCE_ROOT; };
 		3DFF03AE10331DA50072D0A7 /* ApplicationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ApplicationController.h; sourceTree = "<group>"; };
 		3DFF03AF10331DA50072D0A7 /* ApplicationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ApplicationController.m; sourceTree = "<group>"; };
 		3DFF03D710331E350072D0A7 /* lintexTester.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = lintexTester.js; sourceTree = "<group>"; };
@@ -118,8 +128,8 @@
 		2A37F4ABFDCFA73011CA2CEA /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				3DFF03AE10331DA50072D0A7 /* ApplicationController.h */,
 				3DFF03AF10331DA50072D0A7 /* ApplicationController.m */,
+				3DFF03AE10331DA50072D0A7 /* ApplicationController.h */,
 				3DFF03D710331E350072D0A7 /* lintexTester.js */,
 			);
 			name = Classes;
@@ -137,6 +147,11 @@
 		2A37F4B8FDCFA73011CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3DED28C1103850870093C660 /* fulljslintmod.js */,
+				3DED26EF10366F220093C660 /* tests */,
+				3D395BDD10350A9600108264 /* console.tiff */,
+				3D395BDE10350A9600108264 /* stop.tiff */,
+				3D395BDF10350A9600108264 /* run.tiff */,
 				2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */,
 				8D15AC360486D014006FF6A4 /* Info.plist */,
 				089C165FFE840EACC02AAC07 /* InfoPlist.strings */,
@@ -223,12 +238,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DED28C2103850870093C660 /* fulljslintmod.js in Resources */,
 				3DFF03D810331E350072D0A7 /* lintexTester.js in Resources */,
 				3DBBD96010324714009AEF05 /* class.js in Resources */,
 				8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */,
 				8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */,
 				1DDD582C0DA1D0D100B32029 /* JSCocoaDocument.xib in Resources */,
 				1DDD582D0DA1D0D100B32029 /* MainMenu.xib in Resources */,
+				3D395BE010350A9600108264 /* console.tiff in Resources */,
+				3D395BE110350A9600108264 /* stop.tiff in Resources */,
+				3D395BE210350A9600108264 /* run.tiff in Resources */,
+				3DED26F210366F220093C660 /* tests in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -16,19 +16,7 @@ int main(int argc, char *argv[])
 	id defaults = [NSUserDefaults standardUserDefaults];
 
 	id defaultDefaults = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"defaults" ofType:@"plist"]];
-//	NSLog(@"***%@***", defaultDefaults);
-	
 	[defaults registerDefaults:defaultDefaults];
-
-//	NSLog(@"===%d", [defaults integerForKey:@"AppleAntiAliasingThreshold"]);
-//	NSLog(@"defaults=%@", defaults);
-
-
-
-//	[defaults setInteger:2 forKey:@"AppleAntiAliasingThreshold"];
-//	[defaults setInteger:2 forKey:@"AppleScreenAdvanceSizeThreshold"];
-//	[defaults setInteger:2 forKey:@"AppleSmoothFontsSizeThreshold"];
-
 	[defaults synchronize];
 	
 	[pool release];

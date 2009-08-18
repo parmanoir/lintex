@@ -4142,6 +4142,33 @@ members)?
         return v;
     });
 
+
+	function	ObjCParams()
+	{
+			logObjCStart(token)
+			// Advance parameter name
+			advance()
+			// Parameter(s)
+			if (nexttoken.id == ':')
+			{
+				// Advance parameter name
+				advance()
+				// Parameter value : any javascript expression, including anon function
+				parse(0)
+				// Remaining parameters
+				while (nexttoken && nexttoken.value != ']')
+				{
+					// Advance parameter name
+					advance()
+					// Next token must be a semicolon
+					if (nexttoken.id != ':')	warning("ObjC message missing last paramater")
+					advance()
+					// Parameter value
+					parse(0)
+				}
+			}
+	}
+
     infix('[', function (left, that) {
         nospace();
         var e = parse(0), s;
@@ -4163,6 +4190,13 @@ members)?
                 warning('ADsafe subscripting.');
             }
         }
+
+		// ## Parse an ObjC message (a statement)
+		if (nexttoken.value != ']')
+		{
+			ObjCParams()
+		}
+
         advance(']', that);
         nospace(prevtoken, token);
         that.left = left;
@@ -4171,12 +4205,15 @@ members)?
     }, 160, true);
 
     prefix('[', function () {
+		// Doesn't seem to be used
         this.first = [];
+		// Empty array
         if (nexttoken.id === ']') {
             advance(']');
             return;
         }
         var b = token.line !== nexttoken.line;
+		// Indentation check
         if (b) {
             indent += option.indent;
             if (nexttoken.from === indent + option.indent) {
@@ -4184,6 +4221,7 @@ members)?
             }
         }
         for (;;) {
+			// Indentation check
             if (b && token.line !== nexttoken.line) {
                 indentation();
             }
@@ -4204,6 +4242,16 @@ members)?
                 break;
             }
         }
+
+
+//alert(dumpHashNoFunction(token) + '\n*****************\n' + dumpHashNoFunction(nexttoken))
+		// ## Parse an ObjC message (in an assign expression)
+		if (nexttoken.value != ']')
+		{
+			ObjCParams()
+		}
+		
+
         advance(']', this);
         return;
     }, 160);

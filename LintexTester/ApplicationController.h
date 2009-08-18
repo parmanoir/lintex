@@ -15,4 +15,7 @@
 
 }
 
+- (IBAction)runTests:(id)sender;
+- (IBAction)garbageCollect:(id)sender;
+
 @end
