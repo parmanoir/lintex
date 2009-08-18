@@ -26,6 +26,30 @@
 			width: 100%;
 			height: 400px;
 		}
+		#transformed
+		{
+			font-size: 80%;
+			white-space: pre;
+			font-family: monaco;
+			background-color: #eee;
+		}
+		.objc
+		{
+			color: blue;
+			font-weight: bold;
+		}
+		.firstobjc
+		{
+			color: red;
+		}
+		.objcopener
+		{
+			color: lime;
+		}
+		.objccloser
+		{
+			color: orange;
+		}
 		
 </style>
 </head>
@@ -38,9 +62,13 @@
 		var o = [[NSObject alloc] init]
 		[this performSelector:'hello' withObject:2*6/3-Math.round(6) afterDelay:'HOP']
 		
-		var c = [someObject doThis] + [someOtherObject handle1:a1 and2:b1]
+		var c = [someObject doThis] + [someOtherObject handle1:[a1, d1] and2:b1]
 		var d = a + c
+		
+		var chainedCall = [[NSObject alloc:'hello' and:'world'] initWithKey:[SomeKey someParam] andKey:[SomeOtherKey p1:'a' p2:'b']]
 </textarea>
+<div id='transformed'>
+</div>
 <td>
 	<div id='dump'></div>
 </table>
@@ -75,10 +103,13 @@
 		//
 		// JSLint logging
 		// 
+		var tokens
 		function	logToken(token)
 		{
-//			dump.innerHTML += '\n' + token.value
+			tokens.push(token)
 			dump.innerHTML += ' ' + token.value
+//			alert(dumpHash(token))
+			if (token.id == '(endline)') dump.innerHTML += '\n\n'
 		}
 		function	logStatement(statement)
 		{
@@ -105,12 +136,37 @@
 		{
 			dump.innerHTML += '\n***OBJC***'
 		}
+		
+		//
+		// Dump tokens
+		// 
+		function	dumpTokens()
+		{
+			var str = ''
+			var str2 = ''
+			for (var i=0; i<tokens.length; i++)
+			{
+				var token = tokens[i]
+				var v = token.value
+				if (token.isObjCCall) v = '<span class="objc">' + token.value + '</span>'
+				if (token.isFirstObjCCall) v = '<span class="firstobjc">' + token.value + '</span>'
+				if (token.isObjCCallOpener) v = '<span class="objcopener">' + token.value + '</span>'
+				if (token.isObjCCallCloser) v = '<span class="objccloser">' + token.value + '</span>'
+				
+				str += ' ' + v
+				//			alert(dumpHash(token))
+				if (token.id == '(endline)') str += '\n\n'
+			}
+			dump.innerHTML = getTickCount() + '\n' + str
+			transformed.innerHTML = getTickCount() + '\n' + str2
+		}
 
 
 		//
 		// 
 		// 
 		var dump = document.getElementById('dump')
+		var transformed = document.getElementById('transformed')
 		
 		var textarea = document.getElementsByTagName('TEXTAREA')[0]
 
@@ -120,6 +176,8 @@
 			var lines = src.split('\n')
 		
 			dump.innerHTML = getTickCount()
+
+			tokens = []
 			var options = { forin : true, laxbreak : true, indent : true }
 			var lintRes = JSLINT(lines, options)
 		
@@ -131,6 +189,8 @@
 				str += '\n' + dumpHash(e)
 			}
 			dump.innerHTML += '<hr>' + str
+			
+			dumpTokens()
 		}
 		lint()
 		
@@ -142,7 +202,9 @@
 
 	</script>
 
-	
+<pre>	
+	[[NSObject alloc]]
+	-> un immediate de [NSObject.alloc()]
 
 </body>
 </html>

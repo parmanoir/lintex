@@ -4143,33 +4143,43 @@ members)?
     });
 
 
-	function	ObjCParams()
+	function	ObjCParams(firstToken)
 	{
-			logObjCStart(token)
+//		if (token.value != ']')	
+		token.isFirstObjCCall = true
+		token.isObjCCall = true
+		nexttoken.isObjCCall = true
+		firstToken.isObjCCallOpener = true
+		logObjCStart(token)
+		// Advance parameter name
+		advance()
+		// Parameter(s)
+		if (nexttoken.id == ':')
+		{
 			// Advance parameter name
 			advance()
-			// Parameter(s)
-			if (nexttoken.id == ':')
+			// Parameter value : any javascript expression, including anon function
+			parse(0)
+			// Remaining parameters
+			while (nexttoken && nexttoken.value != ']')
 			{
+				nexttoken.isObjCCall = true
 				// Advance parameter name
 				advance()
-				// Parameter value : any javascript expression, including anon function
+				// Next token must be a semicolon
+				if (nexttoken.id != ':')	warning("ObjC message missing last paramater")
+				advance()
+				// Parameter value
 				parse(0)
-				// Remaining parameters
-				while (nexttoken && nexttoken.value != ']')
-				{
-					// Advance parameter name
-					advance()
-					// Next token must be a semicolon
-					if (nexttoken.id != ':')	warning("ObjC message missing last paramater")
-					advance()
-					// Parameter value
-					parse(0)
-				}
 			}
+		}
+		
+		if (nexttoken.value != ']')	warning('ObjC call not closed')
+		nexttoken.isObjCCallCloser = true
 	}
 
     infix('[', function (left, that) {
+		var firstToken = token
         nospace();
         var e = parse(0), s;
         if (e && e.type === '(string)') {
@@ -4193,9 +4203,7 @@ members)?
 
 		// ## Parse an ObjC message (a statement)
 		if (nexttoken.value != ']')
-		{
-			ObjCParams()
-		}
+			ObjCParams(firstToken)
 
         advance(']', that);
         nospace(prevtoken, token);
@@ -4205,6 +4213,7 @@ members)?
     }, 160, true);
 
     prefix('[', function () {
+		var firstToken = token
 		// Doesn't seem to be used
         this.first = [];
 		// Empty array
@@ -4247,9 +4256,7 @@ members)?
 //alert(dumpHashNoFunction(token) + '\n*****************\n' + dumpHashNoFunction(nexttoken))
 		// ## Parse an ObjC message (in an assign expression)
 		if (nexttoken.value != ']')
-		{
-			ObjCParams()
-		}
+			ObjCParams(firstToken)
 		
 
         advance(']', this);
