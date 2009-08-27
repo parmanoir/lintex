@@ -202,6 +202,46 @@
 			<key>Content</key>
 			<dict>
 				<key>PBXProjectModuleGUID</key>
+				<string>3DED28791037B5310093C660</string>
+				<key>PBXProjectModuleLabel</key>
+				<string>lintexTester.js</string>
+				<key>PBXSplitModuleInNavigatorKey</key>
+				<dict>
+					<key>Split0</key>
+					<dict>
+						<key>PBXProjectModuleGUID</key>
+						<string>3DED287A1037B5310093C660</string>
+						<key>PBXProjectModuleLabel</key>
+						<string>lintexTester.js</string>
+						<key>_historyCapacity</key>
+						<integer>0</integer>
+						<key>bookmark</key>
+						<string>3DED2E57103C6A490093C660</string>
+						<key>history</key>
+						<array>
+							<string>3DED28771037B5270093C660</string>
+						</array>
+					</dict>
+					<key>SplitCount</key>
+					<string>1</string>
+				</dict>
+				<key>StatusBarVisibility</key>
+				<true/>
+			</dict>
+			<key>Geometry</key>
+			<dict>
+				<key>Frame</key>
+				<string>{{0, 20}, {963, 910}}</string>
+				<key>PBXModuleWindowStatusBarHidden2</key>
+				<false/>
+				<key>RubberWindowFrame</key>
+				<string>592 175 963 951 0 0 1920 1178 </string>
+			</dict>
+		</dict>
+		<dict>
+			<key>Content</key>
+			<dict>
+				<key>PBXProjectModuleGUID</key>
 				<string>3DFF03B510331DE40072D0A7</string>
 				<key>PBXProjectModuleLabel</key>
 				<string>ApplicationController.m</string>
@@ -216,7 +256,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>3DED28D51038B7850093C660</string>
+						<string>3DED2E58103C6A490093C660</string>
 						<key>history</key>
 						<array>
 							<string>3DED28D41038B7850093C660</string>
@@ -256,7 +296,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>3DED28D61038B7850093C660</string>
+						<string>3DED2E59103C6A490093C660</string>
 						<key>history</key>
 						<array>
 							<string>3DED27391037A5CE0093C660</string>
@@ -276,86 +316,6 @@
 				<false/>
 				<key>RubberWindowFrame</key>
 				<string>164 119 963 951 0 0 1920 1178 </string>
-			</dict>
-		</dict>
-		<dict>
-			<key>Content</key>
-			<dict>
-				<key>PBXProjectModuleGUID</key>
-				<string>3DED28581037B31B0093C660</string>
-				<key>PBXProjectModuleLabel</key>
-				<string>JSCocoaController.m</string>
-				<key>PBXSplitModuleInNavigatorKey</key>
-				<dict>
-					<key>Split0</key>
-					<dict>
-						<key>PBXProjectModuleGUID</key>
-						<string>3DED28591037B31B0093C660</string>
-						<key>PBXProjectModuleLabel</key>
-						<string>JSCocoaController.m</string>
-						<key>_historyCapacity</key>
-						<integer>0</integer>
-						<key>bookmark</key>
-						<string>3DED28D71038B7850093C660</string>
-						<key>history</key>
-						<array>
-							<string>3DED289E1037B5A20093C660</string>
-						</array>
-					</dict>
-					<key>SplitCount</key>
-					<string>1</string>
-				</dict>
-				<key>StatusBarVisibility</key>
-				<true/>
-			</dict>
-			<key>Geometry</key>
-			<dict>
-				<key>Frame</key>
-				<string>{{0, 20}, {963, 910}}</string>
-				<key>PBXModuleWindowStatusBarHidden2</key>
-				<false/>
-				<key>RubberWindowFrame</key>
-				<string>416 139 963 951 0 0 1920 1178 </string>
-			</dict>
-		</dict>
-		<dict>
-			<key>Content</key>
-			<dict>
-				<key>PBXProjectModuleGUID</key>
-				<string>3DED28791037B5310093C660</string>
-				<key>PBXProjectModuleLabel</key>
-				<string>lintexTester.js</string>
-				<key>PBXSplitModuleInNavigatorKey</key>
-				<dict>
-					<key>Split0</key>
-					<dict>
-						<key>PBXProjectModuleGUID</key>
-						<string>3DED287A1037B5310093C660</string>
-						<key>PBXProjectModuleLabel</key>
-						<string>lintexTester.js</string>
-						<key>_historyCapacity</key>
-						<integer>0</integer>
-						<key>bookmark</key>
-						<string>3DED28D81038B7850093C660</string>
-						<key>history</key>
-						<array>
-							<string>3DED28771037B5270093C660</string>
-						</array>
-					</dict>
-					<key>SplitCount</key>
-					<string>1</string>
-				</dict>
-				<key>StatusBarVisibility</key>
-				<true/>
-			</dict>
-			<key>Geometry</key>
-			<dict>
-				<key>Frame</key>
-				<string>{{0, 20}, {963, 910}}</string>
-				<key>PBXModuleWindowStatusBarHidden2</key>
-				<false/>
-				<key>RubberWindowFrame</key>
-				<string>589 182 963 951 0 0 1920 1178 </string>
 			</dict>
 		</dict>
 	</array>
@@ -642,13 +602,12 @@
 	<array>
 		<string>1C530D52069F1CE1000CFCEE</string>
 		<string>1C530D54069F1CE1000CFCEE</string>
-		<string>3DED28791037B5310093C660</string>
-		<string>1C530D57069F1CE1000CFCEE</string>
-		<string>3DED28581037B31B0093C660</string>
 		<string>3DED273F1037AA4B0093C660</string>
-		<string>/Users/mini/Sites/lintex/LintexTester/LintexTester.xcodeproj</string>
 		<string>3DFF03B510331DE40072D0A7</string>
 		<string>1C530D5B069F1CE1000CFCEE</string>
+		<string>1C530D57069F1CE1000CFCEE</string>
+		<string>3DED28791037B5310093C660</string>
+		<string>/Users/mini/Sites/lintex/LintexTester/LintexTester.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
 	<string>1572 758 350 420 0 0 1920 1178 </string>
@@ -1027,7 +986,7 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CDD528C0622207200134675</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>JSCocoaController.m</string>
+										<string>JSCocoaFFIClosure.h</string>
 										<key>StatusBarVisibility</key>
 										<true/>
 									</dict>

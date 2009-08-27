@@ -74,6 +74,20 @@
 	<script src='crockford/fulljslintmod.js'></script>
 	<script src='lintex.js'></script>
 <table><tr><td>
+
+<textarea estyle='display: none'>
+	var a = 4 [+] 5 {+} 'hello'
+	var b = 4 [+] 5+8 [+] 8*2 [+] 'hel\'lo'
+	var c = 'hello' {+} 'wo'+'rld' {+} 'end'
+	
+	var d = 'a' [+]
+				'b'
+					[+]
+						8
+							[+]
+								'd'
+
+</textarea>
 <textarea estyle='display: none'>
 		var a, b, p = [a, b]
 		var o = [[NSObject alloc] init]
@@ -96,11 +110,14 @@
 		var obj = [[[[NSObject alloc]][0] init] keys]['name']
 		[[[NSObject alloc] init]]     
 		[array[0] init]
+		var a = { 'hello' : [[NSObject alloc] init] }
+		[hash['value'] doSomethingElse]
 </textarea>
 <div id='transformed'>
 </div>
 <td>
 	<div id='dump'></div>
+	<div id='dump2'></div>
 </table>
 
 	<script>
@@ -136,8 +153,14 @@
 		var tokens
 		function	logToken(token)
 		{
+//				alert(dumpHashNoFunction(token))
+				
+				
+			token.rawValue = lines[token.line].substr(token.from, token.character-token.from)				
+
 			tokens.push(token)
 			dump.innerHTML += ' ' + token.value
+			dump.innerHTML += '\n'
 //			alert(dumpHash(token))
 			if (token.id == '(endline)') dump.innerHTML += '\n\n'
 		}
@@ -156,7 +179,7 @@
 
 		function	logFunctionStart(startToken)
 		{
-			functionLines.push(startToken.line)
+//			functionLines.push(startToken.line)
 		}
 		function	logFunctionEnd(startToken, endToken)
 		{
@@ -215,7 +238,6 @@
 				str += ' ' + v
 				if ('objCParameterCount' in token) str += '<b>(' + token.objCParameterCount + ')</b>'
 
-
 				//			alert(dumpHash(token))
 				if (token.id == '(endline)') 
 				{
@@ -272,8 +294,81 @@
 				if (token.isObjCFirstCall)		tokenStream.push('.')
 			}
 			str2 = tokenStream.join('')
-			dump.innerHTML = getTickCount() + '\n' + str
+			dump2.innerHTML = getTickCount() + '\n' + str
 			transformed.innerHTML = getTickCount() + '\n' + str2
+		}
+
+		function	dumpTokens2()
+		{
+			var str = ''
+			for (var i=0; i<tokens.length; i++)
+			{
+				var token = tokens[i]
+				var v = tv = token.value
+if (!lines[token.line])	continue
+				str += v
+				var v2 = lines[token.line].substr(token.from, token.character-token.from)
+				str += ' <span style="color: blue">*' + v2 + '*</span> '
+				if (token.left) str += ' l=' + token.left.value
+				if (token.right) str += ' r=' + token.right.value
+//				if (token.left)	alert(dumpHash(token)), eaz()
+				str += '\n'
+			}
+			
+			var operatorFunctions = { '{+}' : '__addHash', '[+]' : '__addArray' }
+			var ops = []
+			for (var i=0; i<tokens.length; i++)
+			{
+				var token = tokens[i]
+				if (operatorFunctions[token.id])
+				{
+					ops.push(token)
+					var op = operatorFunctions[token.id]
+					token.replacedValue = ','
+					
+					var left, right
+					var t = token
+					while (t)
+					{
+						if (t.left) left = t.left
+						t = t.left
+					}
+					var t = token
+					while (t)
+					{
+						if (t.right) right = t.right
+						t = t.right
+					}
+					
+					
+					if (left)
+					{
+						var v = left.replacedValue || left.rawValue
+						left.replacedValue = op + '(' + v
+						var v = right.replacedValue || right.rawValue
+						right.replacedValue = v + ')'
+					}
+				}
+//				alert('lk')
+			}
+
+			var str2 = ''
+			for (var i=0; i<tokens.length; i++)
+			{
+				var token = tokens[i]
+				var v = token.replacedValue || token.rawValue
+				
+				str2 += v + ' '
+				if (token.id == '(endline)') str2 += '<br>'
+			}
+			str += '<hr>' + str2 + '<hr>'
+
+			dump.innerHTML = getTickCount() + '\n' + str
+			
+//			alert('go through tokens, register ops - sort by binding power, then replace them for highest to lowest')
+			/*
+				add token number in token ?
+			*/
 		}
 
 
@@ -281,6 +376,7 @@
 		// 
 		// 
 		var dump = document.getElementById('dump')
+		var dump2 = document.getElementById('dump2')
 		var transformed = document.getElementById('transformed')
 		
 		var textarea = document.getElementsByTagName('TEXTAREA')[0]
@@ -302,11 +398,12 @@
 			for (var i=0; i<JSLINT.errors.length; i++)
 			{
 				var e = JSLINT.errors[i]
-				str += '\n' + dumpHash(e)
+				str += '\n<span style="color: red">' + dumpHash(e) + '</span>'
 			}
 			dump.innerHTML += '<hr>' + str
 			
 			dumpTokens()
+			dumpTokens2()
 		}
 		lint()
 		
