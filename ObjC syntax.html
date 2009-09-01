@@ -85,6 +85,8 @@
 <table><tr><td>
 
 <textarea estyle='display: none'>
+	var a = 4 {+} 5 {+} 'hello'
+</textarea>
 	var e = 'a' [+] ['b'] [+] 'c'
 	var f = 'a' [+] ['b'] [+] +4
 </textarea>
@@ -438,7 +440,12 @@ if (!lines[token.line])	continue
 		
 		function	__addHash(a, b)
 		{
-			
+			var r = {}
+			if (a.constructor != Object.prototype.constructor)	{	var o = {}; o[a] = true; a = o }
+			if (b.constructor != Object.prototype.constructor)	{	var o = {}; o[b] = true; b = o }
+			for (var i in a) r[i] = a[i]
+			for (var i in b) r[i] = b[i]
+			return r
 		}
 
 
