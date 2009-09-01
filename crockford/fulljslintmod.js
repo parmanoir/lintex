@@ -2184,6 +2184,7 @@ members)?
             } else {
                 this.left = left;
                 this.right = parse(p);
+//alert('left=' + this.left.value + '\nright=' + (typeof this.right) + '\nthis=' + this.value)
                 return this;
             }
         };
@@ -4230,8 +4231,12 @@ members)?
 		// ## Parse an ObjC message (as a statement)
 		if (nexttoken.value != ']')
 			ObjCParams(firstToken)
-
         advance(']', that);
+
+		// Mark each token as siblings of each other
+		token.left = firstToken
+		firstToken.right = token
+
         nospace(prevtoken, token);
         that.left = left;
         that.right = e;
@@ -4283,9 +4288,14 @@ members)?
 		// ## Parse an ObjC message (as an assign expression)
 		if (nexttoken.value != ']')
 			ObjCParams(firstToken)
-		
         advance(']', this);
-        return;
+
+		// Mark each token as siblings of each other
+		token.left = firstToken
+		firstToken.right = token
+
+		// ## as [+] can push an array immediate : a [+] ['b']
+        return this;
     }, 160);
 
     (function (x) {
@@ -4848,6 +4858,7 @@ members)?
     function jsonValue() {
 
         function jsonObject() {
+		alert('handle jsonobject')
             var o = {}, t = nexttoken;
             advance('{');
             if (nexttoken.id !== '}') {

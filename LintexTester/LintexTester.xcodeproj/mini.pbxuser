@@ -22,13 +22,13 @@
 			3DBBD923103246F1009AEF05 /* LintexTester */,
 		);
 		perUserDictionary = {
-			PBXPerProjectTemplateStateSaveDate = 271992320;
-			PBXWorkspaceStateSaveDate = 271992320;
+			PBXPerProjectTemplateStateSaveDate = 273278020;
+			PBXWorkspaceStateSaveDate = 273278020;
 		};
 		perUserProjectItems = {
-			3DED27391037A5CE0093C660 /* PBXBookmark */ = 3DED27391037A5CE0093C660 /* PBXBookmark */;
-			3DED28771037B5270093C660 /* PBXBookmark */ = 3DED28771037B5270093C660 /* PBXBookmark */;
-			3DED28D41038B7850093C660 /* PBXTextBookmark */ = 3DED28D41038B7850093C660 /* PBXTextBookmark */;
+			3D2973901049E79B00A6B09B /* PBXTextBookmark */ = 3D2973901049E79B00A6B09B /* PBXTextBookmark */;
+			3D2973911049E79B00A6B09B /* PBXTextBookmark */ = 3D2973911049E79B00A6B09B /* PBXTextBookmark */;
+			3D2973921049E79B00A6B09B /* PBXTextBookmark */ = 3D2973921049E79B00A6B09B /* PBXTextBookmark */;
 			3DED2E57103C6A490093C660 /* PBXTextBookmark */ = 3DED2E57103C6A490093C660 /* PBXTextBookmark */;
 			3DED2E58103C6A490093C660 /* PBXTextBookmark */ = 3DED2E58103C6A490093C660 /* PBXTextBookmark */;
 			3DED2E59103C6A490093C660 /* PBXTextBookmark */ = 3DED2E59103C6A490093C660 /* PBXTextBookmark */;
@@ -51,6 +51,48 @@
 			sepNavSelRange = "{168, 0}";
 			sepNavVisRange = "{0, 176}";
 			sepNavWindowFrame = "{{86, 111}, {963, 1007}}";
+		};
+	};
+	3D2973901049E79B00A6B09B /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 3DFF03D710331E350072D0A7 /* lintexTester.js */;
+		name = "lintexTester.js: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 2521;
+		vrLoc = 0;
+	};
+	3D2973911049E79B00A6B09B /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 3DFF03AF10331DA50072D0A7 /* ApplicationController.m */;
+		name = "ApplicationController.m: 41";
+		rLen = 0;
+		rLoc = 953;
+		rType = 0;
+		vrLen = 1911;
+		vrLoc = 0;
+	};
+	3D2973921049E79B00A6B09B /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 3D2973931049E79B00A6B09B /* 1 ObjC syntax.js */;
+		name = "1 ObjC syntax.js: 10";
+		rLen = 0;
+		rLoc = 100;
+		rType = 0;
+		vrLen = 100;
+		vrLoc = 0;
+	};
+	3D2973931049E79B00A6B09B /* 1 ObjC syntax.js */ = {
+		isa = PBXFileReference;
+		name = "1 ObjC syntax.js";
+		path = "/Users/mini/Sites/lintex/tests/1 ObjC syntax.js";
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {904, 894}}";
+			sepNavSelRange = "{100, 0}";
+			sepNavVisRange = "{0, 100}";
+			sepNavWindowFrame = "{{164, 126}, {963, 1007}}";
 		};
 	};
 	3DBBD923103246F1009AEF05 /* LintexTester */ = {
@@ -157,30 +199,6 @@
 			sepNavWindowFrame = "{{84, 103}, {963, 1007}}";
 		};
 	};
-	3DED26F110366F220093C660 /* 1 ObjC syntax.js */ = {
-		isa = PBXFileReference;
-		lastKnownFileType = sourcecode.javascript;
-		path = "1 ObjC syntax.js";
-		sourceTree = "<group>";
-	};
-	3DED27391037A5CE0093C660 /* PBXBookmark */ = {
-		isa = PBXBookmark;
-		fRef = 3DED26F110366F220093C660 /* 1 ObjC syntax.js */;
-	};
-	3DED28771037B5270093C660 /* PBXBookmark */ = {
-		isa = PBXBookmark;
-		fRef = 3DFF03D710331E350072D0A7 /* lintexTester.js */;
-	};
-	3DED28D41038B7850093C660 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 3DFF03AF10331DA50072D0A7 /* ApplicationController.m */;
-		name = "ApplicationController.m: 25";
-		rLen = 0;
-		rLoc = 580;
-		rType = 0;
-		vrLen = 1909;
-		vrLoc = 0;
-	};
 	3DED2E57103C6A490093C660 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = 3DFF03D710331E350072D0A7 /* lintexTester.js */;
@@ -213,6 +231,7 @@
 	};
 	3DED2E5A103C6A490093C660 /* 1 ObjC syntax.js */ = {
 		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.javascript;
 		name = "1 ObjC syntax.js";
 		path = "/Users/mini/Sites/lintex/tests/1 ObjC syntax.js";
 		sourceTree = "<absolute>";
@@ -220,7 +239,6 @@
 			sepNavIntBoundsRect = "{{0, 0}, {904, 894}}";
 			sepNavSelRange = "{100, 0}";
 			sepNavVisRange = "{0, 100}";
-			sepNavWindowFrame = "{{164, 63}, {963, 1007}}";
 		};
 	};
 	3DFF03AE10331DA50072D0A7 /* ApplicationController.h */ = {
@@ -236,7 +254,7 @@
 			sepNavIntBoundsRect = "{{0, 0}, {904, 894}}";
 			sepNavSelRange = "{953, 0}";
 			sepNavVisRange = "{0, 1911}";
-			sepNavWindowFrame = "{{623, 63}, {963, 1007}}";
+			sepNavWindowFrame = "{{623, 126}, {963, 1007}}";
 		};
 	};
 	3DFF03D710331E350072D0A7 /* lintexTester.js */ = {

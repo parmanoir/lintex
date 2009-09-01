@@ -216,10 +216,10 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>3DED2E57103C6A490093C660</string>
+						<string>3D2973901049E79B00A6B09B</string>
 						<key>history</key>
 						<array>
-							<string>3DED28771037B5270093C660</string>
+							<string>3DED2E57103C6A490093C660</string>
 						</array>
 					</dict>
 					<key>SplitCount</key>
@@ -256,10 +256,10 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>3DED2E58103C6A490093C660</string>
+						<string>3D2973911049E79B00A6B09B</string>
 						<key>history</key>
 						<array>
-							<string>3DED28D41038B7850093C660</string>
+							<string>3DED2E58103C6A490093C660</string>
 						</array>
 					</dict>
 					<key>SplitCount</key>
@@ -275,7 +275,7 @@
 				<key>PBXModuleWindowStatusBarHidden2</key>
 				<false/>
 				<key>RubberWindowFrame</key>
-				<string>623 119 963 951 0 0 1920 1178 </string>
+				<string>623 182 963 951 0 0 1920 1178 </string>
 			</dict>
 		</dict>
 		<dict>
@@ -296,10 +296,10 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>3DED2E59103C6A490093C660</string>
+						<string>3D2973921049E79B00A6B09B</string>
 						<key>history</key>
 						<array>
-							<string>3DED27391037A5CE0093C660</string>
+							<string>3DED2E59103C6A490093C660</string>
 						</array>
 					</dict>
 					<key>SplitCount</key>
@@ -315,7 +315,7 @@
 				<key>PBXModuleWindowStatusBarHidden2</key>
 				<false/>
 				<key>RubberWindowFrame</key>
-				<string>164 119 963 951 0 0 1920 1178 </string>
+				<string>164 182 963 951 0 0 1920 1178 </string>
 			</dict>
 		</dict>
 	</array>
@@ -395,13 +395,13 @@
 									<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 									<array>
 										<array>
-											<integer>18</integer>
-											<integer>17</integer>
+											<integer>35</integer>
+											<integer>24</integer>
 											<integer>0</integer>
 										</array>
 									</array>
 									<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
-									<string>{{0, 140}, {333, 334}}</string>
+									<string>{{0, 380}, {333, 334}}</string>
 								</dict>
 								<key>PBXTopSmartGroupGIDs</key>
 								<array/>
@@ -424,7 +424,7 @@
 									<real>43</real>
 								</array>
 								<key>RubberWindowFrame</key>
-								<string>1572 758 350 420 0 0 1920 1178 </string>
+								<string>1570 758 350 420 0 0 1920 1178 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXSmartGroupTreeModule</string>
@@ -459,9 +459,6 @@
 									<key>PBXSmartGroupTreeModuleOutlineStateExpansionKey</key>
 									<array>
 										<string>1C37FBAC04509CD000000102</string>
-										<string>3DED26FA10366F900093C660</string>
-										<string>3DED26FB10366F900093C660</string>
-										<string>3DED272D1036707B0093C660</string>
 									</array>
 									<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 									<array>
@@ -566,8 +563,8 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>3DED2696103646030093C660</string>
-				<string>3DED2697103646030093C660</string>
+				<string>3D29738B1049E45400A6B09B</string>
+				<string>3D29738C1049E45400A6B09B</string>
 				<string>1C9437FD063B20B00039CFAC</string>
 				<string>1C9437FE063B20B00039CFAC</string>
 				<string>1C9437FF063B20B00039CFAC</string>
@@ -600,17 +597,13 @@
 	<integer>0</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>1C530D52069F1CE1000CFCEE</string>
-		<string>1C530D54069F1CE1000CFCEE</string>
 		<string>3DED273F1037AA4B0093C660</string>
 		<string>3DFF03B510331DE40072D0A7</string>
-		<string>1C530D5B069F1CE1000CFCEE</string>
-		<string>1C530D57069F1CE1000CFCEE</string>
 		<string>3DED28791037B5310093C660</string>
 		<string>/Users/mini/Sites/lintex/LintexTester/LintexTester.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>1572 758 350 420 0 0 1920 1178 </string>
+	<string>1570 758 350 420 0 0 1920 1178 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>

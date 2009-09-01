@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -68,6 +68,15 @@
 			background-color: #faa;
 		}
 		
+		.lintError
+		{
+			background: -webkit-gradient(linear, left top, left bottom, to(rgba(255, 255, 255, 1)), from(rgba(255, 0, 0, 0.3)));
+		}
+		
+		#dump3
+		{
+			white-space: pre-wrap;			
+		}
 </style>
 </head>
 <body>
@@ -76,6 +85,12 @@
 <table><tr><td>
 
 <textarea estyle='display: none'>
+	var e = 'a' [+] ['b'] [+] 'c'
+	var f = 'a' [+] ['b'] [+] +4
+</textarea>
+	var f = 2 + [4] + [5] * 8
+	var g = 'a' {+} { 'hello' : 'world' } {+} 'z'
+</textarea>
 	var a = 4 [+] 5 {+} 'hello'
 	var b = 4 [+] 5+8 [+] 8*2 [+] 'hel\'lo'
 	var c = 'hello' {+} 'wo'+'rld' {+} 'end'
@@ -86,8 +101,6 @@
 						8
 							[+]
 								'd'
-
-</textarea>
 <textarea estyle='display: none'>
 		var a, b, p = [a, b]
 		var o = [[NSObject alloc] init]
@@ -118,6 +131,7 @@
 <td>
 	<div id='dump'></div>
 	<div id='dump2'></div>
+	<div id='dump3'></div>
 </table>
 
 	<script>
@@ -156,7 +170,8 @@
 //				alert(dumpHashNoFunction(token))
 				
 				
-			token.rawValue = lines[token.line].substr(token.from, token.character-token.from)				
+			if (lines[token.line])	token.rawValue = lines[token.line].substr(token.from, token.character-token.from)				
+			else					token.rawValue = ''
 
 			tokens.push(token)
 			dump.innerHTML += ' ' + token.value
@@ -209,7 +224,7 @@
 			this.value += param + '_'
 		}
 		
-		function	dumpTokens()
+		function	tokenizeObjC(tokens)
 		{
 			var str = ''
 			var str2 = ''
@@ -296,9 +311,12 @@
 			str2 = tokenStream.join('')
 			dump2.innerHTML = getTickCount() + '\n' + str
 			transformed.innerHTML = getTickCount() + '\n' + str2
+			
+			
+			return tokens
 		}
 
-		function	dumpTokens2()
+		function	tokenizeOperators(tokens)
 		{
 			var str = ''
 			for (var i=0; i<tokens.length; i++)
@@ -309,8 +327,11 @@ if (!lines[token.line])	continue
 				str += v
 				var v2 = lines[token.line].substr(token.from, token.character-token.from)
 				str += ' <span style="color: blue">*' + v2 + '*</span> '
-				if (token.left) str += ' l=' + token.left.value
-				if (token.right) str += ' r=' + token.right.value
+				var operandCount = 0
+				if (token.left) operandCount++, str += ' l=' + token.left.value
+				if (token.right) operandCount++, str += ' r=' + token.right.value
+				if (operandCount == 1)	str += ' <span style="color: red">missingop</span>'
+				if (token.arity)	str += ' <b>' + token.arity + '</b>'
 //				if (token.left)	alert(dumpHash(token)), eaz()
 				str += '\n'
 			}
@@ -341,7 +362,7 @@ if (!lines[token.line])	continue
 					}
 					
 					
-					if (left)
+					if (left && right)
 					{
 						var v = left.replacedValue || left.rawValue
 						left.replacedValue = op + '(' + v
@@ -353,15 +374,49 @@ if (!lines[token.line])	continue
 			}
 
 			var str2 = ''
+			
+			var evalMe = ''
 			for (var i=0; i<tokens.length; i++)
 			{
 				var token = tokens[i]
 				var v = token.replacedValue || token.rawValue
 				
-				str2 += v + ' '
-				if (token.id == '(endline)') str2 += '<br>'
+//				str2 += v + ' '
+//				if (token.id == '(endline)') str2 += '<br>'
+				evalMe += v + ' '
+				if (token.id == '(endline)') evalMe += '\n'
 			}
+			str2 += evalMe
+//			str2 += '<textarea>' + evalMe + '</textarea>'
 			str += '<hr>' + str2 + '<hr>'
+			
+			try
+			{
+				var identifierTokens = []
+				for (var i=0; i<tokens.length; i++) if (tokens[i].type == '(identifier)') identifierTokens.push(tokens[i])
+
+				evalMe = '{\n' + evalMe + '\n}'
+//				var f = new Function(evalMe)
+//				var r = f()
+				var r = eval(evalMe)
+
+				
+				str += '<hr><div style="color: green;">'
+				str += '<b>eval OK</b>'
+				for (var i=0; i<identifierTokens.length; i++)
+				{
+					var id = identifierTokens[i].value
+					var v = eval(id)
+					str += '<br><br>' + id + '=' + v
+					var d = dumpHash(v)
+					if (d) str += ' (' + d + ')'
+				}
+				str += '</div>'
+			}
+			catch(e)
+			{
+				str += '<hr><div style="color: red; font-weight: bold">eval failed<br>' + dumpHash(e) + '</div>'
+			}
 
 			dump.innerHTML = getTickCount() + '\n' + str
 			
@@ -369,6 +424,21 @@ if (!lines[token.line])	continue
 			/*
 				add token number in token ?
 			*/
+		}
+		
+		function	__addArray(a, b)
+		{
+			var r = []
+			if (a.constructor != Array.prototype.constructor)	a = [a]
+			if (b.constructor != Array.prototype.constructor)	b = [b]
+			for (var i=0; i<a.length; i++) r.push(a[i])
+			for (var i=0; i<b.length; i++) r.push(b[i])
+			return r
+		}
+		
+		function	__addHash(a, b)
+		{
+			
 		}
 
 
@@ -393,17 +463,28 @@ if (!lines[token.line])	continue
 			var options = { forin : true, laxbreak : true, indent : true }
 			var lintRes = JSLINT(lines, options)
 		
-			var str = 'tree=' + lintRes
-			if (JSLINT.errors) JSLINT.errors.pop()
+			var str = 'LINT=' + lintRes
+			document.documentElement.className = JSLINT.errors.length ? 'lintError' : ''
+//			if (JSLINT.errors) JSLINT.errors.pop()
 			for (var i=0; i<JSLINT.errors.length; i++)
 			{
 				var e = JSLINT.errors[i]
+				if (!e)	continue
 				str += '\n<span style="color: red">' + dumpHash(e) + '</span>'
 			}
-			dump.innerHTML += '<hr>' + str
-			
-			dumpTokens()
-			dumpTokens2()
+			dump3.innerHTML = '<hr>' + str
+
+			try
+			{
+			tokens = tokenizeObjC(tokens)
+			tokens = tokenizeOperators(tokens)
+			}
+			catch(e)
+			{
+				dump.innerHTML = '<span style="color: red">' + dumpHash(e) + '</span>'
+			}
+//			dumpTokens()
+//			dumpTokens2()
 		}
 		lint()
 		
@@ -412,6 +493,8 @@ if (!lines[token.line])	continue
 			setTimeout(lint, 0)
 		}
 		textarea.onkeyup = keyup
+		
+		setTimeout(function () { document.getElementsByTagName('TEXTAREA')[0].focus() }, 10)
 
 	</script>
 
@@ -424,6 +507,5 @@ if (!lines[token.line])	continue
 	-> un immediate de [NSObject.alloc()]
 	[[[NSObject alloc] init]]     
 	[array[0] init]
-
 </body>
 </html>
