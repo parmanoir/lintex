@@ -4300,6 +4300,10 @@ members)?
 
     (function (x) {
         x.nud = function () {
+			
+			// ## firstToken
+			var firstToken = token
+		
             var b, i, s, seen = {};
             b = token.line !== nexttoken.line;
             if (b) {
@@ -4353,6 +4357,12 @@ members)?
                 indentation();
             }
             advance('}', this);
+
+			// ##
+			token.left = firstToken
+			firstToken.right = token
+			return this
+			
             return;
         };
         x.fud = function () {

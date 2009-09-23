@@ -86,6 +86,7 @@
 
 <textarea estyle='display: none'>
 	var a = 4 {+} 5 {+} 'hello'
+	var b = 564 {+} { blah : 'hello' } {+} 'world'
 </textarea>
 	var e = 'a' [+] ['b'] [+] 'c'
 	var f = 'a' [+] ['b'] [+] +4
@@ -401,7 +402,6 @@ if (!lines[token.line])	continue
 //				var f = new Function(evalMe)
 //				var r = f()
 				var r = eval(evalMe)
-
 				
 				str += '<hr><div style="color: green;">'
 				str += '<b>eval OK</b>'

@@ -205,15 +205,49 @@
 		.bubble
 		{
 
-			padding: 3px 9px;
-			padding-bottom: 5px;
+			padding: 1px 6px;
+			padding-bottom: 2px;
+
+			white-space: normal;
+
+			position: relative;
+			display: inline-block;
+			margin-bottom: 2em;
+			max-width: 160px;
+			z-index: 2;
+			margin-left: -14px;
+			margin-top: 2px;
+			
+			
+			font-family: helvetica neue;
+			font-family: gill sans;
+			font-family: lucida grande;
+			font-size: 9px;
+
 			background: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 255, 0.2)), to(rgba(0, 0, 0, 0.2)));
 			background-color: red;
-			text-shadow: rgba(0, 0, 0, 0.3) 0px -1px 1px;
+
+			-webkit-border-radius: 5px;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 5px;
+
 			color: white;
-			font-weight: bold;
-			font-family: helvetica neue;
-			white-space: normal;
+			text-shadow: rgba(0, 0, 0, 0.5) 0px -1px 1px;
+			
+/*			
+			color: black;
+			border: solid 1px #bbb;
+			background: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 255, 0.2)), to(rgba(0, 0, 0, 0.07)));
+			background-color: white;
+			text-shadow: rgba(0, 0, 0, 0.0005) 0px -1px 1px;
+			font-size: 10px;
+			-webkit-box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 5px;
+*/
+/*
+			background: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 255, 0.2)), to(rgba(0, 0, 0, 0.2)));
+			background-color: red;
+			text-shadow: rgba(0, 0, 0, 0.5) 0px -1px 1px;
+			color: white;
+			efont-weight: bold;
 
 			-webkit-border-radius: 5px;
 			-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 5px;
@@ -226,12 +260,34 @@
 			z-index: 2;
 			margin-left: -14px;
 			margin-top: 2px;
-			color: rgba(255, 255, 255, 0.9);
+			ecolor: rgba(255, 255, 255, 0.9);
+			
+			background: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 255, 0.2)), to(rgba(0, 0, 0, 0.2)));
+			background-color: #888;
+			color: black;
+			color: red;
+			background-color: #f80;
+
+			background: -webkit-gradient(linear, left top, left bottom, from(#f66), to(#f22));
+			color: white;
+			text-shadow: rgba(0, 0, 0, 0.3) 0px -1px 1px;
+			text-shadow: rgba(0, 0, 0, 0) 0px 0px 0px;
+			color: black;
+			background-color: white;
+			background: -webkit-gradient(linear, left top, left bottom, from(#eee), to(#888));
+			background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#fff));
+			border: solid 2px red;
+*/
 		}
 		.bubble b
 		{
-			color: white;
 			margin: 0 2px;
+			font-family: monaco;
+			font-weight: normal;
+			efont-size: 150%;
+			evertical-align: -10%;
+			color: white;
+			color: #fd8;
 		}
 		.bubbleWrapper
 		{
@@ -242,7 +298,7 @@
 		{
 			position: absolute;
 			top: -21px;
-			top: -3px;
+			top: -5px;
 			font-size: 40pt;
 			-webkit-transform: rotate(180deg);
 			color: red;
@@ -258,8 +314,8 @@
 			-webkit-transform: rotate(90deg);
 			ez-index: 10;
 			ecolor: lime;
-			left: -17px;
-			top: -11px;
+			left: -16px;
+			top: -14px;
 		}
 
 
@@ -1517,7 +1573,7 @@ var str = getTickCount()
 
 //##					
 					x = span.offsetLeft+60
-					y = line.offsetTop-6
+					y = line.offsetTop-4
 					
 					var bubbleWrapper	= document.createElement('DIV')
 					bubbleWrapper.className = 'bubbleWrapper'
