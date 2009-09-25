@@ -3,10 +3,37 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>Code Colorer</title>
+<!--
+-->	
 	<link rel="stylesheet" href="code%20colorer.css" type="text/css" />
+	<style>
+	
+		#coloredCodeContainer
+		{
+			position: relative;
+			white-space: pre-wrap;
+			font-family: monaco;
+			font-size: 7pt;
+			outline: none;
+		}
+		#coloredCode
+		{
+		}
+	
+		/*
+		*
+		* Dump styles
+		*
+		*/
+		td
+		{
+			vertical-align: top;
+		}
+	</style>
 </head>
 <body>
-<table eborder='1' style='table-layout: fixed; width: 100%; height: 800px; height: 650px' cellPadding='0' cellSpacing='0'><tr>
+REMOVE STYLESHEET
+<table border='1' style='table-layout: fixed; width: 100%; height: 800px; height: 650px' cellPadding='0' cellSpacing='0'><tr>
 	<td>
 		<div id='coloredCodeContainer'><div id='coloredCode'></div></div>
 	</td>
@@ -15,14 +42,14 @@
 	</td>
 </tr></table>
 
-	<textarea style='display: none'>a function va(a, b, c)
+	<textarea style='display: none'>function va(a, b, c)
 {
 	if (a)
 		return 
 	if (a)
 	{
 		
-		log('ehll'
+		log('ehll')
 		
 		
 		
@@ -55,7 +82,7 @@
 	<pre id='dump6'></pre>
 
 	<script src="crockford/json2.js"></script>
-	<script src="crockford/fulljslintmod.js"></script>
+	<script src="crockford/jslint-jscocoa.js"></script>
 	<script src='showdown.js'></script>
 
 		<script>
@@ -1525,16 +1552,6 @@ document.getElementById('dump3').innerHTML = getTickCount()
 			}
 //			highlighted.onselectstart = selectstart
 			
-			function	focusHighlighted()
-			{
-				highlighted.focus()
-
-				var s = getSelection()
-				s.collapseToStart()
-				highlightText()
-				showSelectedLine()
-			}
-//			setTimeout(focusHighlighted, 10)
 			
 			
 			function	dumpSelection()
@@ -1636,6 +1653,29 @@ collapseToStart=function collapseToStart() {
 //			setInterval(dumpSelection, 100)
 
 
+
+			function	newNodeAsChildOf(node, tagName)
+			{
+				var n2 = document.createElement(tagName||'DIV')
+				node.appendChild(n2)
+				return n2
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 			//
 			// Code colorer class
 			// 						
@@ -1643,7 +1683,8 @@ collapseToStart=function collapseToStart() {
 			{
 				this.initWithNodes(editorNode, birdViewNode, containerNode)
 			}
-			CodeColorer.prototype.initWithNodes = function (editorNode, birdViewNode, containerNode)
+			var CCp = CodeColorer.prototype
+			CCp.initWithNodes = function (editorNode, birdViewNode, containerNode)
 			{
 				this.editorNode		= editorNode
 				this.birdViewNode	= birdViewNode
@@ -1651,16 +1692,64 @@ collapseToStart=function collapseToStart() {
 /*
 ><div id='bubbleContainer'></div><div id='lineNumbers'></div><div id='selectedLine'><div id='selectedLinePosition'></div></div><div id='highlightedContainer'><div id='tracesContainer'></div><div id='whiteSpaceRevealer'></div>
 */			
+				this.editorNode.contentEditable = true
+				
+				this.bubbleContainer	= newNodeAsChildOf(this.containerNode)
+				this.lineNumbers		= newNodeAsChildOf(this.containerNode)
+				this.selectedLine		= newNodeAsChildOf(this.containerNode)
+				this.selectedLinePosition	= newNodeAsChildOf(this.selectedLine)
+				this.tracesContainer	= newNodeAsChildOf(this.containerNode)
+				this.whiteSpaceRevealer	= newNodeAsChildOf(this.containerNode)
 
+
+				// Measure width of one character
+				this.fontWidthMeasurer	= newNodeAsChildOf(this.containerNode)
+				this.fontWidthMeasurer.innerHTML = '<span>*</span>'
+
+
+				this.selectionStack = []
+				
+				// Create lint and register our logs
+				var logNames = ['logToken']
+				var logs = {}
+				var self = this
+				for (var i=0; i<logNames.length; i++)	{
+					var name = logNames[i]
+					logs[name] = function () { return self[name].apply(self, arguments) }
+				}
+				this.JSLINT = JSLintWithLogs(logs)
+				this.jslint = this.JSLINT()
 			}
 			
-			CodeColorer.prototype.loadText = function (text)
+			//
+			// Helpers
+			// 
+			CCp.warning = function (str)
+			{
+				alert(str)
+			}
+			CCp.dumpLintErrors = function (errors)
+			{
+				var str = ''
+				for (var i=0; i<errors.length; i++)
+					if (errors[i]) str += errors[i].reason + '\n'
+				return str
+			}
+			CCp.toString = function () {
+				return 'CodeColorer'
+			}
+			
+			//
+			// Text loading
+			//
+			CCp.loadText = function (text)
 			{
 				var lines = text.split('\n')
 				this.loadLines(lines)
 			}
-			CodeColorer.prototype.loadLines = function (lines)
+			CCp.loadLines = function (lines)
 			{
+				this.measureCharWidth()
 				var src = []
 				if (lines.length == 0) lines = ['']
 				for (var i=0; i<lines.length; i++)
@@ -1672,12 +1761,256 @@ collapseToStart=function collapseToStart() {
 				}
 				this.editorNode.innerHTML = src.join('')
 			}
-			CodeColorer.prototype.rawText = function ()
+			CCp.rawText = function ()
 			{
 				return this.editorNode.innerText
 			}
 
-			CodeColorer.prototype.replaceTabsInLine = function (line, html, customReplaceFunction)
+			CCp.measureCharWidth = function ()
+			{
+				this.charWidth = this.fontWidthMeasurer.firstChild.offsetWidth
+			}
+
+			CCp.rawSourceFromLine = function(line)
+			{
+				return	line.innerText
+			}
+			
+			
+			//
+			// Line and offset computation
+			// 
+			CCp.lineNodeFromNode = function (node)
+			{
+				while (node)
+				{
+					if (node.nodeType == 1 && node.className.match(/\bline\b/))
+						return node
+					node = node.parentNode
+				}
+				return node
+			}
+			
+			CCp.lineNumberFromNode = function (node)
+			{
+				node = this.lineNodeFromNode(node)
+				if (!node)	return
+				var i = 0
+				node = node.previousSibling
+				while (node)
+				{
+					i++
+					node = node.previousSibling
+				}
+				return i
+			}
+			CCp.nodeFromLineNumber = function (i)
+			{
+				return this.editorNode.childNodes[i]
+			}
+			CCp.lineAndOffsetFromNodeAndOffset = function (node, offset)
+			{
+				var n = node
+				var offset2, lineNumber = this.lineNumberFromNode(n)
+				// This is a line node
+				if (n.className == 'line')
+				{
+					offset2 = offset
+				}
+				// Walk up to the node having the line node as parent, then walk up its siblings to count offset from line start
+				else
+				{
+					while (n && n.parentNode && n.parentNode.className != 'line') n = n.parentNode
+					if (n)
+					{
+						offset2 = offset
+						var n2 = n.previousSibling
+						while (n2)
+						{
+							if (n2.nodeType == 1)	offset2 += this.rawSourceFromLine(n2).length
+							if (n2.nodeType == 3)	offset2 += n2.nodeValue.length
+							n2 = n2.previousSibling
+						}
+					}
+				}
+				return	{ line : lineNumber, offset : offset2 }
+			}
+
+
+			//
+			// Selection handling
+			// 
+			CCp.rawSelection = function ()
+			{
+				var sel = getSelection()
+				return sel.getRangeAt(0)
+			}
+			CCp.setRawSelection = function (r)
+			{
+				var sel = getSelection()
+				sel.removeAllRanges()
+				sel.addRange(r)
+			}
+			
+			CCp.selectionAsLineAndOffset = function ()
+			{
+				var sel = getSelection()
+				var raw = this.rawSelection()
+
+				sel.modify('extend', 'left', 'paragraphboundary')
+				var selectionText = sel.toString()
+				var length = selectionText.length
+				var range = sel.getRangeAt(0)
+				var h = { type : 'Caret', line : this.lineNumberFromNode(sel.baseNode), offset : length }
+
+				this.setRawSelection(raw)
+
+				return h
+			}
+
+			CCp.setSelectionAsLineAndOffset = function (line, offset)
+			{
+				var line = this.nodeFromLineNumber(line)
+				var sel = getSelection()
+				sel.setPosition(line, 0)
+				for (var i=0; i<offset; i++)
+					sel.modify('move', 'right', 'character')
+			}
+
+			CCp.setRangeSelectionAsLinesAndOffsets = function (line1, offset1, line2, offset2)
+			{
+				var sel = getSelection()
+				this.setSelectionAsLineAndOffset(line1, offset1)
+				var baseNode	= sel.baseNode
+				var baseOffset	= sel.baseOffset
+				this.setSelectionAsLineAndOffset(line2, offset2)
+				var extentNode	= sel.extentNode
+				var extentOffset= sel.extentOffset
+				sel.setBaseAndExtent(baseNode, baseOffset, extentNode, extentOffset)
+			}
+			
+			//	Return the current range selection as 
+			//	{ 
+			//		 base : { line, offset }
+			//		,extent : { line, offset }
+			//	}
+			
+			CCp.rangeSelectionAsLineAndOffset = function()
+			{
+				var sel = getSelection()
+
+				var names = ['anchor', 'extent', 'focus', 'base']
+				var base = { line : 999999999, offset : 999999999 }
+				var extent = { line : -1, offset : -1 }
+				for (var i=0; i<names.length; i++)
+				{
+					var name = names[i]
+					var s = this.lineAndOffsetFromNodeAndOffset(sel[name + 'Node'], sel[name + 'Offset'])
+					if (s.line < base.line) 	base = s
+					if (s.line == base.line && s.offset < base.offset)		base = s
+					if (s.line > extent.line)	extent = s
+					if (s.line == extent.line && s.offset > extent.offset)	extent = s
+				}
+				return { base : base, extent : extent }
+			}
+
+			CCp.pushCaretSelection = function()
+			{
+				this.selectionStack.push(this.selectionAsLineAndOffset())
+			}
+			CCp.popCaretSelection = function()
+			{
+				var s = this.selectionStack.pop()
+				this.setSelectionAsLineAndOffset(s.line, s.offset)
+			}
+			CCp.pushRangeSelection = function()
+			{
+				this.selectionStack.push(this.rangeSelectionAsLineAndOffset())
+			}
+			CCp.popRangeSelection = function()
+			{
+				var s = this.selectionStack.pop()
+				this.setRangeSelectionAsLinesAndOffsets(s.base.line, s.base.offset, s.extent.line, s.extent.offset)
+			}
+			CCp.caretSelectionOnStack = function()
+			{
+				if (!this.selectionStack.length)	return
+				return	this.selectionStack[this.selectionStack.length-1]
+			}
+			
+			CCp.pushSelection = function ()
+			{
+				this.pushCaretSelection()
+			}
+			CCp.popSelection = function ()
+			{
+				this.popCaretSelection()
+			}
+			
+
+
+			CodeColorer.prototype.gatherLinesToLint = function ()
+			{
+				var lines = []
+				var f = this.editorNode.firstChild
+				while (f)
+				{
+					var text = this.rawSourceFromLine(f)
+					lines.push(text)
+					f = f.nextSibling
+				}
+				return lines
+			}
+			
+			CodeColorer.prototype.lintLines = function (lines)
+			{
+				var options = { forin : true, laxbreak : true, indent : true }
+
+//### FIX INSTANCE VARS				
+				tokensByLine	= {}
+				functionLines	= []
+				traceTokens		= []
+    			var res = this.jslint(lines, options)
+				return { tokens : tokensByLine, res : !!res, functionLines : functionLines, errors : this.JSLINT.errors }
+			}
+			
+			//
+			// Color code
+			// 
+			CodeColorer.prototype.colorCode = function ()
+			{
+				this.measureCharWidth()
+				
+				var lines = this.gatherLinesToLint()
+				var lint = this.lintLines(lines)
+				if (!lint.res)	this.warning('Lint error : ' + this.dumpLintErrors(lint.errors))
+
+				//
+				// Highlight
+				//
+				this.pushCaretSelection()
+
+				var f = this.editorNode.firstChild
+				var i = 0
+				while (f)
+				{
+					var tokens = lint.tokens[i]
+					if (!tokens) tokens = []
+					var line = lines[i]
+					this.writeTokensToLine(f, tokens, line)
+					
+					f = f.nextSibling
+					i++
+				}
+				
+			}
+
+			//
+			//
+			// Write functions
+			// 
+			//
+			CCp.replaceTabsInLine = function (line, html, customReplaceFunction)
 			{
 				var tabLengths = []
 				function	countTabs(str, idx)
@@ -1690,10 +2023,10 @@ collapseToStart=function collapseToStart() {
 					tabLengths.push(length)
 				}
 				var tabIndex = 0
+				var charWidth = this.charWidth
 				function	replaceTabs(str, idx)
 				{
 					// A tab is surrounded by a SPAN nulling its width (with negative letter-spacing) and padding it to the correct 4-size with charWidth (measured in fontWidthMeasurer)
-//					return '<span class="fakeTab">	</span>'
 					var w1 = charWidth
 					var w2 = tabLengths[tabIndex++]*charWidth
 					return '<span class="fakeTab" style="letter-spacing: -' + w1 + 'px; padding-right: ' + w2 + 'px">	</span>'
@@ -1704,10 +2037,79 @@ collapseToStart=function collapseToStart() {
 				line.replace(/\t/g, countTabs)
 				var fn = customReplaceFunction ? function () { return customReplaceFunction(tabLengths[tabIndex++]) } : replaceTabs
 				html = html.replace(/\t/g, fn)
-
 				return	html
 			}
+			
+			CCp.writeTokensToLine = function (node, tokens, line)
+			{
+				var i = 0
+				var lastIndex 	= 0
+				var str = ''
+				while (tokens[i])
+				{
+					var token = tokens[i]
+					if (token.value && token.from > lastIndex)
+					{
+						var space = line.substr(lastIndex, token.from-lastIndex)
+						str += htmlEncode(space)
+					}
+					var c = ''
+					var v = token.value
+					v = line.substr(token.from, token.character-token.from)
+					if (token.identifier) c = 'identifier-' + token.value
+					if (token.reserved) c = 'keyword'
+					if (token.id && !token.reserved) 
+					{
+						c = 'exps'
+					}
+					if (token.type == '(number)') c = 'number'
+					if (token.type == '(string)') 
+					{
+						c = 'string'
+					}
+					if (token.type == '(comment)') 
+					{
+						c = 'comment'
+//						alert(line + '*\ncharacter=' + token.character + '\nline.length=' + line.length + '\nv=' + v + '*')
 
+						// Single line markdown comment
+//						if (v.match(/^\/\/md/))
+//						{
+//							v = v.replace(/^\/\/md\s?/, '')
+//							v = MarkDownConverter.makeHtml(v)
+//							v = '<span class="markdown-singleline-container"><span class="markdown-singleline">' + v + '</span></span>'
+//							printEndLine = false
+//						}
+
+					}
+					v = htmlEncode(v)
+					str += '<span class="' + c + '">' + v + '</span>'
+					lastIndex = token.character
+					i++
+				}
+				// Copy end of line
+				if (lastIndex < line.length)
+				{
+					var space = line.substr(lastIndex)
+					str += htmlEncode(space)
+				}
+
+				// TABS ! sized to any size you want.
+				str = this.replaceTabsInLine(line, str)
+				
+				node.innerHTML = str
+			}
+			
+			//
+			// Logs
+			// 
+			CCp.logToken = function (token)
+			{
+				var str = ('this=' + this + '\ntoken=' + token.id) + '\n'
+				document.getElementById('dump').innerHTML += str
+			}
+			
+			
 
 
 			//
@@ -1720,6 +2122,19 @@ collapseToStart=function collapseToStart() {
 			var textarea = document.getElementsByTagName('TEXTAREA')[0]
 			cc.loadText(textarea.value)
 			
+
+
+
+			function	focusHighlighted()
+			{
+				cc.editorNode.focus()
+
+				var s = getSelection()
+				s.collapseToStart()
+				cc.colorCode()
+//				cc.showSelectedLine()
+			}
+			setTimeout(focusHighlighted, 10)
 			
 /*			
 			function	clearDumps()

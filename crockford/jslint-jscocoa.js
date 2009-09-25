@@ -179,6 +179,18 @@ SOFTWARE.
 
 "use strict";
 
+function JSLintWithLogs(logs)
+{
+	var JSLINT
+	
+	var fn = function () {}
+	var logToken = logs.logToken || fn
+	var logParseStart = fn
+	var logParseEnd = fn
+	var logFunctionStart = fn
+	var logStatement = fn
+	var logFunctionEnd = fn
+	
 JSLINT = (function () {
     var adsafe_id,      // The widget's ADsafe id.
         adsafe_may,     // The widget may load approved scripts.
@@ -5269,4 +5281,7 @@ members)?
 
     return itself;
 
-}());
+});
+
+	return	JSLINT
+}
