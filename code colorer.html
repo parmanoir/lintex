@@ -710,7 +710,7 @@ REMOVE STYLESHEET
 //						alert(lines[l])
 //						alert(sel.toString().length + '\n' + line.innerText.length)
 						
-						var n = document.createElement(lineElementName)
+						var n = document.createElement('DIV')
 						n.className = 'line'
 						
 						// Add \n if it's not here (happens on one-line documents)
@@ -782,7 +782,7 @@ REMOVE STYLESHEET
 
 					for (var i=0; i<newLines.length; i++)
 					{
-						var n = document.createElement(lineElementName)
+						var n = document.createElement('DIV')
 						n.className = 'line'
 						n.innerText = newLines[i] + '\n'
 						highlighted.appendChild(n)
@@ -1029,7 +1029,7 @@ var str = getTickCount()
 
 					if (!ll)
 					{
-						alert('NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length)
+						document.getElementById('dump2').innerHTML = 'NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length
 						return
 					}
 
@@ -1719,6 +1719,11 @@ collapseToStart=function collapseToStart() {
 				}
 				this.JSLINT = JSLintWithLogs(logs)
 				this.jslint = this.JSLINT()
+				
+				// Event
+				var self = this
+				this.editorNode.onkeydown = function () { return self.keydown.apply(self, arguments) }
+				this.postKeydownEventFunction = function () { return self.postKeydown.apply(self, arguments) }
 			}
 			
 			//
@@ -1726,7 +1731,7 @@ collapseToStart=function collapseToStart() {
 			// 
 			CCp.warning = function (str)
 			{
-				alert(str)
+				document.getElementById('dump3').innerHTML = getTickCount() + '<br>' + '<span style="color: red">' + str + '</span>'
 			}
 			CCp.dumpLintErrors = function (errors)
 			{
@@ -1967,11 +1972,11 @@ collapseToStart=function collapseToStart() {
 				var options = { forin : true, laxbreak : true, indent : true }
 
 //### FIX INSTANCE VARS				
-				tokensByLine	= {}
-				functionLines	= []
-				traceTokens		= []
+				this.tokensByLine	= {}
+				this.functionLines	= []
+//				this.traceTokens	= []
     			var res = this.jslint(lines, options)
-				return { tokens : tokensByLine, res : !!res, functionLines : functionLines, errors : this.JSLINT.errors }
+				return { tokens : this.tokensByLine, res : !!res, functionLines : this.functionLines, errors : this.JSLINT.errors }
 			}
 			
 			//
@@ -1983,12 +1988,15 @@ collapseToStart=function collapseToStart() {
 				
 				var lines = this.gatherLinesToLint()
 				var lint = this.lintLines(lines)
-				if (!lint.res)	this.warning('Lint error : ' + this.dumpLintErrors(lint.errors))
+				if (!lint.res)	
+				{
+					this.warning('Lint error : ' + this.dumpLintErrors(lint.errors))
+				}
 
 				//
-				// Highlight
+				// Color
 				//
-				this.pushCaretSelection()
+				this.pushSelection()
 
 				var f = this.editorNode.firstChild
 				var i = 0
@@ -2002,6 +2010,7 @@ collapseToStart=function collapseToStart() {
 					f = f.nextSibling
 					i++
 				}
+				this.popSelection()
 				
 			}
 
@@ -2093,9 +2102,12 @@ collapseToStart=function collapseToStart() {
 					var space = line.substr(lastIndex)
 					str += htmlEncode(space)
 				}
+				
+//				alert(str.indexOf('\n') + '\n' + str)
 
 				// TABS ! sized to any size you want.
 				str = this.replaceTabsInLine(line, str)
+				str = str.replace(/\n/, '<span class="newline">\n</span>')
 				
 				node.innerHTML = str
 			}
@@ -2105,10 +2117,358 @@ collapseToStart=function collapseToStart() {
 			// 
 			CCp.logToken = function (token)
 			{
-				var str = ('this=' + this + '\ntoken=' + token.id) + '\n'
-				document.getElementById('dump').innerHTML += str
+/*
+				var el  = token.id == '(endline)' ? '\n' : ''
+				var id = token.id ? ('<span style="color: blue">(<b>' + token.id + '</b>)</span> ') : ''
+				document.getElementById('dump2').innerHTML += token.value + id + el
+*/
+				var line = token.line
+				if (!this.tokensByLine[line])	this.tokensByLine[line] = []
+				this.tokensByLine[line].push(token)
 			}
 			
+			//
+			// Events
+			// 
+			CCp.keydown = function ()
+			{
+				setTimeout(this.postKeydownEventFunction, 0)
+//				alert(event.keyCode)
+				var keyCode = event.keyCode
+/*				
+				//  Check control key to account for emacs shortcuts
+				if (event.shiftKey || event.ctrlKey)	
+				{
+//					alert('SELEX')
+//					alert('mark newlines as normal')
+				}
+*/				
+				
+				var sel = getSelection()
+				
+				if (sel.type != 'Caret' && sel.type != 'Range')	return
+				
+				var line = this.lineNodeFromNode(sel.baseNode)
+
+				if (!line)
+				{
+					alert('Caret is not in a DIV')
+					return
+				}
+					
+				var lineNode 		= this.lineNodeFromNode(sel.baseNode)
+				var lineNumber 		= this.lineNumberFromNode(sel.baseNode)
+				lineCount			= this.editorNode.childNodes.length
+				currentLineNumber 	= this.lineNumberFromNode(sel.baseNode)
+//				currentLineText 	= lineNode.innerText
+				currentLineText		= this.rawSourceFromLine(lineNode)
+//				previousLineText	= lineNode.previousSibling ? lineNode.previousSibling.innerText : null
+//				nextLineText		= lineNode.nextSibling ? lineNode.nextSibling.innerText : null
+				
+
+
+				//  Insert tab
+				if (keyCode == 9)
+				{
+						var s = this.rangeSelectionAsLineAndOffset()
+						var lineNumber1 = s.base.line
+						var lineNumber2 = s.extent.line
+//						if (s.extent.offset == 0) lineNumber2--
+
+
+					event.preventDefault()
+					var lineNumber2 = this.lineNumberFromNode(sel.extentNode)
+					// Insert a single tab
+					if (lineNumber == lineNumber2)
+					{
+						if (sel.type == 'Range')	sel.deleteFromDocument()
+						this.pushCaretSelection()
+//alert('1')						
+						var t = currentLineText
+//						lineNode.innerText = t
+						var offset = this.caretSelectionOnStack().offset
+//alert('2')						
+//alert('3')						
+						var left = t.substr(0, offset)
+						var right = t.substr(offset)
+//						alert(left + '<CARET>' + right)
+//						alert('offset=' + offset + '\ntext=' + t + '\n\n\nleft=' + left + '\n\n\nright=' + right)
+						var text = left + '\t' + right
+						lineNode.innerHTML = this.replaceTabsInLine(text, text)
+//alert('4')						
+						this.popCaretSelection()
+						// Advance after tabbing
+						sel.modify('move', 'right', 'character')
+//alert('5')						
+//				document.getElementById('dump6').innerHTML += '\nselectionAsLineAndOffset line=' + h.line + ', offset=' + h.offset
+
+					}
+					else
+					// Move lines back and from
+					{
+//						alert(sel.extentNode.parentNode.innerText + ' ' + sel.extentOffset)
+//						alert('tab selection TODO, account shift')
+						
+						this.pushRangeSelection()
+/*
+						var str = 'when shift selecting keyboard, selection differs and selects part of the first line'
+						str += '\nanchor=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
+						str += '\nextent=(' + sel.extentOffset + ')' + lineNodeFromNode(sel.extentNode).innerText
+						str += '\nbase=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
+						str += '\noffset=(' + sel.focusOffset + ')' + lineNodeFromNode(sel.focusNode).innerText
+						alert(str)
+*/
+/*
+	alert('SEL TAB MULTIPLE LINES')
+						// Keyboard selecting lines will select the next line with a zero offset
+						// happens on triple-clicking left space on tabs on a function
+						if (sel.extentOffset == 0) lineNumber2--
+
+//						alert(lineNumber + ' ' + lineNumber2)
+//						alert(lineNodeFromNode(sel.baseNode).innerText)
+						
+						if (lineNumber2 <= lineNumber)
+						{
+							var tmp = lineNumber2
+							lineNumber2 = lineNumber
+							lineNumber = tmp
+						}
+*/
+						var s = this.rangeSelectionAsLineAndOffset()
+						var lineNumber1 = s.base.line
+						var lineNumber2 = s.extent.line
+						// Full line selections have an extent that starts to the next line with an offset of 0. (1 if line starts with a fake tab)
+						if (s.extent.offset == 0 || s.extent.offset == 1) lineNumber2--
+						for (var i=lineNumber1; i<=lineNumber2; i++)
+						{
+							var line = this.nodeFromLineNumber(i)
+							var t
+							if (!event.shiftKey)	t = '\t' + this.rawSourceFromLine(line)
+							else					t = this.rawSourceFromLine(line).toString().replace(/^\s/, '')
+							
+							line.innerHTML = this.replaceTabsInLine(t, t)
+						}
+						this.popRangeSelection()
+					}
+				}
+				
+				// Custom word delete handling
+				if (keyCode == 8 && event.altKey)
+				{
+					alert('CHECK ! extent selection to previous word. if overflows line, just move it to start of line')
+				}
+				
+				// Insert new line
+				// Check enter and CTRL+O
+				if (keyCode == 13 || (keyCode == 79 && event.ctrlKey))
+				{
+					if (sel.type == 'Caret')
+					// OR if one line range
+					{
+						event.preventDefault()
+						this.pushCaretSelection()
+						lineNode.innerText = this.rawSourceFromLine(lineNode)
+						this.popCaretSelection()
+						var l = this.lineNumberFromNode(sel.baseNode)
+						
+						var line = this.lineNodeFromNode(sel.baseNode)
+						
+						sel.setBaseAndExtent(line, 0, sel.baseNode, sel.baseOffset)
+//						alert(line.innerText + '\n' + l)
+//						var c = characterOffsetFromLineAndNode(sel.baseNode, sel.baseOffset)
+						
+//						sel.modify('extend', 'left', 'line')
+						
+						
+						
+						var leftLength = sel.toString().length
+//						var newLine = line.innerText.substr(leftLength)
+						
+//						alert(l)
+//						alert(lines[l])
+//						alert(sel.toString().length + '\n' + line.innerText.length)
+						
+						var n = document.createElement('DIV')
+						n.className = 'line'
+						
+						// Add \n if it's not here (happens on one-line documents)
+						var rightText = this.rawSourceFromLine(line).substr(leftLength)
+						if (!rightText.match(/\n/)) rightText += '\n'
+						// Get space (minus \n) on cursor left
+						var leftSpace = this.rawSourceFromLine(line).substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
+						
+						// Add a tab if we're pressing enter AFTER a brace
+						if (this.rawSourceFromLine(line).match(/^\s*\{/) && !rightText.match(/\{/))	leftSpace += '	'
+						
+//						alert(line.innerText)
+						
+						var text = leftSpace + rightText
+						text = this.replaceTabsInLine(text, text)
+						n.innerHTML = text
+						
+						line.insertAdjacentElement('afterEnd', n)
+//						line.innerText = line.innerText.substr(0, leftLength) + '\n'
+						var text = this.rawSourceFromLine(line).substr(0, leftLength) + '\n'
+						lineNode.innerHTML = this.replaceTabsInLine(text, text)
+
+						if (keyCode == 13)
+						{
+							sel.setPosition(n, 0)
+							if (leftSpace.length)
+							{
+								for (var i=0; i<leftSpace.length; i++)
+									sel.modify('move', 'right', 'character')
+							}
+						}
+						else
+							sel.setPosition(sel.extentNode, sel.extentOffset)
+					}
+					else
+					{
+						// Nothing to do with a range as no newline is inserted.
+					}
+					
+				}
+				
+				/*
+					If Range selection, save all lines
+				*/
+			}
+			
+			CCp.postKeydown = function ()
+			{
+				var sel = getSelection()
+//				var lineNumber = lineNumberFromNode(sel.baseNode)
+				
+				/*
+					Maybe 
+					* deleted everything
+						-> just a text node left, or a br
+					* backspace or delete
+						-> two spans on the same line					
+				*/
+				var line = this.lineNodeFromNode(sel.baseNode)
+				if (!line)
+				{
+					// Will be called even after ALT-L (select address bar), check if we have a selection
+					if (sel.type == 'None')	return
+
+					// Read the whole highlighted source
+					var newLines = this.editorNode.innerText.split('\n')
+					this.editorNode.innerHTML = ''
+
+					for (var i=0; i<newLines.length; i++)
+					{
+						var n = document.createElement('DIV')
+						n.className = 'line'
+						n.innerText = newLines[i] + '\n'
+						this.editorNode.appendChild(n)
+					}
+					// Select the text node
+					sel.setPosition(this.editorNode.firstChild.firstChild, 0)
+					var line = this.lineNodeFromNode(sel.baseNode)
+				}
+				
+//				if (previouslySelectedLine)	previouslySelectedLine.className = 'line'
+//				previouslySelectedLine = null
+				
+				var lineCount2			= this.editorNode.childNodes.length
+				var currentLineNumber2 	= this.lineNumberFromNode(sel.baseNode)
+				
+				var currentLineText2 	= this.rawSourceFromLine(this.lineNodeFromNode(sel.baseNode))
+
+				
+
+//alert(currentLineText + '\n\n' + currentLineText2 + '\n\n\nn1=' + currentLineNumber + '\nn2=' + currentLineNumber2)
+				
+				var mode = 'selecting'
+				var moved = lineCount2 != lineCount
+				var lineChanged = !(currentLineNumber2 == currentLineNumber && currentLineText2 == currentLineText)
+				if (moved || lineChanged)
+					mode = 'typing'
+				
+				// Custom handling for having inserted specific characters, eg closing a brace : remove one tab in front of it
+				if (mode == 'typing' && currentLineNumber == currentLineNumber2 && currentLineText.length+1 == currentLineText2.length)
+				{
+					
+					var s = this.selectionAsLineAndOffset()
+					var addedChar = currentLineText2.charAt(s.offset-1)
+
+					// If closed a block, remove a tab in front of it
+					if (addedChar == '}' && currentLineText2.match(/\t\}/))
+					{
+						this.pushCaretSelection()
+						var text = currentLineText2.replace(/\t\}/, '}')
+						line.innerText = text
+						this.selectionStack[this.selectionStack.length-1].offset--
+						this.popCaretSelection()
+					}
+				}
+				
+/*				
+				var str  = getTickCount() + ' '
+				if (mode == 'typing') 	str += '<span style="color: red">' + mode + '</span>'
+				else					str += mode
+				
+				
+				if (line.previousSibling && line.previousSibling.offsetTop == line.offsetTop)
+					str += '\n<span style="color: red">PREVIOUS SPAN ON SAME LINE</span>'
+				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
+					str += '\n<span style="color: red"><b>NEXT</b> SPAN ON SAME LINE</span>'
+*/
+				// While forward or backward deleting, the next line SPAN came onto the current SPAN. Remove it
+				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
+				{
+					alert('Does this still happen ?')
+					pushCaretSelection()
+					line.innerText = rawSourceFromLine(line)
+					line.nextSibling.innerText = rawSourceFromLine(line.nextSibling)
+					line.innerText += rawSourceFromLine(line.nextSibling)
+					line.nextSibling.parentNode.removeChild(line.nextSibling)
+					popCaretSelection()
+					// Selection stays the same, nice !
+				}
+/*
+var str = getTickCount()
+				str += '\nchildNodesCount=' + highlighted.childNodes.length + ' \\n count=' + (highlighted.innerText.match(/\n/g)||0).length
+				
+				str += '\nlineCount=' + lineCount
+				str += '\nlineCount2=' + lineCount2
+				str += '\nlineNumber=' + currentLineNumber
+				str += '\nlineNumber2=' + currentLineNumber2
+				str += '\ncurrentLineText=' + currentLineText
+				str += '\ncurrentLineText2=' + currentLineText2
+				str += '\n!=lineCount=' + (lineCount2 != lineCount)
+				str += '\n!=currentLineNumber=' + (currentLineNumber2 != currentLineNumber)
+				str += '\n!=currentLineText=' + (currentLineText2 != currentLineText)
+				
+				str += '\n<span style="color: blue">' + mode + '</span>'
+				
+				document.getElementById('dump4').innerHTML = str
+				var str = getTickCount()
+				var context = 'which function ?'
+				str += '\n<span style="color: red">CONTEXT=' + context + '</span>'
+				str += '\n<span style="color: red">extent of change=' + context + '</span>'
+				str += '\n<span style="color: red">last key pressed definetely makes it a MOVE (arrow keys)=' + context + '</span>'
+				document.getElementById('dump2').innerHTML = str
+				
+				
+//				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
+				
+*/				
+				if (mode != 'typing')	return
+				
+				if (sel.type == 'Range') alert('HIGHLIGHT WITH RANGE SELECTION')
+				this.colorCode()
+
+				//
+				// Selected line
+				// 
+//				showSelectedLine()
+
+//				alert(lines)
+				
+			}
 			
 
 
