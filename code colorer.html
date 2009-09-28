@@ -46,16 +46,25 @@ REMOVE STYLESHEET
 {
 	if (a)
 		return 
+		
+	return alert('hop'), a+b*c+d, 2544.5*3455.8+55, 'hello world'
+/*
+	var z = a [+] b
+	
+	return if (!z)
+	return unless (z)
+	
 	if (a)
 	{
 		
 		log('ehll')
 		
-		
+		return 454,564 if (!a)
+			
 		
 		
 	}
-	
+*/	
 	return a + b
 }
 </textarea>
@@ -1720,16 +1729,19 @@ collapseToStart=function collapseToStart() {
 				this.JSLINT = JSLintWithLogs(logs)
 				this.jslint = this.JSLINT()
 				
-				// Event
+				// Events
 				var self = this
-				this.editorNode.onkeydown = function () { return self.keydown.apply(self, arguments) }
-				this.postKeydownEventFunction = function () { return self.postKeydown.apply(self, arguments) }
+				this.editorNode.onkeydown		= function () { return self.keydown.apply(self, arguments) }
+				this.editorNode.oncopy			= function () { return self.copy.apply(self, arguments) }
+				this.editorNode.oncut			= function () { return self.cut.apply(self, arguments) }
+				this.editorNode.onpaste			= function () { return self.paste.apply(self, arguments) }
+				this.postKeydownEventFunction	= function () { return self.postKeydown.apply(self, arguments) }
 			}
 			
 			//
 			// Helpers
 			// 
-			CCp.warning = function (str)
+			CCp.warn = function (str)
 			{
 				document.getElementById('dump3').innerHTML = getTickCount() + '<br>' + '<span style="color: red">' + str + '</span>'
 			}
@@ -1737,7 +1749,7 @@ collapseToStart=function collapseToStart() {
 			{
 				var str = ''
 				for (var i=0; i<errors.length; i++)
-					if (errors[i]) str += errors[i].reason + '\n'
+					if (errors[i]) str += '(' + errors[i].line + ',' + errors[i].character + ')=' + errors[i].reason + '\n'
 				return str
 			}
 			CCp.toString = function () {
@@ -1984,13 +1996,15 @@ collapseToStart=function collapseToStart() {
 			// 
 			CodeColorer.prototype.colorCode = function ()
 			{
+				this.warn('colorCode')
+				
 				this.measureCharWidth()
 				
 				var lines = this.gatherLinesToLint()
 				var lint = this.lintLines(lines)
 				if (!lint.res)	
 				{
-					this.warning('Lint error : ' + this.dumpLintErrors(lint.errors))
+					this.warn('Lint error dump ...\n' + this.dumpLintErrors(lint.errors))
 				}
 
 				//
@@ -2470,6 +2484,68 @@ var str = getTickCount()
 				
 			}
 			
+			CCp.copy = function ()
+			{
+			}
+			CCp.cut = function ()
+			{
+			}
+			//
+			// If we could reenter after Webkit's right after paste, we'd just have to fixup existing text
+			// 
+			// http://developer.apple.com/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Tasks/CopyAndPaste.html#//apple_ref/doc/uid/30001234
+			CCp.paste = function ()
+			{
+				var sel = getSelection()
+				var clipboard = event.clipboardData
+				clipboard.clearData()
+
+				// We'll handle paste as we need to create one DIV per line
+				event.preventDefault()
+				// Caret postion
+				var caret = this.rangeSelectionAsLineAndOffset().base
+
+				// Delete selection if we have a range
+				if (sel.type == 'Range')
+				{
+					sel.deleteFromDocument()
+					sel.collapseToStart()
+				}
+
+				var text = clipboard.getData('Text')
+				var lines = text.split('\n')
+
+				// Split line according to caret : prefix (caret) suffix
+				var ll		= this.nodeFromLineNumber(caret.line)
+				var text	= this.rawSourceFromLine(ll)
+				var prefix	= text.substr(0, caret.offset)
+				var suffix	= text.substr(caret.offset)
+
+				// The first line becomes prefix + first line of selection (+ suffix in one line pastes)
+				ll.innerText		= prefix + lines[0]
+				var currentLine		= ll
+				var newLineForCaret	= caret.line
+
+				// Each of the remaining lines gets its own html node
+				for (var i=1; i<lines.length; i++)
+				{
+					var n2 = document.createElement('DIV')
+					n2.className = ll.className
+					n2.innerText = lines[i]
+//					if (i < lines.length-1) n2.innerText += '\n'
+//					else					n2.innerText += suffix
+					currentLine.innerText += '\n'
+					currentLine.insertAdjacentElement('afterEnd', n2)
+					currentLine = n2
+					newLineForCaret++
+				}
+				// Append suffix to last line
+				var newOffsetForCaret = this.rawSourceFromLine(currentLine).length
+				currentLine.innerText += suffix
+				
+				this.setSelectionAsLineAndOffset(newLineForCaret, newOffsetForCaret)
+				this.colorCode()
+			}
 
 
 			//
@@ -2530,6 +2606,7 @@ var str = getTickCount()
 	everything on the same line : white-space: wrap
 	retour lign : white-space: pre-wrap
 
+* DO NOT LINT below a line where we typed ?
 
 </body>
 </html>

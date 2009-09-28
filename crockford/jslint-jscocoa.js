@@ -789,12 +789,9 @@ JSLINT = (function () {
 		// added ext <?
 //        tx = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/,
 
-		// added dummy £
-//        tx = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|£|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/,
-
 		tx = function ()
 			{
-//				var a  = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|£|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/
+//				var a  = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/
 				var r = "^\\s*([()}.,:;'\"~\\?\\]#@]|\\[\\+\\]|\\[|{\\+}|{|==?=?|\\/(\\*(global|extern|jslint|member|members)?|=|\\/)?|\\*[\\/=]?|\\+[+=]?|-[\\-=]?|%=?|&[&=]?|\\|[|=]?|>>?>?=?|<([\\/=!]|<=?)?|\\^=?|\\!=?=?|[a-zA-Z\\u00c0-\\uffff_$][a-zA-Z0-9\\u00c0-\\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\\.[0-9]*)?([eE][+\\-]?[0-9]+)?)"
 				return new RegExp(r)
 
@@ -2410,12 +2407,11 @@ members)?
         r = parse(0, true);
 
 // Look for the final semicolon.
-
         if (!t.block) {
 //	alert(toStringToken(nexttoken) + ' line=' + t.line + ' nexttoken.line=' + nexttoken.line)
 			// ## Only warn about missing semicolons when next token is on same line and not a closing brace (like in one line closures)
             if (nexttoken.id !== ';') {
-				if (token.line == nexttoken.line && nexttoken.id != '}' )
+				if (token.line == nexttoken.line && nexttoken.id != '}')
                 	warningAt("Missing semicolon.", token.line, token.from + token.value.length);
 //##	
 //                warningAt("Missing semicolon.", token.line,
@@ -4849,6 +4845,13 @@ members)?
         if (nexttoken.id !== ';' && !nexttoken.reach /*## only parse what's on current line */ && token.line == nexttoken.line) {
             nonadjacent(token, nexttoken);
             parse(20);
+			// ## Allow multiple expression return
+			// return a(), b(), 'hello'
+			while (nexttoken.value == ',')
+			{
+				advance(',')
+            	parse(20)
+			}
         }
   
       reachable('return');

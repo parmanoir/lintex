@@ -92,8 +92,8 @@
 		/* source styling */
 		.keyword
 		{
-			color: rgba(51, 28, 255, 1);
-			text-shadow: rgba(51, 28, 255, 0.9) 0px 0px 1px, rgba(51, 28, 255, 1) 0px 0px 0px;
+			color: rgba(70, 98, 195, 1);
+			text-shadow: rgba(51, 28, 255, 0.9) 0px 0px 1px, rgba(91, 28, 255, 0.5) 0px 0px 0px;
 		}
 		.exps
 		{
@@ -111,6 +111,20 @@
 		{
 			color: rgb(83, 180, 255);
 			ecolor: #888;
+		}
+		/* lime !*/
+		.string
+		{
+			color: #0f0;
+			color: rgb(107, 166, 0);
+			background-color: rgb(223, 255, 186);
+			-webkit-border-radius: 2px;
+		}
+		.number
+		{
+			color: rgb(255, 115, 0);
+			background-color: rgba(255, 238, 165, 0.7);
+			-webkit-border-radius: 2px;
 		}
 
 
@@ -135,7 +149,7 @@
 			eposition: absolute;
 		}
 */
-
+/*
 		.newline
 		{
 			display: inline-block; border: solid 1px red; height : 7px; width: 7px;
@@ -147,7 +161,7 @@
 			display: inline-block; border: solid 1px lime; height : 7px; width: 7px;
 			
 		}
-
+*/
 		/* source styling */
 
 
