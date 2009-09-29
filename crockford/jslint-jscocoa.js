@@ -4185,6 +4185,7 @@ members)?
 		nexttoken.isObjCCall		= true
 		nexttoken.isObjCFirstParam	= true
 		firstToken.isObjCCallOpener = true
+		firstToken.isObjCCall = true
 		
 		instanceToken = token
 
@@ -4218,6 +4219,7 @@ members)?
 		
 		if (nexttoken.value != ']')	warning('ObjC call not closed')
 		nexttoken.isObjCCallCloser = true
+		nexttoken.isObjCCall = true
 		instanceToken.objCParameterCount	= parameterCount
 		nexttoken.objCParameterCount		= parameterCount
 	}
@@ -4946,6 +4948,8 @@ members)?
 			{
 				// Advance return type
 				type()
+
+				nexttoken.isObjCCall = true
 				var methodName = advance()
 
 				var i = 0
@@ -4957,7 +4961,11 @@ members)?
 					advance()
 					i++
 
-					if (nexttoken.type == '(identifier)')	advance()
+					if (nexttoken.type == '(identifier)')	
+					{
+						nexttoken.isObjCCall = true
+						advance()
+					}
 				}
 				block(false)
 //				alert('END=' + nexttoken.value)

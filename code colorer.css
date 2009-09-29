@@ -129,17 +129,23 @@
 		
 		.objcCall
 		{
-			background-color: rgba(255, 242, 166, 1);
-			background-color: rgba(226, 242, 255, 1);
-			color: rgb(225, 106, 64);
-			background-color: #eee;
-			background-color: white;
-			border-bottom: dotted 2px #fdc;
 			color: #864;
 			color: #753;
-			ecolor: red;
 			text-shadow: rgba(255, 160, 128, .9) 0px 1px 4px;
-
+		}
+		.objcCallSelector
+		{
+			border-bottom: dotted 2px #fdc;
+			border-bottom: dotted 1px #ca8;
+		}
+		.objcCallBracket
+		{
+			ebackground-color: red;
+			etext-shadow: rgba(255, 160, 128, .9) 0px 1px 4px, rgba(255, 160, 128, .9) 0px 1px 1px, rgba(255, 160, 128, .9) 0px 1px 1px;
+			color: #d42;
+			text-shadow: none;
+			etext-shadow: #d42 0px 1px 3px;
+			ecolor: black;
 		}
 
 

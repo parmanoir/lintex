@@ -54,8 +54,8 @@ REMOVE STYLESHEET
 	return if (!z)
 	return unless (z)
 
-	var view = [[NSView alloc] initWithSomething:'he' andSomethingElse:'b']
-	
+	var view = [[NSView alloc] initWithSomething:'he' andSomethingElse:'b' andThatAgain:[1, 2, 3]]
+		
 	var objCString = @'hello'
 	var selector = @selector(initWithA:andB:andC:) + 'world' + @selector(addX:andY:) + 'hello' + @selector(alloc)
 	
@@ -2143,7 +2143,14 @@ collapseToStart=function collapseToStart() {
 //						}
 
 					}
-					if (token.isObjCCall) c += ' objcCall'
+					if (token.isObjCCall)
+					{
+						c += ' objcCall'
+						if (!token.isObjCCallOpener && !token.isObjCCallCloser && !token.isObjCFirstCall)	
+							c+= ' objcCallSelector'
+						if (token.isObjCCallOpener || token.isObjCCallCloser)
+							c += ' objcCallBracket'
+					}
 					v = htmlEncode(v)
 					str += '<span class="' + c + '">' + v + '</span>'
 					lastIndex = token.character
