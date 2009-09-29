@@ -48,25 +48,62 @@ REMOVE STYLESHEET
 		return 
 		
 	return alert('hop'), a+b*c+d, 2544.5*3455.8+55, 'hello world'
-/*
+
 	var z = a [+] b
 	
 	return if (!z)
 	return unless (z)
+
+	var view = [[NSView alloc] initWithSomething:'he' andSomethingElse:'b']
+	
+	var objCString = @'hello'
+	var selector = @selector(initWithA:andB:andC:) + 'world' + @selector(addX:andY:) + 'hello' + @selector(alloc)
 	
 	if (a)
 	{
-		
 		log('ehll')
 		
 		return 454,564 if (!a)
-			
-		
-		
 	}
-*/	
+
 	return a + b
 }
+
+	class MyClass < NSView
+	{
+		// a method
+		- (void)hello:(NSView*)world andOthers:(SomeObject*)w
+		{
+			
+		}
+		// a method
+		/* hop */
+		// and another
+/* 1*/		+ (int)hop /* 2 */
+		{
+			return 4
+		}
+		IBOutlet blah
+		IBAction hop
+		{
+			
+		}
+		IBAction hop2(notifier)
+		{
+			
+		}
+		
+		swizzle - (void)drawRect:(NSRect)rect // 4
+		{
+			
+		}
+	}
+	
+	class OtherClass < MyClass
+	{
+		// Test some more swizzle in here
+	}
+
 </textarea>
 
 
@@ -118,7 +155,7 @@ REMOVE STYLESHEET
 			function	dumpHashNoFunction(o)
 			{
 				var str = ''
-				for (var i in o) { if (typeof o[i] == 'function') continue; str += i + '=' + (o[i].toString == toStringToken ? ('*TOKEN*'+o[i].value + '*') : o[i]) + '\n' }
+				for (var i in o) { if (typeof o[i] == 'function') continue; str += i + '=' + (o[i].toString == 'toStringToken' in this ? ('*TOKEN*'+o[i].value + '*') : o[i]) + '\n' }
 				return str
 			}
 
@@ -1196,12 +1233,13 @@ document.getElementById('dump3').innerHTML = getTickCount()
 
 				var f = highlighted.firstChild
 				var i = 0
+				
 				while (f)
 				{
 					var tokens = lint.tokens[i]
 					if (!tokens) tokens = []
 					var line = lines[i]
-					writeTokensToLine(f, tokens, line)
+					writeTokensToLine(f, tokens, line, i)
 					
 					f = f.nextSibling
 					i++
@@ -2019,7 +2057,7 @@ collapseToStart=function collapseToStart() {
 					var tokens = lint.tokens[i]
 					if (!tokens) tokens = []
 					var line = lines[i]
-					this.writeTokensToLine(f, tokens, line)
+					this.writeTokensToLine(f, tokens, line, i)
 					
 					f = f.nextSibling
 					i++
@@ -2063,7 +2101,7 @@ collapseToStart=function collapseToStart() {
 				return	html
 			}
 			
-			CCp.writeTokensToLine = function (node, tokens, line)
+			CCp.writeTokensToLine = function (node, tokens, line, lineNumber)
 			{
 				var i = 0
 				var lastIndex 	= 0
@@ -2105,6 +2143,7 @@ collapseToStart=function collapseToStart() {
 //						}
 
 					}
+					if (token.isObjCCall) c += ' objcCall'
 					v = htmlEncode(v)
 					str += '<span class="' + c + '">' + v + '</span>'
 					lastIndex = token.character
@@ -2116,8 +2155,6 @@ collapseToStart=function collapseToStart() {
 					var space = line.substr(lastIndex)
 					str += htmlEncode(space)
 				}
-				
-//				alert(str.indexOf('\n') + '\n' + str)
 
 				// TABS ! sized to any size you want.
 				str = this.replaceTabsInLine(line, str)
@@ -2607,6 +2644,8 @@ var str = getTickCount()
 	retour lign : white-space: pre-wrap
 
 * DO NOT LINT below a line where we typed ?
-
+* markdown : allow custom tags like &lt;ObjC&gt;NSView&lt;/ObjC&gt;, linking to google "innerText reference" site:apple.com, lucky=yes
+* css classes to highlight return (eg add an arrow), continue to indicate where the loop is continuing, break ... ?
+* non-dot on non selector call
 </body>
 </html>

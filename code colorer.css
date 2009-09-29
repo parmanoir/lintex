@@ -126,6 +126,21 @@
 			background-color: rgba(255, 238, 165, 0.7);
 			-webkit-border-radius: 2px;
 		}
+		
+		.objcCall
+		{
+			background-color: rgba(255, 242, 166, 1);
+			background-color: rgba(226, 242, 255, 1);
+			color: rgb(225, 106, 64);
+			background-color: #eee;
+			background-color: white;
+			border-bottom: dotted 2px #fdc;
+			color: #864;
+			color: #753;
+			ecolor: red;
+			text-shadow: rgba(255, 160, 128, .9) 0px 1px 4px;
+
+		}
 
 
 /*		

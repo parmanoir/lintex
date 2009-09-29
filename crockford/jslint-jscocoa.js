@@ -184,14 +184,27 @@ function JSLintWithLogs(logs)
 	var JSLINT
 	
 	var fn = function () {}
-	var logToken = logs.logToken || fn
-	var logParseStart = fn
-	var logParseEnd = fn
-	var logFunctionStart = fn
-	var logStatement = fn
-	var logFunctionEnd = fn
+	var logToken		= logs.logToken || fn
+	var logParseStart	= logs.logParseStart || fn
+	var logParseEnd		= logs.logParseEnd || fn
+	var logFunctionStart= logs.logFunctionStart || fn
+	var logStatement 	= logs.logStatement || fn
+	var logFunctionEnd	= logs.logFunctionEnd || fn
+
+	// Things we need to replace
+	var logObjCStart	= logs.logObjCStart || fn
+	var logClassStart	= logs.logClassStart || fn
+	
+	var logTokenLock	= 0
+	function	disableLogToken()	{ logTokenLock++ }
+	function	enableLogToken()	{ logTokenLock-- }
+	
 	
 JSLINT = (function () {
+	
+	// ## (internal) Guard against Inner class
+	var parsingClass;
+	
     var adsafe_id,      // The widget's ADsafe id.
         adsafe_may,     // The widget may load approved scripts.
         adsafe_went,    // ADSAFE.go has been called.
@@ -792,7 +805,7 @@ JSLINT = (function () {
 		tx = function ()
 			{
 //				var a  = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/
-				var r = "^\\s*([()}.,:;'\"~\\?\\]#@]|\\[\\+\\]|\\[|{\\+}|{|==?=?|\\/(\\*(global|extern|jslint|member|members)?|=|\\/)?|\\*[\\/=]?|\\+[+=]?|-[\\-=]?|%=?|&[&=]?|\\|[|=]?|>>?>?=?|<([\\/=!]|<=?)?|\\^=?|\\!=?=?|[a-zA-Z\\u00c0-\\uffff_$][a-zA-Z0-9\\u00c0-\\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\\.[0-9]*)?([eE][+\\-]?[0-9]+)?)"
+				var r = "^\\s*([()}.,:;'\"~\\?\\]#@]|\\[\\+\\]|\\[|{\\+}|@selector|@|{|==?=?|\\/(\\*(global|extern|jslint|member|members)?|=|\\/)?|\\*[\\/=]?|\\+[+=]?|-[\\-=]?|%=?|&[&=]?|\\|[|=]?|>>?>?=?|<([\\/=!]|<=?)?|\\^=?|\\!=?=?|[a-zA-Z\\u00c0-\\uffff_$][a-zA-Z0-9\\u00c0-\\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\\.[0-9]*)?([eE][+\\-]?[0-9]+)?)"
 				return new RegExp(r)
 
 			}()
@@ -1345,7 +1358,6 @@ members)?
                         case '"':
                         case "'":
                             return string(t);
-
     //      // comment
 
                         case '//':
@@ -1357,7 +1369,7 @@ members)?
                                 warningAt("Dangerous comment.", line, character);
                             }
 							// ## notify of comment token
-							logToken({ type : '(comment)', line : line, from : from, value : '//' + s, character : lines[line].length })
+							if (!logTokenLock) logToken({ type : '(comment)', line : line, from : from, value : '//' + s, character : lines[line].length })
                             s = '';
                             token.comment = true;
                             break;
@@ -1380,17 +1392,15 @@ members)?
 									// ## notify of comment token
 									// Last line of comment
 //									var h = !commentLineIndex ? from : 0
-//									alert(commentLineIndex + '\n\nline=' + line + '\n\nfrom=' + from + '\n\ns=' + s)
 									var v = firstCommentPrefix+s.substr(0, i+2)
-//									alert('*' + tab + '*' + tab.charCodeAt(0) + '*')
-									logToken({ type : '(comment)', line : line, from : from, value : v, character: from+v.length })
+									if (!logTokenLock)	logToken({ type : '(comment)', line : line, from : from, value : v, character: from+v.length })
                                     break;
                                 }
 								else
 								{
 									// ##
 									// All comment lines but the last one go through here
-									logToken({ type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : lines[line].substr(from).length+1 })
+									if (!logTokenLock)	logToken({ type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : lines[line].substr(from).length+1 })
 									from = 0
 								}
                                 if (!nextLine()) {
@@ -1411,40 +1421,6 @@ members)?
                             token.comment = true;
                             break;
 
-
-    //      /* js extension
-/*
-                        case '<?':
-							var firstCommentPrefix = '<?'
-                            for (;;) {
-                                i = s.search(/\?>/);
-                                if (i >= 0) {
-									// ## notify of comment token
-									// Last line of comment
-//									var h = !commentLineIndex ? from : 0
-//									alert(commentLineIndex + '\n\nline=' + line + '\n\nfrom=' + from + '\n\ns=' + s)
-									var v = firstCommentPrefix+s.substr(0, i+2)
-									logToken({ type : '(extension)', line : line, from : from, value : v, character: from+v.length })
-                                    break;
-                                }
-								else
-								{
-									// ##
-									// All comment lines but the last one go through here
-									logToken({ type : '(extension)', line : line, from : from, value : firstCommentPrefix + s, character : lines[line].substr(from).length })
-									from = 0
-								}
-                                if (!nextLine()) {
-                                    errorAt("Unclosed extension.", line, character);
-                                }
-								commentLineIndex++
-								firstCommentPrefix = ''
-                            }
-                            character += i + 2;
-                            s = s.substr(i + 2);
-                            token.comment = true;
-							break;
-*/
     //      /*global /*extern /*members /*jslint */
 
                         case '/*global':
@@ -1869,8 +1845,7 @@ members)?
         switch (token.id) {
         case '(number)':
             if (nexttoken.id === '.') {
-                warning(
-"A dot following a number can be confused with a decimal point.", token);
+                warning("A dot following a number can be confused with a decimal point.", token);
             }
             break;
         case '-':
@@ -1907,7 +1882,7 @@ members)?
         for (;;) {
             nexttoken = lookahead.shift() || lex.token();
 			// ## notify of new token
-			logToken(nexttoken)
+			if (!logTokenLock)	logToken(nexttoken)
             if (nexttoken.id === '(end)' || nexttoken.id === '(error)') {
                 return;
             }
@@ -1923,7 +1898,6 @@ members)?
             warning("eval is evil.", nexttoken);
         }
     }
-
 
 // This is the heart of JSLINT, the Pratt parser. In addition to parsing, it
 // is looking for ad hoc lint patterns. We add to Pratt's model .fud, which is
@@ -2193,7 +2167,6 @@ members)?
             } else {
                 this.left = left;
                 this.right = parse(p);
-//alert('left=' + this.left.value + '\nright=' + (typeof this.right) + '\nthis=' + this.value)
                 return this;
             }
         };
@@ -2408,7 +2381,6 @@ members)?
 
 // Look for the final semicolon.
         if (!t.block) {
-//	alert(toStringToken(nexttoken) + ' line=' + t.line + ' nexttoken.line=' + nexttoken.line)
 			// ## Only warn about missing semicolons when next token is on same line and not a closing brace (like in one line closures)
             if (nexttoken.id !== ';') {
 				if (token.line == nexttoken.line && nexttoken.id != '}')
@@ -3932,6 +3904,43 @@ members)?
     infix('[+]', 'arrayAdd', 120);
     infix('{+}', 'hashAdd', 120);
 
+	// Handle @ prefix for NSStrings, plus @selector
+	prefix('@', function ()
+	{
+		var c = parse(155)
+		if (c && c.value == 'selector')
+		{
+			token.id = token.value
+			disableLogToken()
+			advance('(')		
+
+			var from = nexttoken.from
+			var line = nexttoken.line
+			var selector = ''
+			while (nexttoken && nexttoken.value != ')' && line == nexttoken.line)
+			{
+				advance()
+				selector += token.value
+			}
+			// Wrong but better than nothing
+			if (!selector.match(/^[\w:]+/))
+				warningAt('Invalid selector', line, from )
+			
+			var t = { value : selector, type : '(string)', from : from, character : token.character, line : line }
+			logToken(t)
+			logToken(nexttoken)
+
+			enableLogToken()
+			advance(')')
+		}
+		else
+		{
+			if (token.id != '(string)')
+				warningAt('ObjC string immediate : Expected a Javascript string here', token.line, token.from)
+		}
+	})
+
+
     prefix('-', 'neg');
     infix('*', 'mult', 140);
     infix('/', 'div', 140);
@@ -4842,6 +4851,35 @@ members)?
             warning("Wrap the /regexp/ literal in parens to disambiguate the slash operator.");
         }
 
+		// Ruby-like if return
+		// return exp if (exp)
+		// return exp unless (exp)
+		function	isIfReturn()
+		{
+			var b = (nexttoken.id == 'if' || nexttoken.value == 'unless') && token.line == nexttoken.line
+			if (b)
+			{
+				returnToken.isIfReturn = true
+			}
+			return b
+		}
+		function	parseIfReturn()
+		{
+			if (nexttoken.id == 'if')	advance('if')
+			else						advance('unless')
+			// Manually mark unless as reserved
+			token.reserved = true
+			advance('(')
+			parse(20)
+			advance(')')
+		}
+
+		var returnToken = token
+		// Maybe if return
+		if (isIfReturn()) { 
+			parseIfReturn()
+		}
+		else
         if (nexttoken.id !== ';' && !nexttoken.reach /*## only parse what's on current line */ && token.line == nexttoken.line) {
             nonadjacent(token, nexttoken);
             parse(20);
@@ -4852,6 +4890,8 @@ members)?
 				advance(',')
             	parse(20)
 			}
+			// ## Maybe if return
+			if (isIfReturn())		parseIfReturn()
         }
   
       reachable('return');
@@ -4865,11 +4905,109 @@ members)?
         reachable('throw');
     });
 
+
+
+	// ## JSCocoa class syntax
+    stmt('class', function () {
+	
+		// Protect against inner definitions
+		if (parsingClass)	return warningAt('Inner classes are not of this world', token.line, token.from)
+		parsingClass = true
+	
+		var className = advance()
+		advance('<')
+		var parentClassName = advance()
+
+		advance('{')
+		
+		var validTokens = { '-' : true, '+' : true, 'IBOutlet' : true, 'IBAction' : true, 'swizzle' : true, 'Swizzle' : true }
+
+		var parsingClassDefinition = true
+		while (validTokens[nexttoken.value] && parsingClassDefinition)
+		{
+			function	type()
+			{
+				var line = nexttoken.line
+				advance('(')
+				while (nexttoken && nexttoken.value != ')' && nexttoken.line == line)
+				{
+					advance()
+				}
+				advance(')')
+			}
+
+			// Advance type
+			advance()
+			// Advance method swizzler
+			if (token.value.toLowerCase() == 'swizzle')	token.reserved = true, advance()
+			
+			// Method
+			if (token.value == '-' || token.value == '+')
+			{
+				// Advance return type
+				type()
+				var methodName = advance()
+
+				var i = 0
+				while (nexttoken.value == ':' && i <100)
+				{
+					advance(':')
+					type()
+					// param name
+					advance()
+					i++
+
+					if (nexttoken.type == '(identifier)')	advance()
+				}
+				block(false)
+//				alert('END=' + nexttoken.value)
+				
+//				alert(methodName.value)
+			}
+			// Outlet
+			else if (token.value == 'IBOutlet')
+			{
+				token.reserved = true
+				// Outlet name
+				advance()
+			}
+			// Action : name + possible parameter name
+			else if (token.value == 'IBAction')
+			{
+				token.reserved = true
+				// Action name
+				advance()
+				// Param name may have been redefined
+				if (nexttoken.value == '(')
+				{
+					advance('(')
+					advance()
+					advance(')')
+				}
+				block(0)
+			}
+			else
+			{
+				alert('missing valid token handler while parsing JSCocoa class')
+				parsingClassDefinition = false
+			}
+		}
+		
+//		block(false)
+//		advance('(identifier)')
+//		alert(dumpHash(token))
+//		logClassStart(token)
+		
+		advance('}')
+		parsingClass = false
+    });
+
+
     reserve('void');
 
 //  Superfluous reserved words
 
-    reserve('class');
+//    reserve('class');
     reserve('const');
     reserve('enum');
     reserve('export');
@@ -5057,6 +5195,9 @@ members)?
         warnings = 0;
         lex.init(s);
         prereg = true;
+		
+		// ## (internal) Guard against Inner class
+		parsingClass = false
 
         prevtoken = token = nexttoken = syntax['(begin)'];
         assume();
