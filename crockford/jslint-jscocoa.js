@@ -4191,7 +4191,7 @@ members)?
 		firstToken.isObjCCallOpener = true
 		firstToken.isObjCCall = true
 		
-		instanceToken = token
+		var instanceToken = token
 
 		var parameterCount = 0
 		// Advance parameter name
@@ -4224,8 +4224,8 @@ members)?
 		if (nexttoken.value != ']')	warning('ObjC call not closed')
 		nexttoken.isObjCCallCloser = true
 		nexttoken.isObjCCall = true
-		instanceToken.objCParameterCount	= parameterCount
-		nexttoken.objCParameterCount		= parameterCount
+		instanceToken.objCParameterCountOpener	= parameterCount
+		nexttoken.objCParameterCountCloser		= parameterCount
 	}
 
     infix('[', function (left, that) {
@@ -5035,9 +5035,7 @@ members)?
     reserve('super');
 
     function jsonValue() {
-
         function jsonObject() {
-		alert('handle jsonobject')
             var o = {}, t = nexttoken;
             advance('{');
             if (nexttoken.id !== '}') {
@@ -5078,6 +5076,7 @@ members)?
         function jsonArray() {
             var t = nexttoken;
             advance('[');
+
             if (nexttoken.id !== ']') {
                 for (;;) {
                     if (nexttoken.id === '(end)') {
@@ -5098,7 +5097,6 @@ members)?
             }
             advance(']');
         }
-
         switch (nexttoken.id) {
         case '{':
             jsonObject();
@@ -5227,12 +5225,14 @@ members)?
                 }
             } else {
                 switch (nexttoken.id) {
+/*
+	// ## Don't handle json values as they interfere with ObjC messaging
                 case '{':
                 case '[':
                     option.laxbreak = true;
                     jsonmode = true;
                     jsonValue();
-                    break;
+                    break;*/
                 case '@':
                 case '*':
                 case '#':

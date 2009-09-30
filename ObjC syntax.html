@@ -67,10 +67,28 @@
 		{
 			background-color: #faa;
 		}
+		.objcparamcountopener
+		{
+			efont-weight: bold;
+			background-color: #fea;
+		}
+		.objcparamcountcloser
+		{
+			efont-weight: bold;
+			background-color: #fea;
+			border: solid 1px #f64;
+		}
 		
 		.lintError
 		{
 			background: -webkit-gradient(linear, left top, left bottom, to(rgba(255, 255, 255, 1)), from(rgba(255, 0, 0, 0.3)));
+		}
+		
+		#dump2
+		{
+			font-size: 40%;
+			white-space: pre-wrap;
+			font-family: monaco;
 		}
 		
 		#dump3
@@ -83,7 +101,7 @@
 	<script src='crockford/jslint-jscocoa.js'></script>
 	<script src='lintex.js'></script>
 <table><tr><td>
-
+<!--
 <textarea estyle='display: none'>
 	var a = 4 {+} 5 {+} 'hello'
 	var b = 564 {+} { blah : 'hello' } {+} 'world'
@@ -104,36 +122,62 @@
 						8
 							[+]
 								'd'
+
+<textarea>
+	var view4 = [[NSView alloc] initWithFrame:'blah']
+</textarea>
+-->
 <textarea estyle='display: none'>
 		var a, b, p = [a, b]
 		var o = [[NSObject alloc] init]
 		[this performSelector:'hello' withObject:2*6/3-Math.round(6) afterDelay:'HOP']
 		
-		var c = [someObject doThis] + [someOtherObject handle1:[a1, d1] and2:b1] + [object2 perform:'hello']
+		var c = [someObject doThis] + [someOtherObject handle1:[a1, [d1 doThis]] and2:b1] + [object2 perform:'hello']
 		var d = a + c
 		
 		var chainedCall = [[NSObject allocWith:'hello' and:'world'] initWithKey:[SomeKey someParam] andKey:[SomeOtherKey p1:'a' p2:'b'] andLastKey:'last']
 		
-		var c = [call withA:'a'
+		var c2 = [call withA:'a'
 						B:'b'
 						C:'c'
 						D:'d']
 
 		//
 		var array = [[NSObject alloc]]
-		var obj = [[[NSObject alloc]][0] init]
-		var obj = [[[[NSObject alloc]][0] init] keys][0]
-		var obj = [[[[NSObject alloc]][0] init] keys]['name']
+		var obj1 = [[[NSObject alloc]][0] init]
+		var obj2 = [[[[NSObject alloc]][0] init] keys][0]
+		var obj3 = [[[[NSObject alloc]][0] init] keys]['name']
 		[[[NSObject alloc] init]]     
 		[array[0] init]
-		var a = { 'hello' : [[NSObject alloc] init] }
+		var a2 = { 'hello' : [[NSObject alloc] init] }
 		[hash['value'] doSomethingElse]
+
+
+	var view = [[NSView alloc] initWithSomething:'he' andSomethingElse:'b' andThatAgain:[1, 2, 3]]
+	var view2 = [[NSView alloc]]
+	var view3 = [[[[[NSView alloc] initWithFrame:'blah']]]]
+	var view4 = [[[[[NSView alloc] initWithFrame:'blah'] andDoStuff1:'there' also2:'lk']]]
+
 </textarea>
 <div id='transformed'>
 </div>
+
+<script>
+	var classNames = ['objc', 'firstobjc', 'objcopener', 'objccloser', 'objcopenerandcloser', 'objcparamsep', 'objcparamcountopener', 'objcparamcountcloser']
+	var str = ''
+	var a = []
+	for (var i=0; i<classNames.length; i++)
+	{
+		var c = classNames[i]
+		var str = '<span class="' + c + '">' + c + '</span>'
+		a.push(str)
+	}
+	document.write('<p>classes=' + a.join(' &#160;') + '</p>')
+</script>
+	<div id='dump2'></div>
+
 <td>
 	<div id='dump'></div>
-	<div id='dump2'></div>
 	<div id='dump3'></div>
 </table>
 
@@ -234,7 +278,6 @@
 			
 			var tokenStream = []
 			var messageStream = []
-			
 			var currentParameterCount
 			var currentMessage
 			for (var i=0; i<tokens.length; i++)
@@ -243,23 +286,37 @@
 				var v = tv = token.value
 //				if (!lines[token.line])	continue
 //				tv = lines[token.line].substr(token.from, token.character-token.from)
-
+/*
 				if (token.isObjCCall)			v = '<span class="objc">' + tv + '</span>'
 				if (token.isObjCFirstCall)		v = '<span class="firstobjc">' + tv + '</span>'
 				if (token.isObjCCallOpener)		v = '<span class="objcopener">' + tv + '</span>'
 				if (token.isObjCCallCloser) 	v = '<span class="objccloser">' + tv + '</span>'
 				if (token.isObjCCallCloser && token.isFirstObjCCall) v = '<span class="objcopener objccloser objcopenerandcloser">' + tv + '</span>'
 				if (token.isObjCParameterSeparator)	v = '<span class="objcparamsep">' + tv + '</span>'
+*/
 
+				var c = ''
+				if (token.isObjCCall)			c += ' objc'
+				if (token.isObjCFirstCall)		c += ' firstobjc'
+				if (token.isObjCCallOpener)		c += ' objcopener'
+				if (token.isObjCCallCloser) 	c += ' objccloser'
+				if (token.isObjCCallCloser && token.isObjCFirstCall) c += ' objcopener objccloser objcopenerandcloser'
+				if (token.isObjCParameterSeparator)	c += ' objcparamsep'
+				v = '<span class="' + c + '">' + tv + '</span>'
 				
 //				str += ' ' + v
 				str += ' ' + v
-				if ('objCParameterCount' in token) str += '<b>(' + token.objCParameterCount + ')</b>'
+				var isCallOpener = 'objCParameterCountOpener' in token
+				var isCallCloser = 'objCParameterCountCloser' in token
+				if (isCallCloser)	str += '<span class="objcparamcountcloser">' + token.objCParameterCountCloser + '&gt;</span>'
+				if (isCallOpener)	str += '<span class="objcparamcountopener">&lt;' + token.objCParameterCountOpener + '</span>'
+//				if (isCallOpener && isCallCloser)	str += '<span class="objcparamcount"> </span>'
 
 				//			alert(dumpHash(token))
 				if (token.id == '(endline)') 
 				{
-					str += '\n\n'
+//					str += '\n\n'
+					str += '\n'
 					tokenStream.push('\n')
 				}
 				
@@ -269,19 +326,29 @@
 //				 || token.isObjCCallCloser
 				if (token.isObjCCallCloser)	
 				{
-					if (token.objCParameterCount)
+					if (token.objCParameterCountCloser)
 					{
 						tokenStream.push(')')
 						messageStream.pop()
 						currentMessage = messageStream[messageStream.length-1]
 					}
+					else
+					{
+//						alert('HEP')
+					}
 				}
-				else
+//				else
+//				if (token.isObjCFirstCall || token.isObjCFirstParam)
 				{
+//					if (token.isObjCFirstCall)	
 					if (token.isObjCFirstCall)	
 					{
-						tokenStream.push(v)
-						currentParameterCount = token.objCParameterCount
+//						alert(dumpHash(token))
+						// ']' can both open and close a call
+						if (!token.isObjCCallCloser)
+							tokenStream.push(v)
+						currentParameterCount = token.objCParameterCountOpener
+//						alert(dumpHash(token))
 					}
 					else 
 					if (token.isObjCFirstParam)
@@ -289,25 +356,36 @@
 						if (currentParameterCount)
 						{
 							currentMessage = new MultiParameterMessage(v)
+
+//					if (!token.isObjCCallCloser)
 							tokenStream.push(currentMessage)
 							tokenStream.push('(')
-
+//alert('k')
 							messageStream.push(currentMessage)
 						}
 						else
+						{
+//							alert(v)
+//					if (!token.isObjCCallCloser)
 							tokenStream.push(v)
+						}
 					}
 					else
 					if (token.isObjCCall)
 					{
 						if (currentMessage)
 						{
+					if (!token.isObjCCallCloser)
 							currentMessage.addParameter(v)
-							tokenStream.push(',')
+							if (!token.isObjCCallCloser) 
+								tokenStream.push(',')
 						}
 					}
 					else
+//					if (!token.isObjCCallCloser)
+					{
 						tokenStream.push(v)
+					}
 				}
 				if (token.isObjCFirstCall)		tokenStream.push('.')
 			}
@@ -468,7 +546,7 @@ if (!lines[token.line])	continue
 
 			tokens = []
 			var options = { forin : true, laxbreak : true, indent : true }
-			var lintRes = JSLINT(lines, options)
+			var lintRes = jslint(lines, options)
 		
 			var str = 'LINT=' + lintRes
 			document.documentElement.className = JSLINT.errors.length ? 'lintError' : ''
@@ -493,16 +571,21 @@ if (!lines[token.line])	continue
 //			dumpTokens()
 //			dumpTokens2()
 		}
+
+		var logs = { logToken : logToken }
+		var JSLINT = JSLintWithLogs(logs)
+		var jslint = JSLINT()
+
+
 		lint()
 		
 		function	keyup()
 		{
 			setTimeout(lint, 0)
 		}
-		textarea.onkeyup = keyup
+//		textarea.onkeyup = keyup
 		
 		setTimeout(function () { document.getElementsByTagName('TEXTAREA')[0].focus() }, 10)
-
 	</script>
 
 <pre>	
@@ -514,5 +597,14 @@ if (!lines[token.line])	continue
 	-> un immediate de [NSObject.alloc()]
 	[[[NSObject alloc] init]]     
 	[array[0] init]
+	
+	
+	bug !
+	[d1 doThis]
+
+<pre style='color: red'>
+	* GUARANTEE SELECTOR TO BE [A-Za-z_]\w+
+	* test [a b] seul
+	
 </body>
 </html>
