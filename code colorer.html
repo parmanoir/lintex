@@ -55,7 +55,9 @@ REMOVE STYLESHEET
 	return unless (z)
 
 	var view = [[NSView alloc] initWithSomething:'he' andSomethingElse:'b' andThatAgain:[1, 2, 3]]
-		
+	var view2 = [[NSView alloc]]
+	var view3 = [[[[[NSView alloc] initWithFrame:'blah']]]]
+				
 	var objCString = @'hello'
 	var selector = @selector(initWithA:andB:andC:) + 'world' + @selector(addX:andY:) + 'hello' + @selector(alloc)
 	
@@ -79,6 +81,12 @@ REMOVE STYLESHEET
 		// a method
 		/* hop */
 		// and another
+		// and another
+		// and another
+		/*
+			gep
+			kl
+		*/
 /* 1*/		+ (int)hop /* 2 */
 		{
 			return 4
@@ -1757,12 +1765,13 @@ collapseToStart=function collapseToStart() {
 				this.selectionStack = []
 				
 				// Create lint and register our logs
-				var logNames = ['logToken']
+				var logNames = ['logToken', 'logExtraSyntax']
 				var logs = {}
 				var self = this
 				for (var i=0; i<logNames.length; i++)	{
 					var name = logNames[i]
-					logs[name] = function () { return self[name].apply(self, arguments) }
+					// Close name
+					logs[name] = function (name) { return function () { return self[name].apply(self, arguments) } }(name)
 				}
 				this.JSLINT = JSLintWithLogs(logs)
 				this.jslint = this.JSLINT()
@@ -1828,7 +1837,9 @@ collapseToStart=function collapseToStart() {
 
 			CCp.rawSourceFromLine = function(line)
 			{
-				return	line.innerText
+				var t = line.innerText
+				if (line.lastChild && line.lastChild.className == 'newline') t += '\n'
+				return	t
 			}
 			
 			
@@ -2183,6 +2194,11 @@ collapseToStart=function collapseToStart() {
 				var line = token.line
 				if (!this.tokensByLine[line])	this.tokensByLine[line] = []
 				this.tokensByLine[line].push(token)
+			}
+			
+			CCp.logExtraSyntax = function (syntaxName, token)
+			{
+//				alert(syntaxName)
 			}
 			
 			//

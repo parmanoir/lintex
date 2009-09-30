@@ -140,12 +140,14 @@
 		}
 		.objcCallBracket
 		{
-			ebackground-color: red;
-			etext-shadow: rgba(255, 160, 128, .9) 0px 1px 4px, rgba(255, 160, 128, .9) 0px 1px 1px, rgba(255, 160, 128, .9) 0px 1px 1px;
-			color: #d42;
-			text-shadow: none;
-			etext-shadow: #d42 0px 1px 3px;
-			ecolor: black;
+		}
+
+
+		.newline
+		{
+			white-space: normal;
+			eborder: solid 3px red;
+			edisplay: inline-block;
 		}
 
 

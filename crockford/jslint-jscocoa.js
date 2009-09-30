@@ -192,8 +192,7 @@ function JSLintWithLogs(logs)
 	var logFunctionEnd	= logs.logFunctionEnd || fn
 
 	// Things we need to replace
-	var logObjCStart	= logs.logObjCStart || fn
-	var logClassStart	= logs.logClassStart || fn
+	var logExtraSyntax	= logs.logExtraSyntax || fn
 	
 	var logTokenLock	= 0
 	function	disableLogToken()	{ logTokenLock++ }
@@ -1369,7 +1368,7 @@ members)?
                                 warningAt("Dangerous comment.", line, character);
                             }
 							// ## notify of comment token
-							if (!logTokenLock) logToken({ type : '(comment)', line : line, from : from, value : '//' + s, character : lines[line].length })
+							if (!logTokenLock) logToken({ type : '(comment)', line : line, from : from, value : '//' + s, character : lines[line].length-1 })
                             s = '';
                             token.comment = true;
                             break;
@@ -1398,9 +1397,12 @@ members)?
                                 }
 								else
 								{
+//									alert('2' + s)
 									// ##
 									// All comment lines but the last one go through here
-									if (!logTokenLock)	logToken({ type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : lines[line].substr(from).length+1 })
+									var c = lines[line].substr(from).length-1
+									if (commentLineIndex == 0) c += firstCommentPrefix.length
+									if (!logTokenLock)	logToken({ type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : c })
 									from = 0
 								}
                                 if (!nextLine()) {
@@ -3910,6 +3912,7 @@ members)?
 		var c = parse(155)
 		if (c && c.value == 'selector')
 		{
+			logExtraSyntax('@selector', token)
 			token.id = token.value
 			disableLogToken()
 			advance('(')		
@@ -3935,6 +3938,7 @@ members)?
 		}
 		else
 		{
+			logExtraSyntax('@', token)
 			if (token.id != '(string)')
 				warningAt('ObjC string immediate : Expected a Javascript string here', token.line, token.from)
 		}
@@ -4177,7 +4181,7 @@ members)?
 	// 
 	function	ObjCParams(firstToken)
 	{
-		logObjCStart(token)
+		logExtraSyntax('objc', token)
 //		if (token.value != ']')	
 
 		token.isObjCFirstCall		= true
@@ -4867,6 +4871,7 @@ members)?
 		}
 		function	parseIfReturn()
 		{
+			logExtraSyntax('ifReturn', token)
 			if (nexttoken.id == 'if')	advance('if')
 			else						advance('unless')
 			// Manually mark unless as reserved
@@ -4916,6 +4921,9 @@ members)?
 		if (parsingClass)	return warningAt('Inner classes are not of this world', token.line, token.from)
 		parsingClass = true
 	
+	
+		logExtraSyntax('class', token)
+		
 		var className = advance()
 		advance('<')
 		var parentClassName = advance()
