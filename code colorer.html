@@ -2339,6 +2339,10 @@ this.tokens = tokens
 				var id = token.id ? ('<span style="color: blue">(<b>' + token.id + '</b>)</span> ') : ''
 				document.getElementById('dump2').innerHTML += token.value + id + el
 */
+//				if (this.lines[token.line])	token.rawValue = lines[token.line].substr(token.from, token.character-token.from)				
+//				else						token.rawValue = ''
+//				alert('handle rawvalue'), eaz()
+
 				var line = token.line
 				if (!this.tokensByLine[line])	this.tokensByLine[line] = []
 				this.tokensByLine[line].push(token)

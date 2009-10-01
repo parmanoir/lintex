@@ -95,6 +95,15 @@
 		{
 			white-space: pre-wrap;			
 		}
+		
+		.linestartspace
+		{
+			background-color: lime;
+		}
+		.interspace
+		{
+			background-color: orange;
+		}
 </style>
 </head>
 <body>
@@ -128,13 +137,14 @@
 	class MyClass < NSView
 	{
 		// a method
-		- (void)hello:(NSView*)world andOthers:(SomeObject*)w
+		- (void)hello:(NSView*)world 
+			andOthers:(SomeObject*)w
 		{
 			return @'hello' + @"hello"
 		}
 /* 1*/		+ (int)hop /* 2 */
 		{
-			return 4 + @selector(blah:hop:HEP:)
+			return 4 + @selector(blah:hop:HEP:) + 15
 		}
 		IBOutlet blah
 		IBAction hop
@@ -156,17 +166,17 @@
 		var c = [someObject doThis] + [someOtherObject handle1:[a1, [d1 doThis]] and2:b1] + [object2 perform:'hello']
 		var d = a + c
 		
-		var chainedCall = [[NSObject allocWith:'hello' and:'world'] initWithKey:[SomeKey someParam] andKey:[SomeOtherKey p1:'a' p2:'b'] andLastKey:'last']
+		var chainedCall = [[NSObject allocWith:'hello' and:'world'] initWithKey:[SomeKey someParam] andKey:[SomeOtherKey p1:'a' p2:'b'] andLastKey:'last'] // hep 
 		
 		var c2 = [call withA:'a'
 						B:'b'
 						C:'c'
-						D:'d']
+						D:'d'] /* hello */
 	
-	class OtherClass < MyClass
+	class OtherClass < MyClass /* check */
 	{
 		// Test some more swizzle in here
-		- (void)a
+		- (void)a /* blah */
 		{
 			[[NSWorkspace sharedWorkspace] doStuff]
 		}
@@ -182,7 +192,10 @@
 		[hash['value'] doSomethingElse]
 
 
-	var view = [[NSView alloc] initWithSomething:'he' andSomethingElse:'b' andThatAgain:[1, 2, 3]]
+	var view = [[NSView alloc] 
+			initWithSomething:'he' 
+			andSomethingElse:'b' 
+			andThatAgain:[1, 2, 3]]
 	var view2 = [[NSView alloc]]
 	var view3 = [[[[[NSView alloc] initWithFrame:'blah']]]]
 	var view4 = [[[[[NSView alloc] initWithFrame:'blah'] andDoStuff1:'there' also2:'lk']]]
@@ -324,10 +337,47 @@
 			var messageStream = []
 			var currentParameterCount
 			var currentMessage
+			var token, prevtoken = tokens[0]
 			for (var i=0; i<tokens.length; i++)
 			{
-				var token = tokens[i]
-				var v = tv = token.value
+				token = tokens[i]
+				var v = tv = token.rawValue
+				
+				var line = lines[token.line]
+				if (!line) continue
+				
+				if (token.id == '(endline)')
+				{
+					tokenStream.push('\n')
+					continue
+				}
+				
+				// Add whitespace - either the start of the line if we switched lines, or the span between this token and the previous one
+				var whitespace = prevtoken.line != token.line ? line.substr(0, token.from) : line.substr(prevtoken.character, token.from-prevtoken.character)
+				tokenStream.push(String(whitespace.match(/\s*/)))
+				
+/*				
+				if (prevtoken.line != token.line)
+				{
+					var str = line.substr(0, token.from)
+//					alert(token.from + ' ' + token.value + '\n' + lines[token.line]), ze()
+//					alert(dumpHash(token)), az()
+					str = '<span class="linestartspace">' + (str.match(/\s*__/)) + '</span>'
+					tokenStream.push(str)
+				}
+				else
+				{
+					var str = line.substr(prevtoken.character, token.from-prevtoken.character)
+					str = '<span class="interspace">' + (str.match(/\s*__/)) + '</span>'
+					tokenStream.push(str)
+
+//					alert(prevtoken.line + '_' + prevtoken.from + ' ' + prevtoken.character + ' ' + prevtoken.value + '\n' + token.line + '_' + token.from + ' ' + token.character + ' ' + token.value)
+//					if (i > 14) eaz()
+//					var whitespace = token
+//					alert(lines), re()
+				}
+*/				
+				prevtoken = token
 //				if (!lines[token.line])	continue
 //				tv = lines[token.line].substr(token.from, token.character-token.from)
 /*
@@ -432,12 +482,6 @@
 //				if (isCallOpener && isCallCloser)	str += '<span class="objcparamcount"> </span>'
 
 				//			alert(dumpHash(token))
-				if (token.id == '(endline)') 
-				{
-//					str += '\n\n'
-					str += '\n'
-					tokenStream.push('\n')
-				}
 				
 				
 //				v = tv

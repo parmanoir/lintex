@@ -146,8 +146,8 @@
 		.newline
 		{
 			white-space: normal;
-			eborder: solid 3px red;
-			edisplay: inline-block;
+			border: solid 3px red;
+			display: inline-block;
 		}
 
 

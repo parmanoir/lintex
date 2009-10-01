@@ -1368,7 +1368,11 @@ members)?
                                 warningAt("Dangerous comment.", line, character);
                             }
 							// ## notify of comment token
-							if (!logTokenLock) logToken({ type : '(comment)', line : line, from : from, value : '//' + s, character : lines[line].length-1 })
+							var v = lines[line].substr(from, s.length)
+							var c = lines[line].length-1
+							if (!s.match(/\n/))
+								c++
+							if (!logTokenLock) logToken({ type : '(comment)', line : line, from : from, value : v, character : c })
                             s = '';
                             token.comment = true;
                             break;
