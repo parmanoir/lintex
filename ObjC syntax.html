@@ -315,21 +315,6 @@
 		// Dump tokens
 		// 
 		
-		function	MultiParameterMessage(firstParameter)
-		{
-			this.value = firstParameter + '_'
-		}
-		
-		MultiParameterMessage.prototype.toString = function ()
-		{
-//			return '*' + this.value + '°'
-			return this.value
-		}
-		MultiParameterMessage.prototype.addParameter = function (param)
-		{
-			this.value += param + '_'
-		}
-		
 		function	tokenizeObjC(tokens)
 		{
 			var str = ''
@@ -487,7 +472,8 @@
 				// Ignore ']', add ')' if we're closing a parameter message
 				if (token.isObjCCallCloser)
 				{
-					v = ''
+					if (!token.isObjCFirstCall)
+						v = ''
 				 	if (token.objCParameterCountCloser)
 						v = ')'
 				}
@@ -688,7 +674,7 @@ if (!lines[token.line])	continue
 		{
 			setTimeout(lint, 0)
 		}
-//		textarea.onkeyup = keyup
+		textarea.onkeyup = keyup
 		
 		setTimeout(function () { document.getElementsByTagName('TEXTAREA')[0].focus() }, 10)
 	</script>

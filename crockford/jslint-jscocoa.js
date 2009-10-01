@@ -4233,9 +4233,7 @@ members)?
 		}
 		
 		if (parameterCount)
-		{
 			firstMessagePart.objCJSSelector = jsselector
-		}
 		
 		if (nexttoken.value != ']')	warning('ObjC call not closed')
 		nexttoken.isObjCCallCloser = true
