@@ -1969,7 +1969,8 @@ members)?
                         token, token.id);
                 }
             }
-            if (initial && !o) {
+			// .exps is transfered to o, to check if expression can stand on its own : assignment, ++ (postinc), delete, ...
+            if (initial && !o /* ## added for ObjC messaging*/ && !token.exps) {
 //##
                 warning("Expected an assignment or function call and instead saw an expression.",                        token);
             }
@@ -4189,36 +4190,51 @@ members)?
 		nexttoken.isObjCCall		= true
 		nexttoken.isObjCFirstParam	= true
 		firstToken.isObjCCallOpener = true
-		firstToken.isObjCCall = true
+		firstToken.isObjCCall		= true
 		
-		var instanceToken = token
+		function	advanceParameterName()
+		{
+			advance()
+			if (!token.value.match(/^[a-zA-Z_]\w*/))	warningAt('Invalid selector name "' + token.value + '"', token.line, token.from)
+		}
+		
+		var instanceToken		= token
+		var firstMessagePart	= nexttoken
 
 		var parameterCount = 0
 		// Advance parameter name
-		advance()
+		advanceParameterName()
 		// Parameter(s)
+		var jsselector = token.value
 		if (nexttoken.id == ':')
 		{
 			nexttoken.isObjCParameterSeparator = true
 			parameterCount++
-			// Advance parameter name
-			advance()
-			// Parameter value : any javascript expression, including anon function
+			advance(':')
+			jsselector += '_'
+			// Parameter value : any javascript expression, including anon functions
 			parse(0)
 			// Remaining parameters
 			while (nexttoken && nexttoken.value != ']')
 			{
 				parameterCount++
+				jsselector += nexttoken.value + '_'
 				nexttoken.isObjCCall = true
+				nexttoken.isObjCMultiCall = true
 				// Advance parameter name
-				advance()
+				advanceParameterName()
 				// Next token must be a semicolon
 				if (nexttoken.id != ':')	warning("ObjC message missing last paramater")
 				nexttoken.isObjCParameterSeparator = true
-				advance()
+				advance(':')
 				// Parameter value
 				parse(0)
 			}
+		}
+		
+		if (parameterCount)
+		{
+			firstMessagePart.objCJSSelector = jsselector
 		}
 		
 		if (nexttoken.value != ']')	warning('ObjC call not closed')
@@ -4226,6 +4242,8 @@ members)?
 		nexttoken.isObjCCall = true
 		instanceToken.objCParameterCountOpener	= parameterCount
 		nexttoken.objCParameterCountCloser		= parameterCount
+		// Mark expression as valid standalone (skip warning in parse(), 'Expected an assignment or function call and instead saw an expression')
+		nexttoken.exps = true
 	}
 
     infix('[', function (left, that) {
@@ -4921,8 +4939,8 @@ members)?
 		if (parsingClass)	return warningAt('Inner classes are not of this world', token.line, token.from)
 		parsingClass = true
 	
-	
 		logExtraSyntax('class', token)
+		token.isObjCClassStart = true
 		
 		var className = advance()
 		advance('<')
@@ -4935,14 +4953,19 @@ members)?
 		var parsingClassDefinition = true
 		while (validTokens[nexttoken.value] && parsingClassDefinition)
 		{
+			nexttoken.isObjCClassItemStart = true
+			var dataHolder = nexttoken
 			function	type()
 			{
 				var line = nexttoken.line
 				advance('(')
+				var type = ''
 				while (nexttoken && nexttoken.value != ')' && nexttoken.line == line)
 				{
 					advance()
+					type += token.value
 				}
+				encodings.push("'" + type + "'")
 				advance(')')
 			}
 
@@ -4954,27 +4977,37 @@ members)?
 			// Method
 			if (token.value == '-' || token.value == '+')
 			{
+				var methodName	= ''
+				var encodings	= []
+				var paramNames	= []
 				// Advance return type
 				type()
 
 				nexttoken.isObjCCall = true
-				var methodName = advance()
+				advance()
+				methodName += token.value
 
-				var i = 0
-				while (nexttoken.value == ':' && i <100)
+				while (nexttoken && nexttoken.value == ':')
 				{
 					advance(':')
+					methodName += ':'
 					type()
 					// param name
 					advance()
-					i++
-
+					paramNames.push(token.value)
 					if (nexttoken.type == '(identifier)')	
 					{
 						nexttoken.isObjCCall = true
 						advance()
+						methodName += token.value
 					}
 				}
+
+//				alert('methodName=' + methodName + '\nencodings=' + encodings + '\nparamNames=' + paramNames)
+				dataHolder.objCMethodName		= methodName
+				dataHolder.objCMethodEncodings	= encodings
+				dataHolder.objCMethodParamNames	= paramNames
+
 				block(false)
 //				alert('END=' + nexttoken.value)
 				

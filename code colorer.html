@@ -2095,7 +2095,6 @@ collapseToStart=function collapseToStart() {
 				var str = ''
 				var str2 = ''
 
-				
 				var tokenStream = []
 				var messageStream = []
 				
@@ -2120,7 +2119,7 @@ collapseToStart=function collapseToStart() {
 //				push(i)
 				for (var j=0; j<line.length; j++) flattokens.push(line[j])
 			}
-			alert(flattokens.length)
+//			alert(flattokens.length)
 			tokens = flattokens
 			for (var i=0; i<tokens.length; i++)
 			{
@@ -2181,7 +2180,7 @@ this.tokens = tokens
 							currentMessage = messageStream[messageStream.length-1]
 						}
 					}
-					else
+//					else
 					{
 						if (token.isObjCFirstCall)	
 						{
@@ -2218,7 +2217,7 @@ this.tokens = tokens
 				}
 				str2 = tokenStream.join('')
 				dump2.innerHTML = getTickCount() + '\n' + str
-				alert(str2)
+//				alert(str2)
 				document.getElementById('birdView').innerHTML = getTickCount() + '\n<pre>' + str2 + '</pre>'
 				
 				

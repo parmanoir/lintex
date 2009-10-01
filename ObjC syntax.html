@@ -123,11 +123,71 @@
 							[+]
 								'd'
 
-<textarea>
-	var view4 = [[NSView alloc] initWithFrame:'blah']
-</textarea>
 -->
 <textarea estyle='display: none'>
+	class MyClass < NSView
+	{
+		// a method
+		- (void)hello:(NSView*)world andOthers:(SomeObject*)w
+		{
+			return @'hello' + @"hello"
+		}
+/* 1*/		+ (int)hop /* 2 */
+		{
+			return 4 + @selector(blah:hop:HEP:)
+		}
+		IBOutlet blah
+		IBAction hop
+		{
+			
+		}
+		IBAction hop2(notifier)		{
+			
+		}
+		swizzle - (void)drawRect:(NSRect)rect // 4
+		{
+			[[NSWorkspace sharedWorkspace] doStuff]
+		}
+	}
+		var a, b, p = [a, b]
+		var o = [[NSObject alloc] init]
+		[this performSelector:'hello' withObject:2*6/3-Math.round(6) afterDelay:'HOP']
+		
+		var c = [someObject doThis] + [someOtherObject handle1:[a1, [d1 doThis]] and2:b1] + [object2 perform:'hello']
+		var d = a + c
+		
+		var chainedCall = [[NSObject allocWith:'hello' and:'world'] initWithKey:[SomeKey someParam] andKey:[SomeOtherKey p1:'a' p2:'b'] andLastKey:'last']
+		
+		var c2 = [call withA:'a'
+						B:'b'
+						C:'c'
+						D:'d']
+	
+	class OtherClass < MyClass
+	{
+		// Test some more swizzle in here
+		- (void)a
+		{
+			[[NSWorkspace sharedWorkspace] doStuff]
+		}
+	}
+
+		var array = [[NSObject alloc]]
+		var obj1 = [[[NSObject alloc]][0] init]
+		var obj2 = [[[[NSObject alloc]][0] init] keys][0]
+		var obj3 = [[[[NSObject alloc]][0] init] keys]['name']
+		[[[NSObject alloc] init]]     
+		[array[0] init]
+		var a2 = { 'hello' : [[NSObject alloc] init] }
+		[hash['value'] doSomethingElse]
+
+
+	var view = [[NSView alloc] initWithSomething:'he' andSomethingElse:'b' andThatAgain:[1, 2, 3]]
+	var view2 = [[NSView alloc]]
+	var view3 = [[[[[NSView alloc] initWithFrame:'blah']]]]
+	var view4 = [[[[[NSView alloc] initWithFrame:'blah'] andDoStuff1:'there' also2:'lk']]]
+</textarea>
+<textarea style='display: none'>
 		var a, b, p = [a, b]
 		var o = [[NSObject alloc] init]
 		[this performSelector:'hello' withObject:2*6/3-Math.round(6) afterDelay:'HOP']
@@ -159,8 +219,6 @@
 	var view4 = [[[[[NSView alloc] initWithFrame:'blah'] andDoStuff1:'there' also2:'lk']]]
 
 </textarea>
-<div id='transformed'>
-</div>
 
 <script>
 	var classNames = ['objc', 'firstobjc', 'objcopener', 'objccloser', 'objcopenerandcloser', 'objcparamsep', 'objcparamcountopener', 'objcparamcountcloser']
@@ -177,6 +235,7 @@
 	<div id='dump2'></div>
 
 <td>
+<div id='transformed'></div>
 	<div id='dump'></div>
 	<div id='dump3'></div>
 </table>
@@ -221,10 +280,10 @@
 			else					token.rawValue = ''
 
 			tokens.push(token)
-			dump.innerHTML += ' ' + token.value
-			dump.innerHTML += '\n'
+//			dump.innerHTML += ' ' + token.value
+//			dump.innerHTML += '\n'
 //			alert(dumpHash(token))
-			if (token.id == '(endline)') dump.innerHTML += '\n\n'
+//			if (token.id == '(endline)') dump.innerHTML += '\n\n'
 		}
 		function	logStatement(statement)
 		{
@@ -295,6 +354,81 @@
 				if (token.isObjCParameterSeparator)	v = '<span class="objcparamsep">' + tv + '</span>'
 */
 
+				// Handle ObjC classes
+				if (token.isObjCClassStart)
+				{
+					tokenStream.push("Class('" + tokens[i+1].value + ' < ' + tokens[i+3].value + "').definition = function ()")
+					i += 3
+					continue
+				}
+				// Handle ObjC methods
+				if (token.isObjCClassItemStart)
+				{
+					var methodToken = token
+					var dataHolder = token
+					var isSwizzle = false
+					if (token.value.toLowerCase() == 'swizzle')
+					{
+						methodToken = token = tokens[++i]
+						isSwizzle = true
+					}
+					// Method start
+					if (token.value == '-' || token.value == '+')
+					{
+						i++
+						// Skip method definition
+						while (tokens[i] && tokens[i].value != '{')
+							i++
+
+						var str = "('" + dataHolder.objCMethodName + "').encodingArray(" + dataHolder.objCMethodEncodings + ").fn = function (" + dataHolder.objCMethodParamNames + ")"
+						str = (isSwizzle ? 'Swizzle' : '') + (methodToken.value == '-' ? 'Method' : 'ClassMethod') + str
+						tokenStream.push(str)
+						continue
+					}
+					// Outlet
+					if (token.value == 'IBOutlet')
+					{
+						tokenStream.push("IBOutlet('" + tokens[i+1].value + "')")
+						i += 1
+						continue
+					}
+					// Action
+					if (token.value == 'IBAction')
+					{
+						var actionName = tokens[i+1].value
+						
+						var paramName = 'sender'
+						if (tokens[i+2].value == '(')
+						{
+							paramName = tokens[i+3].value
+							i += 3
+						}
+
+						tokenStream.push("IBAction('" + actionName + "').fn = function (" + paramName + ")")
+						i += 1
+						continue
+					}
+				}
+				// String immediates, selectors
+				if (token.id == '@')
+				{
+					var nexttoken = tokens[i+1]
+					if (nexttoken.id == '(string)')
+					{
+						tokenStream.push('NSString.stringWithString(' + nexttoken.rawValue + ')')
+						i += 1
+						continue
+					}
+					else
+					{
+						tokenStream.push("'" + tokens[i+3].rawValue + "'")
+						i += 4
+						continue						
+					}
+//					alert('@')					
+				}
+
+
 				var c = ''
 				if (token.isObjCCall)			c += ' objc'
 				if (token.isObjCFirstCall)		c += ' firstobjc'
@@ -322,72 +456,43 @@
 				
 				
 //				v = tv
+				//
+				// ObjC message handling
+				//
+				
+				// Skip '[' and ':'
 				if (token.isObjCCallOpener || token.isObjCParameterSeparator) continue
-//				 || token.isObjCCallCloser
-				if (token.isObjCCallCloser)	
-				{
-					if (token.objCParameterCountCloser)
-					{
-						tokenStream.push(')')
-						messageStream.pop()
-						currentMessage = messageStream[messageStream.length-1]
-					}
-					else
-					{
-//						alert('HEP')
-					}
-				}
-//				else
-//				if (token.isObjCFirstCall || token.isObjCFirstParam)
-				{
-//					if (token.isObjCFirstCall)	
-					if (token.isObjCFirstCall)	
-					{
-//						alert(dumpHash(token))
-						// ']' can both open and close a call
-						if (!token.isObjCCallCloser)
-							tokenStream.push(v)
-						currentParameterCount = token.objCParameterCountOpener
-//						alert(dumpHash(token))
-					}
-					else 
-					if (token.isObjCFirstParam)
-					{
-						if (currentParameterCount)
-						{
-							currentMessage = new MultiParameterMessage(v)
 
-//					if (!token.isObjCCallCloser)
-							tokenStream.push(currentMessage)
-							tokenStream.push('(')
-//alert('k')
-							messageStream.push(currentMessage)
-						}
-						else
-						{
-//							alert(v)
-//					if (!token.isObjCCallCloser)
-							tokenStream.push(v)
-						}
-					}
-					else
-					if (token.isObjCCall)
-					{
-						if (currentMessage)
-						{
-					if (!token.isObjCCallCloser)
-							currentMessage.addParameter(v)
-							if (!token.isObjCCallCloser) 
-								tokenStream.push(',')
-						}
-					}
-					else
-//					if (!token.isObjCCallCloser)
-					{
-						tokenStream.push(v)
-					}
+					if (token.isObjCCallCloser && token.isObjCFirstCall) v = ''
+
+				// Instance : add '.' to get method
+				if (token.isObjCFirstCall)
+				{
+					currentParameterCount = token.objCParameterCountOpener
+					v += '.'
 				}
-				if (token.isObjCFirstCall)		tokenStream.push('.')
+				// First selector part : retrieve full selector name
+				if (token.isObjCFirstParam && currentParameterCount)
+				{
+					v = token.objCJSSelector
+					v += '('
+				}
+				// Selector part : ignore name and add ',' separator
+				if (token.isObjCMultiCall)
+				{
+					v = ''
+					if (!token.isObjCCallCloser) 
+						v += ','
+				}
+				// Ignore ']', add ')' if we're closing a parameter message
+				if (token.isObjCCallCloser)
+				{
+					v = ''
+				 	if (token.objCParameterCountCloser)
+						v = ')'
+				}
+				tokenStream.push(v)
+
 			}
 			str2 = tokenStream.join('')
 			dump2.innerHTML = getTickCount() + '\n' + str
@@ -498,7 +603,7 @@ if (!lines[token.line])	continue
 				str += '<hr><div style="color: red; font-weight: bold">eval failed<br>' + dumpHash(e) + '</div>'
 			}
 
-			dump.innerHTML = getTickCount() + '\n' + str
+//			dump.innerHTML = getTickCount() + '\n' + str
 			
 //			alert('go through tokens, register ops - sort by binding power, then replace them for highest to lowest')
 			/*
@@ -599,12 +704,9 @@ if (!lines[token.line])	continue
 	[array[0] init]
 	
 	
-	bug !
-	[d1 doThis]
 
 <pre style='color: red'>
 	* GUARANTEE SELECTOR TO BE [A-Za-z_]\w+
-	* test [a b] seul
 	
 </body>
 </html>
