@@ -475,7 +475,7 @@
 					if (!token.isObjCFirstCall)
 						v = ''
 				 	if (token.objCParameterCountCloser)
-						v = ')'
+						v = ')' + (v||'')
 				}
 				tokenStream.push(v)
 
