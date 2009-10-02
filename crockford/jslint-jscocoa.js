@@ -1372,7 +1372,12 @@ members)?
 							var c = lines[line].length-1
 							if (!s.match(/\n/))
 								c++
-							if (!logTokenLock) logToken({ type : '(comment)', line : line, from : from, value : v, character : c })
+							if (!logTokenLock) 
+							{
+								var t = { type : '(comment)', line : line, from : from, value : v, character : c }
+								t.rawValue = lines[t.line] ? lines[t.line].substr(t.from, t.character-t.from) : ''
+								logToken(t)
+							}
                             s = '';
                             token.comment = true;
                             break;
@@ -1396,7 +1401,12 @@ members)?
 									// Last line of comment
 //									var h = !commentLineIndex ? from : 0
 									var v = firstCommentPrefix+s.substr(0, i+2)
-									if (!logTokenLock)	logToken({ type : '(comment)', line : line, from : from, value : v, character: from+v.length })
+									if (!logTokenLock)	
+									{
+										var t = { type : '(comment)', line : line, from : from, value : v, character: from+v.length }
+										t.rawValue = lines[t.line] ? lines[t.line].substr(t.from, t.character-t.from) : ''
+										logToken(t)
+									}
                                     break;
                                 }
 								else
@@ -1406,7 +1416,12 @@ members)?
 									// All comment lines but the last one go through here
 									var c = lines[line].substr(from).length-1
 									if (commentLineIndex == 0) c += firstCommentPrefix.length
-									if (!logTokenLock)	logToken({ type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : c })
+									if (!logTokenLock)	
+									{
+										var t = { type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : c }
+										t.rawValue = lines[t.line] ? lines[t.line].substr(t.from, t.character-t.from) : ''
+										logToken(t)
+									}
 									from = 0
 								}
                                 if (!nextLine()) {
@@ -1722,22 +1737,31 @@ members)?
         }
 
 // Define t in the current function in the current scope.
-
+/*
+	// ## disabled. I like my redefining.
         if (funct.hasOwnProperty(t)) {
             warning(funct[t] === true ?
                 "'{a}' was used before it was defined." :
                 "'{a}' is already defined.",
                 nexttoken, t);
         }
+*/
         funct[t] = type;
         if (type === 'label') {
             scope[t] = funct;
         } else if (funct['(global)']) {
             global[t] = funct;
+/*
+	// ## commented out
             if (implied.hasOwnProperty(t)) {
+				// This one won't allow 
+				// Define a function Fn1, use global var SomeVar
+				// define someVar
+				// call Fn1
                 warning("'{a}' was used before it was defined.", nexttoken, t);
                 delete implied[t];
             }
+*/
         } else {
             funct['(scope)'][t] = funct;
         }
@@ -1888,7 +1912,11 @@ members)?
         for (;;) {
             nexttoken = lookahead.shift() || lex.token();
 			// ## notify of new token
-			if (!logTokenLock)	logToken(nexttoken)
+			if (!logTokenLock)	
+			{
+				nexttoken.rawValue = lines[nexttoken.line] ? lines[nexttoken.line].substr(nexttoken.from, nexttoken.character-nexttoken.from) : ''
+				logToken(nexttoken)
+			}
             if (nexttoken.id === '(end)' || nexttoken.id === '(error)') {
                 return;
             }
@@ -1963,24 +1991,35 @@ members)?
                             token, token.id);
                 }
             }
+
+//			alert('token=' + token.value + ' nexttoken=' + nexttoken.value)
+		
             while (rbp < nexttoken.lbp) {
                 o = nexttoken.exps;
+				// ## As we don't force lines to end with a semi colon, break if we encounter a reserved word
+				if (nexttoken.reserved && nexttoken.line != token.line) break
                 advance();
+//alert(dumpHashNoFunction(token) + '\n$$$$$$$$$$$\n' + dumpHashNoFunction(nexttoken))
                 if (token.led) {
                     left = token.led(left);
                 } else {
-                    error("Expected an operator and instead saw '{a}'.",
-                        token, token.id);
+//					if (token.line == prevtoken.line)
+                    	error("Expected an operator and instead saw '{a}'.",
+                        	token, token.id);
                 }
             }
-			// .exps is transfered to o, to check if expression can stand on its own : assignment, ++ (postinc), delete, ...
-            if (initial && !o /* ## added for ObjC messaging*/ && !token.exps) {
+			// ## .exps is transfered to o, to check if expression can stand on its own : assignment, ++ (postinc), delete, ...
+			// Disabled because o.release is a valid call in JSCocoa (when autocall is on)
+/*
+            if (initial && !o && !token.exps) {
 //##
                 warning("Expected an assignment or function call and instead saw an expression.",                        token);
             }
+*/
         }
 		// ## notify of expression parsing end
 		logParseEnd(rbp, initial)
+
         return left;
     }
 
@@ -3850,6 +3889,7 @@ members)?
     bitwise('^', 'bitxor', 80);
     bitwise('&', 'bitand', 90);
     relation('==', function (left, right) {
+/* // ## I don't understand these.
         if (option.eqeqeq) {
             warning("Expected '{a}' and instead saw '{b}'.",
                     this, '===', '==');
@@ -3860,10 +3900,13 @@ members)?
             warning("Use '{a}' to compare with '{b}'.",
                 this, '===', right.value);
         }
+*/
         return this;
     });
     relation('===');
     relation('!=', function (left, right) {
+/* // ## I don't understand these.
+// if (b != true) will throw this error. Why ?	
         if (option.eqeqeq) {
             warning("Expected '{a}' and instead saw '{b}'.",
                     this, '!==', '!=');
@@ -3874,6 +3917,7 @@ members)?
             warning("Use '{a}' to compare with '{b}'.",
                     this, '!==', right.value);
         }
+*/
         return this;
     });
     relation('!==');
@@ -3914,7 +3958,10 @@ members)?
 	// Handle @ prefix for NSStrings, plus @selector
 	prefix('@', function ()
 	{
-		var c = parse(155)
+//		log('t=' + token.value)
+//		var c = parse(155)
+		advance()
+		var c = token
 		if (c && c.value == 'selector')
 		{
 			logExtraSyntax('@selector', token)
@@ -3935,7 +3982,9 @@ members)?
 				warningAt('Invalid selector', line, from )
 			
 			var t = { value : selector, type : '(string)', from : from, character : token.character, line : line }
+			t.rawValue = lines[t.line] ? lines[t.line].substr(t.from, t.character-t.from) : ''
 			logToken(t)
+			nexttoken.rawValue = lines[nexttoken.line] ? lines[nexttoken.line].substr(nexttoken.from, nexttoken.character-nexttoken.from) : ''
 			logToken(nexttoken)
 
 			enableLogToken()
@@ -4025,9 +4074,12 @@ members)?
             warning("Weird construction. Delete 'new'.", this);
         }
         adjacent(token, nexttoken);
+/*
+		// ## I like my paramless constructors without parens
         if (nexttoken.id !== '(') {
             warning("Missing '()' invoking a constructor.");
         }
+*/
         this.first = c;
         return this;
     });
@@ -4877,7 +4929,7 @@ members)?
             warning("Wrap the /regexp/ literal in parens to disambiguate the slash operator.");
         }
 
-		// Ruby-like if return
+		// Ruby-like if return : everything must fit on the line
 		// return exp if (exp)
 		// return exp unless (exp)
 		function	isIfReturn()
@@ -4945,12 +4997,17 @@ members)?
 		token.isObjCClassStart = true
 		
 		var className = advance()
-		advance('<')
-		var parentClassName = advance()
+		// If we have a '<', we're deriving from the following class.
+		// If not, we're just adding methods to the class.
+		if (nexttoken.value == '<')
+		{
+			advance('<')
+			var parentClassName = advance()
+		}
 
 		advance('{')
 		
-		var validTokens = { '-' : true, '+' : true, 'IBOutlet' : true, 'IBAction' : true, 'swizzle' : true, 'Swizzle' : true }
+		var validTokens = { '-' : true, '+' : true, 'IBOutlet' : true, 'IBAction' : true, 'swizzle' : true, 'Swizzle' : true, 'Key' : true }
 
 		var parsingClassDefinition = true
 		while (validTokens[nexttoken.value] && parsingClassDefinition)
@@ -5004,16 +5061,11 @@ members)?
 						methodName += token.value
 					}
 				}
-
-//				alert('methodName=' + methodName + '\nencodings=' + encodings + '\nparamNames=' + paramNames)
 				dataHolder.objCMethodName		= methodName
 				dataHolder.objCMethodEncodings	= encodings
 				dataHolder.objCMethodParamNames	= paramNames
 
 				block(false)
-//				alert('END=' + nexttoken.value)
-				
-//				alert(methodName.value)
 			}
 			// Outlet
 			else if (token.value == 'IBOutlet')
@@ -5021,6 +5073,15 @@ members)?
 				token.reserved = true
 				// Outlet name
 				advance()
+				// Outlet setter name may have been redefined
+				if (nexttoken.value == '(')
+				{
+					advance('(')
+					advance()
+					if (token.type != '(identifier)')	warningAt('Outlet param must be an identifier', token.line, token.from)
+					advance(')')
+					block(0)
+				}
 			}
 			// Action : name + possible parameter name
 			else if (token.value == 'IBAction')
@@ -5033,9 +5094,17 @@ members)?
 				{
 					advance('(')
 					advance()
+					if (token.type != '(identifier)')	warningAt('Outlet param must be an identifier', token.line, token.from)
 					advance(')')
 				}
 				block(0)
+			}
+			// Key
+			else if (token.value == 'Key')
+			{
+				token.reserved = true
+				// Key name
+				advance()
 			}
 			else
 			{

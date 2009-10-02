@@ -140,12 +140,37 @@
 		- (void)hello:(NSView*)world 
 			andOthers:(SomeObject*)w
 		{
+			a = 2
+			return if (!z)
+			b = 3
+			return unless (z)
+			
+			return 'errere' unless (z)
+			
+			return function (a, b){ return a+b}(3,4) if (true)
+	
+		
+
 			return @'hello' + @"hello"
 		}
 /* 1*/		+ (int)hop /* 2 */
 		{
 			return 4 + @selector(blah:hop:HEP:) + 15
 		}
+		- (NSRect)addRect:(NSRect)rect1 andRect:(NSRect)rect2
+		{
+			return	new NSRect(	 rect1.origin.x+rect2.origin.x
+								,rect1.origin.y+rect2.origin.y
+								,rect1.size.width+rect2.size.width
+								,rect1.size.height+rect2.size.height)
+		}
+		
+		Key sourceValue
+		IBOutlet outlet2 (newValue)
+		{
+			passedOutlet2 = true
+		}
+
 		IBOutlet blah
 		IBAction hop
 		{
@@ -289,8 +314,8 @@
 //				alert(dumpHashNoFunction(token))
 				
 				
-			if (lines[token.line])	token.rawValue = lines[token.line].substr(token.from, token.character-token.from)				
-			else					token.rawValue = ''
+//			if (lines[token.line])	token.rawValue = lines[token.line].substr(token.from, token.character-token.from)				
+//			else					token.rawValue = ''
 
 			tokens.push(token)
 //			dump.innerHTML += ' ' + token.value
@@ -333,11 +358,9 @@
 			var str = ''
 			var str2 = ''
 			
-			var tokenStream = []
-			var messageStream = []
 			var currentParameterCount
-			var currentMessage
-			var token, prevtoken = tokens[0]
+			var tokenStream		= []
+			var token, prevtoken= tokens[0]
 			for (var i=0; i<tokens.length; i++)
 			{
 				token = tokens[i]
@@ -355,45 +378,22 @@
 				// Add whitespace - either the start of the line if we switched lines, or the span between this token and the previous one
 				var whitespace = prevtoken.line != token.line ? line.substr(0, token.from) : line.substr(prevtoken.character, token.from-prevtoken.character)
 				tokenStream.push(String(whitespace.match(/\s*/)))
-				
-/*				
-				if (prevtoken.line != token.line)
-				{
-					var str = line.substr(0, token.from)
-//					alert(token.from + ' ' + token.value + '\n' + lines[token.line]), ze()
-//					alert(dumpHash(token)), az()
-					str = '<span class="linestartspace">' + (str.match(/\s*__/)) + '</span>'
-					tokenStream.push(str)
-				}
-				else
-				{
-					var str = line.substr(prevtoken.character, token.from-prevtoken.character)
-					str = '<span class="interspace">' + (str.match(/\s*__/)) + '</span>'
-					tokenStream.push(str)
 
-//					alert(prevtoken.line + '_' + prevtoken.from + ' ' + prevtoken.character + ' ' + prevtoken.value + '\n' + token.line + '_' + token.from + ' ' + token.character + ' ' + token.value)
-//					if (i > 14) eaz()
-//					var whitespace = token
-//					alert(lines), re()
-				}
-*/				
 				prevtoken = token
-//				if (!lines[token.line])	continue
-//				tv = lines[token.line].substr(token.from, token.character-token.from)
-/*
-				if (token.isObjCCall)			v = '<span class="objc">' + tv + '</span>'
-				if (token.isObjCFirstCall)		v = '<span class="firstobjc">' + tv + '</span>'
-				if (token.isObjCCallOpener)		v = '<span class="objcopener">' + tv + '</span>'
-				if (token.isObjCCallCloser) 	v = '<span class="objccloser">' + tv + '</span>'
-				if (token.isObjCCallCloser && token.isFirstObjCCall) v = '<span class="objcopener objccloser objcopenerandcloser">' + tv + '</span>'
-				if (token.isObjCParameterSeparator)	v = '<span class="objcparamsep">' + tv + '</span>'
-*/
 
 				// Handle ObjC classes
 				if (token.isObjCClassStart)
 				{
-					tokenStream.push("Class('" + tokens[i+1].value + ' < ' + tokens[i+3].value + "').definition = function ()")
-					i += 3
+					if (tokens[i+2].value == '<')
+					{
+						tokenStream.push("Class('" + tokens[i+1].value + ' < ' + tokens[i+3].value + "').definition = function ()")
+						i += 3
+					}
+					else
+					{
+						tokenStream.push("Class('" + tokens[i+1].value + "').definition = function ()")
+						i += 1
+					}
 					continue
 				}
 				// Handle ObjC methods
@@ -410,12 +410,11 @@
 					// Method start
 					if (token.value == '-' || token.value == '+')
 					{
-						i++
 						// Skip method definition
-						while (tokens[i] && tokens[i].value != '{')
+						while (tokens[i+1] && tokens[i+1].value != '{')
 							i++
 
-						var str = "('" + dataHolder.objCMethodName + "').encodingArray(" + dataHolder.objCMethodEncodings + ").fn = function (" + dataHolder.objCMethodParamNames + ")"
+						var str = "('" + dataHolder.objCMethodName + "').encodingArray([" + dataHolder.objCMethodEncodings + "]).fn = function (" + dataHolder.objCMethodParamNames + ")"
 						str = (isSwizzle ? 'Swizzle' : '') + (methodToken.value == '-' ? 'Method' : 'ClassMethod') + str
 						tokenStream.push(str)
 						continue
@@ -424,6 +423,11 @@
 					if (token.value == 'IBOutlet')
 					{
 						tokenStream.push("IBOutlet('" + tokens[i+1].value + "')")
+						if (tokens[i+2].value == '(')
+						{
+							tokenStream.push('.setter = function (' + tokens[i+3].value + ')')
+							i += 3
+						}
 						i += 1
 						continue
 					}
@@ -440,6 +444,13 @@
 						}
 
 						tokenStream.push("IBAction('" + actionName + "').fn = function (" + paramName + ")")
+						i += 1
+						continue
+					}
+					// Key
+					if (token.value == 'Key')
+					{
+						tokenStream.push("Key('" + tokens[i+1].value + "')")
 						i += 1
 						continue
 					}
@@ -460,10 +471,9 @@
 						i += 4
 						continue						
 					}
-//					alert('@')					
 				}
 
-
+/*
 				var c = ''
 				if (token.isObjCCall)			c += ' objc'
 				if (token.isObjCFirstCall)		c += ' firstobjc'
@@ -482,9 +492,8 @@
 //				if (isCallOpener && isCallCloser)	str += '<span class="objcparamcount"> </span>'
 
 				//			alert(dumpHash(token))
-				
-				
-//				v = tv
+*/				
+				var v = token.rawValue
 				//
 				// ObjC message handling
 				//
@@ -522,7 +531,6 @@
 						v = ')' + (v||'')
 				}
 				tokenStream.push(v)
-
 			}
 			str2 = tokenStream.join('')
 			dump2.innerHTML = getTickCount() + '\n' + str
