@@ -4996,17 +4996,19 @@ members)?
 		token.isObjCClassStart = true
 		
 		var className = advance()
+		if (token.type != '(identifier)')	warningAt('Class name must be an identifier', token.line, token.from)
 		// If we have a '<', we're deriving from the following class.
 		// If not, we're just adding methods to the class.
 		if (nexttoken.value == '<')
 		{
 			advance('<')
 			var parentClassName = advance()
+			if (token.type != '(identifier)')	warningAt('Parent class name must be an identifier', token.line, token.from)
 		}
 
 		advance('{')
 		
-		var validTokens = { '-' : true, '+' : true, 'IBOutlet' : true, 'IBAction' : true, 'swizzle' : true, 'Swizzle' : true, 'Key' : true }
+		var validTokens = { '-' : true, '+' : true, 'IBOutlet' : true, 'IBAction' : true, 'swizzle' : true, 'Swizzle' : true, 'Key' : true, 'function' : true }
 
 		var parsingClassDefinition = true
 		while (validTokens[nexttoken.value] && parsingClassDefinition)
@@ -5018,11 +5020,14 @@ members)?
 				var line = nexttoken.line
 				advance('(')
 				var type = ''
+				var typeTokenCount = 0
 				while (nexttoken && nexttoken.value != ')' && nexttoken.line == line)
 				{
 					advance()
 					type += token.value
+					typeTokenCount++
 				}
+				if (!typeTokenCount)	warningAt('Missing parameter type', token.line, token.from)
 				encodings.push("'" + type + "'")
 				advance(')')
 			}
@@ -5045,7 +5050,8 @@ members)?
 				advance()
 				methodName += token.value
 
-				while (nexttoken && nexttoken.value == ':')
+				var needToParseNameAndType = false
+				while (nexttoken && (nexttoken.value == ':' || needToParseNameAndType))
 				{
 					advance(':')
 					methodName += ':'
@@ -5053,9 +5059,11 @@ members)?
 					// param name
 					advance()
 					paramNames.push(token.value)
+					needToParseNameAndType = false
 					if (nexttoken.type == '(identifier)')	
 					{
-						nexttoken.isObjCCall = true
+						needToParseNameAndType	= true
+						nexttoken.isObjCCall	= true
 						advance()
 						methodName += token.value
 					}
@@ -5104,10 +5112,21 @@ members)?
 				token.reserved = true
 				// Key name
 				advance()
+				if (token.type != '(identifier)')	warningAt('Key param must be an identifier', token.line, token.from)
+			}
+			// Key
+			else if (token.value == 'function')
+			{
+				var jsfn = token
+				jsfn.isClassJSFunction = true
+        		var i = identifier()
+				jsfn.jsFunctionName = token
+//				alert('token=' + token.value)
+				doFunction(i)
 			}
 			else
 			{
-				alert('missing valid token handler while parsing JSCocoa class')
+				warningAt('missing valid token handler for "' + token.value + '" while parsing JSCocoa class', token.line, token.from)
 				parsingClassDefinition = false
 			}
 		}

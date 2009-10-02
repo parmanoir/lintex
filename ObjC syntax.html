@@ -153,6 +153,12 @@
 
 			return @'hello' + @"hello"
 		}
+		
+		function blah(a, b, c)
+		{
+			return 'must be part of class'
+		}
+		
 /* 1*/		+ (int)hop /* 2 */
 		{
 			return 4 + @selector(blah:hop:HEP:) + 15
@@ -419,6 +425,7 @@
 						tokenStream.push(str)
 						continue
 					}
+					else
 					// Outlet
 					if (token.value == 'IBOutlet')
 					{
@@ -431,6 +438,7 @@
 						i += 1
 						continue
 					}
+					else
 					// Action
 					if (token.value == 'IBAction')
 					{
@@ -447,12 +455,20 @@
 						i += 1
 						continue
 					}
+					else
 					// Key
 					if (token.value == 'Key')
 					{
 						tokenStream.push("Key('" + tokens[i+1].value + "')")
 						i += 1
 						continue
+					}
+					else
+					// js function
+					if (token.isClassJSFunction)
+					{
+						tokenStream.push("JSFunction('" + token.jsFunctionName.rawValue + "').fn = ")
+						token.jsFunctionName.rawValue = ''
 					}
 				}
 				else
