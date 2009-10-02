@@ -145,9 +145,9 @@
 			b = 3
 			return unless (z)
 			
-			return 'errere' unless (z)
+			return 'errere'+[[a b]] unless (z + [hello world:'a' and:'b'])
 			
-			return function (a, b){ return a+b}(3,4) if (true)
+			return function (a, b){ return a+b }(3,4) if (true)
 	
 		
 
@@ -455,6 +455,7 @@
 						continue
 					}
 				}
+				else
 				// String immediates, selectors
 				if (token.id == '@')
 				{
@@ -472,6 +473,41 @@
 						continue						
 					}
 				}
+				else
+				// If return
+				if (token.isIfReturn)
+				{
+					token.isIfReturn = false
+					
+					var j = i
+					var returnOpenerIndex = i-1
+					// Skip return tokens
+					while (tokens[j+1] && !tokens[j+1].isIfReturnOpener) j++
+					var ifReturnOpenerIndex = j+1
+					// Skip if tokens
+					while (tokens[j] && !tokens[j].isIfReturnCloser) j++
+					var ifReturnCloserIndex = j
+					
+					// Switch unless (...) to if (!(...))
+					if (tokens[ifReturnOpenerIndex].value == 'unless')
+					{
+						tokens[ifReturnOpenerIndex].rawValue = 'if'
+						tokens[ifReturnOpenerIndex+1].rawValue = '(!' + tokens[ifReturnOpenerIndex+1].rawValue
+						tokens[ifReturnCloserIndex].rawValue += ')'
+					}
+
+					// Splice : delete index, delete item count, replacement
+					var r = tokens.splice(i, ifReturnOpenerIndex-returnOpenerIndex-1)
+//					token.rawValue = '<b style="background-color: lime">' + token.rawValue + '</b>'
+
+					// Push delete item count and delete index on top of replacing tokens
+					r.unshift(0)
+					r.unshift(i+ifReturnCloserIndex-ifReturnOpenerIndex+1)
+					Array.prototype.splice.apply(tokens, r)
+
+					token = tokens[i]
+				}
+				
 
 /*
 				var c = ''

@@ -4935,10 +4935,7 @@ members)?
 		function	isIfReturn()
 		{
 			var b = (nexttoken.id == 'if' || nexttoken.value == 'unless') && token.line == nexttoken.line
-			if (b)
-			{
-				returnToken.isIfReturn = true
-			}
+			returnToken.isIfReturn = b
 			return b
 		}
 		function	parseIfReturn()
@@ -4946,11 +4943,13 @@ members)?
 			logExtraSyntax('ifReturn', token)
 			if (nexttoken.id == 'if')	advance('if')
 			else						advance('unless')
+			token.isIfReturnOpener = token
 			// Manually mark unless as reserved
 			token.reserved = true
 			advance('(')
 			parse(20)
 			advance(')')
+			token.isIfReturnCloser = token
 		}
 
 		var returnToken = token
