@@ -15,6 +15,7 @@
 			font-family: monaco;
 			font-size: 7pt;
 			outline: none;
+			epadding: 1em;
 		}
 		#coloredCode
 		{
@@ -37,7 +38,7 @@ REMOVE STYLESHEET
 	<td>
 		<div id='coloredCodeContainer'><div id='coloredCode'></div></div>
 	</td>
-	<td style='width: 500px'>
+	<td style='width: 300px'>
 		<div id='birdView'></div>
 	</td>
 </tr></table>
@@ -107,9 +108,75 @@ REMOVE STYLESHEET
 		}
 	}
 	
-	class OtherClass < MyClass
+	// List launched applications
+	var apps = [[NSWorkspace sharedWorkspace] launchedApplications]
+	for (var i=0; i<apps.length; i++)
+		log(apps[i].NSApplicationName)	
+
+
+	// Instead of using alloc/init and releasing ...
+	var url = [[NSURL alloc] initFileURLWithPath:"/tmp" isDirectory:true]
+	[url release]
+	// Replace 'init' in the method name with 'instance' to get an object managed by JavascriptCore
+	var url = [NSURL instanceFileURLWithPath:"/tmp" isDirectory:true]
+	// Mark object as collectable
+	url = null
+
+
+	// Mix and match ObjJ and Javascript syntax
+	var a = [NSArray arrayWithObjects:'hello', [7, 8, 9], 'world']
+	log('a[1][2]=' + [[a objectAtIndex:1] objectAtIndex:2])
+	log('a[1][1]=' + [a[1] objectAtIndex:1])
+	log('a[1][0]=' + a[1][0])
+
+
+	// Syntactic sugar for selector notation
+	var o = [SomeObject instance]
+	[o performSelector:@selector(doStuff:) withObject:anObject afterDelay:500]
+	
+	
+	//
+	// Define a Cocoa class in Javascript
+	//	It can then be used from Javascript or Cocoa (use it as a delegate class, create a new NSView, ...)
+	//
+	class MyObject < NSObject
 	{
-		// Test some more swizzle in here
+		// Find objects containing one capital letter
+		- (NSArray*)findObjectsInArray:(NSArray*)array
+		{
+			return array.filter(function (elt) { return elt.match(/[A-Z]/) })
+		}
+		// Use radix = 16 to parse hex. 
+		// Use radix = 36 to parse a Reddit story number.
+		- (NSNumber*)parseNumberInString:(NSString*)str withRadix:(int)radix
+		{
+			return parseInt(str, radix)
+		}
+		// NSApplication delegate method
+		- (void)applicationWillBecomeActive:(NSNotification *)notification
+		{
+			log('Hello ! ' + notification.name)
+		}
+	}
+
+	// Instance our new class
+	var obj = [MyObject instance]
+	[obj parseNumberInString:'9q5vm' withRadix:'36']
+	// Register it as application delegate
+	[NSApplication sharedApplication].delegate = obj
+
+
+	//
+	// Swizzle a method from an existing class : hook into every button's drawing method
+	//
+	class NSButton
+	{
+		swizzle - (void)drawRect:(NSRect)rect
+		{
+			// Call original method
+			this.Original(arguments)
+			log('drawRect: called on button ' + this)
+		}
 	}
 
 </textarea>

@@ -1992,14 +1992,11 @@ members)?
                 }
             }
 
-//			alert('token=' + token.value + ' nexttoken=' + nexttoken.value)
-		
             while (rbp < nexttoken.lbp) {
                 o = nexttoken.exps;
 				// ## As we don't force lines to end with a semi colon, break if we encounter a reserved word
 				if (nexttoken.reserved && nexttoken.line != token.line) break
                 advance();
-//alert(dumpHashNoFunction(token) + '\n$$$$$$$$$$$\n' + dumpHashNoFunction(nexttoken))
                 if (token.led) {
                     left = token.led(left);
                 } else {
@@ -4273,11 +4270,21 @@ members)?
 			// Remaining parameters
 			while (nexttoken && nexttoken.value != ']')
 			{
+				// Handle variadic calls : must be comma list, last values before ]
+				if (nexttoken.value == ',')
+				{
+					while (nexttoken.value == ',')
+					{
+						advance(',')
+						parse(0)
+					}
+					// We're done for this message
+					continue
+				}
 				parameterCount++
 				jsselector += nexttoken.value + '_'
 				nexttoken.isObjCCall = true
 				nexttoken.isObjCMultiCall = true
-				// Advance parameter name
 				advanceParameterName()
 				// Next token must be a semicolon
 				if (nexttoken.id != ':')	warning("ObjC message missing last paramater")

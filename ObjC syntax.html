@@ -134,6 +134,10 @@
 
 -->
 <textarea estyle='display: none'>
+[NSArray arrayWithObjects:1, 2, 3]
+[variadic test2:'ehllo' blah:'hello', 'world']
+[variadic test3:'ehllo' andtherealso:'mlkre' blah3:'hello', 'world']
+var a = [o class]
 	class MyClass < NSView
 	{
 		// a method
@@ -149,6 +153,7 @@
 			
 			return function (a, b){ return a+b }(3,4) if (true)
 	
+	[o wantInt:7 andNSArray:[8, [NSString stringWithString:'hello'], [NSArray arrayWithObjects:1, 2, 3], [4, 5, 6]] andFloat:1.23]
 		
 
 			return @'hello' + @"hello"
@@ -553,14 +558,18 @@
 				// Skip '[' and ':'
 				if (token.isObjCCallOpener || token.isObjCParameterSeparator) continue
 
-					if (token.isObjCCallCloser && token.isObjCFirstCall) v = ''
+				if (token.isObjCCallCloser && token.isObjCFirstCall) v = ''
 
 				// Instance : add '.' to get method
 				if (token.isObjCFirstCall)
 				{
 					currentParameterCount = token.objCParameterCountOpener
-					v += '.'
+					// Special case for 'class', must be bracketed ['class']
+					if (tokens[i+1].rawValue != 'class')
+						v += '.'
 				}
+				// Special case for class
+				if (token.isObjCCall && token.rawValue == 'class')	v = "['class']"
 				// First selector part : retrieve full selector name
 				if (token.isObjCFirstParam && currentParameterCount)
 				{
@@ -778,7 +787,7 @@ if (!lines[token.line])	continue
 		{
 			setTimeout(lint, 0)
 		}
-		textarea.onkeyup = keyup
+//		textarea.onkeyup = keyup
 		
 		setTimeout(function () { document.getElementsByTagName('TEXTAREA')[0].focus() }, 10)
 	</script>
