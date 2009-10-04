@@ -14,11 +14,11 @@
 			white-space: pre-wrap;
 			font-family: monaco;
 			font-size: 7pt;
-			outline: none;
 			epadding: 1em;
 		}
 		#coloredCode
 		{
+			outline: none;
 		}
 	
 		/*
@@ -34,6 +34,8 @@
 </head>
 <body>
 REMOVE STYLESHEET
+
+
 <table border='1' style='table-layout: fixed; width: 100%; height: 800px; height: 650px' cellPadding='0' cellSpacing='0'><tr>
 	<td>
 		<div id='coloredCodeContainer'><div id='coloredCode'></div></div>
@@ -141,13 +143,13 @@ REMOVE STYLESHEET
 	//
 	class MyObject < NSObject
 	{
-		// Find objects containing one capital letter
+		// Find objects containing at least one capital letter
 		- (NSArray*)findObjectsInArray:(NSArray*)array
 		{
 			return array.filter(function (elt) { return elt.match(/[A-Z]/) })
 		}
-		// Use radix = 16 to parse hex. 
-		// Use radix = 36 to parse a Reddit story number.
+		// Use radix = 16 to parse hex
+		// Use radix = 36 to parse a Reddit story number
 		- (NSNumber*)parseNumberInString:(NSString*)str withRadix:(int)radix
 		{
 			return parseInt(str, radix)
@@ -161,13 +163,13 @@ REMOVE STYLESHEET
 
 	// Instance our new class
 	var obj = [MyObject instance]
-	[obj parseNumberInString:'9q5vm' withRadix:'36']
+	log([obj parseNumberInString:'9q5vm' withRadix:'36'])
 	// Register it as application delegate
 	[NSApplication sharedApplication].delegate = obj
 
 
 	//
-	// Swizzle a method from an existing class : hook into every button's drawing method
+	// Swizzle a method from an existing class
 	//
 	class NSButton
 	{
@@ -180,12 +182,6 @@ REMOVE STYLESHEET
 	}
 
 </textarea>
-
-
-<!-- Measures the width of one char -->
-<div id='fontWidthMeasurer'><span>*</span> measures font width</div>
-<!-- readRawSourceFromLine copies line in here and reads it. As the process is destructive, copying it won't affect original source -->
-<div id='rawSourceFromLineExtractor'></div>
 
 	<pre id='dump'></pre>
 
@@ -1032,7 +1028,7 @@ var str = getTickCount()
 			
 			function	replaceExtensions(src)
 			{
-				var idx = src.indexOf('<?')
+				var idx = src.indexOf('<' + '?')
 				var idx2 = 0
 				
 				var tag1 = /<\?/g
@@ -1269,7 +1265,7 @@ document.getElementById('dump3').innerHTML = getTickCount()
 					var text = rawSourceFromLine(f)
 					lines.push(text)
 					
-					if (text.indexOf('<?') != -1)
+					if (text.indexOf('<'+'?') != -1)
 					{
 //						alert('ext start line=' + text)
 					}
@@ -1801,12 +1797,12 @@ collapseToStart=function collapseToStart() {
 			//
 			// Code colorer class
 			// 						
-			function	CodeColorer(editorNode, birdViewNode, containerNode)
+			function	CodeColorer(editorNode, containerNode, birdViewNode)
 			{
-				this.initWithNodes(editorNode, birdViewNode, containerNode)
+				this.initWithNodes(editorNode, containerNode, birdViewNode)
 			}
 			var CCp = CodeColorer.prototype
-			CCp.initWithNodes = function (editorNode, birdViewNode, containerNode)
+			CCp.initWithNodes = function (editorNode, containerNode, birdViewNode)
 			{
 				this.editorNode		= editorNode
 				this.birdViewNode	= birdViewNode
@@ -2112,9 +2108,7 @@ collapseToStart=function collapseToStart() {
 			// 
 			CCp.colorCode = function ()
 			{
-				this.warn('colorCode')
-				
-				this.measureCharWidth()
+					this.measureCharWidth()
 				
 				var lines = this.gatherLinesToLint()
 				var lint = this.lintLines(lines)
@@ -2122,7 +2116,6 @@ collapseToStart=function collapseToStart() {
 				{
 					this.warn('Lint error dump ...\n' + this.dumpLintErrors(lint.errors))
 				}
-				this.toObjC(lint.tokens)
 				//
 				// Color
 				//
@@ -2143,154 +2136,6 @@ collapseToStart=function collapseToStart() {
 				this.popSelection()
 				
 			}
-			CCp.toObjC = function (tokens)
-			{
-				function	MultiParameterMessage(firstParameter)
-				{
-					this.value = firstParameter + '_'
-				}
-		
-				MultiParameterMessage.prototype.toString = function ()
-				{
-					return this.value
-				}
-				MultiParameterMessage.prototype.addParameter = function (param)
-				{
-					this.value += param + '_'
-				}
-
-				var str = ''
-				var str2 = ''
-
-				var tokenStream = []
-				var messageStream = []
-				
-				var currentParameterCount
-				var currentMessage
-//				for (var i=0; i<tokens.length; i++)
-				
-				var streamTokens = true
-				var line = 0
-				var i = 0
-				var token = true
-				var lineTokens = tokens[line]
-				var tokenCount = 0
-
-
-			var flattokens = []
-//			alert(tokens[0].length)
-//			for (var i=0; i<tokens.length; i++)
-			for (var i in tokens)
-			{
-				var line = tokens[i]
-//				push(i)
-				for (var j=0; j<line.length; j++) flattokens.push(line[j])
-			}
-//			alert(flattokens.length)
-			tokens = flattokens
-			for (var i=0; i<tokens.length; i++)
-			{
-				var token = tokens[i]
-
-/*
-				while (token)
-				{
-//					var token = tokens[i]
-					var token = lineTokens[i]
-					i++
-//					alert(tokenCount + '=' + token.value + '(' + token.type + ')' + dumpHash(token))
-//					if (tokenCount > 12) rezmrlk()
-					if (!token)
-					{
-						lineTokens = tokens[line++]
-						if (!lineTokens)	continue
-						i = 0
-						token = lineTokens[i]
-					}
-tokenCount++
-this.tokenCount = tokenCount
-this.tokens = tokens
-*/					
-					var v = tv = token.value
-	//				if (!lines[token.line])	continue
-	//				tv = lines[token.line].substr(token.from, token.character-token.from)
-
-					if (token.isObjCCall)			v = '<span class="objc">' + tv + '</span>'
-					if (token.isObjCFirstCall)		v = '<span class="firstobjc">' + tv + '</span>'
-					if (token.isObjCCallOpener)		v = '<span class="objcopener">' + tv + '</span>'
-					if (token.isObjCCallCloser) 	v = '<span class="objccloser">' + tv + '</span>'
-					if (token.isObjCCallCloser && token.isFirstObjCCall) v = '<span class="objcopener objccloser objcopenerandcloser">' + tv + '</span>'
-					if (token.isObjCParameterSeparator)	v = '<span class="objcparamsep">' + tv + '</span>'
-
-					
-	//				str += ' ' + v
-					str += ' ' + v
-					if ('objCParameterCount' in token) str += '<b>(' + token.objCParameterCount + ')</b>'
-
-					//			alert(dumpHash(token))
-					if (token.id == '(endline)') 
-					{
-//						str += '\n\n'
-						tokenStream.push('\n')
-					}
-					
-					
-	//				v = tv
-					if (token.isObjCCallOpener || token.isObjCParameterSeparator) continue
-	//				 || token.isObjCCallCloser
-					if (token.isObjCCallCloser)	
-					{
-						if (token.objCParameterCount)
-						{
-							tokenStream.push(')')
-							messageStream.pop()
-							currentMessage = messageStream[messageStream.length-1]
-						}
-					}
-//					else
-					{
-						if (token.isObjCFirstCall)	
-						{
-							tokenStream.push(v)
-							currentParameterCount = token.objCParameterCount
-						}
-						else 
-						if (token.isObjCFirstParam)
-						{
-							if (currentParameterCount)
-							{
-								currentMessage = new MultiParameterMessage(v)
-								tokenStream.push(currentMessage)
-								tokenStream.push('(')
-
-								messageStream.push(currentMessage)
-							}
-							else
-								tokenStream.push(v)
-						}
-						else
-						if (token.isObjCCall)
-						{
-							if (currentMessage)
-							{
-								currentMessage.addParameter(v)
-								tokenStream.push(',')
-							}
-						}
-						else
-							tokenStream.push(v)
-					}
-					if (token.isObjCFirstCall)		tokenStream.push('.')
-				}
-				str2 = tokenStream.join('')
-				dump2.innerHTML = getTickCount() + '\n' + str
-//				alert(str2)
-				document.getElementById('birdView').innerHTML = getTickCount() + '\n<pre>' + str2 + '</pre>'
-				
-				
-				return tokens
-			}
-			
 
 			//
 			//
@@ -2830,8 +2675,8 @@ var str = getTickCount()
 			//
 			// Init a code colorer and load some text in it
 			//
-			var cc = new CodeColorer(	document.getElementById('coloredCodeContainer'), 
-										document.getElementById('coloredCode'), 
+			var cc = new CodeColorer(	document.getElementById('coloredCode'), 
+										document.getElementById('coloredCodeContainer'), 
 										document.getElementById('birdView'))
 			
 			var textarea = document.getElementsByTagName('TEXTAREA')[0]
