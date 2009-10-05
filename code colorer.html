@@ -2144,15 +2144,15 @@ collapseToStart=function collapseToStart() {
 			//
 			CCp.replaceTabsInLine = function (line, html, customReplaceFunction)
 			{
-				var tabLengths = []
+				var tabWidths = []
 				function	countTabs(str, idx)
 				{
-					var length = (idx+deltaTabPosition) % tabLength
-					length = tabLength - length
+					var length = (idx+deltaTabPosition) % tabWidth
+					length = tabWidth - length
 					// Add spaces to position (minus one to 'remove' the tab)
 					deltaTabPosition += length-1
 					
-					tabLengths.push(length)
+					tabWidths.push(length)
 				}
 				var tabIndex = 0
 				var charWidth = this.charWidth
@@ -2160,16 +2160,20 @@ collapseToStart=function collapseToStart() {
 				{
 					// A tab is surrounded by a SPAN nulling its width (with negative letter-spacing) and padding it to the correct 4-size with charWidth (measured in fontWidthMeasurer)
 					var w1 = charWidth
-					var w2 = tabLengths[tabIndex++]*charWidth
+					var w2 = tabWidths[tabIndex++]*charWidth
 					return '<span class="fakeTab" style="letter-spacing: -' + w1 + 'px; padding-right: ' + w2 + 'px">	</span>'
 				}
-				var tabLength = 4
+				var tabWidth = this.tabWidth()
 				var deltaTabPosition = 0
 
 				line.replace(/\t/g, countTabs)
-				var fn = customReplaceFunction ? function () { return customReplaceFunction(tabLengths[tabIndex++]) } : replaceTabs
+				var fn = customReplaceFunction ? function () { return customReplaceFunction(tabWidths[tabIndex++]) } : replaceTabs
 				html = html.replace(/\t/g, fn)
 				return	html
+			}
+			CCp.tabWidth = function ()
+			{
+				return	4
 			}
 			
 			CCp.writeTokensToLine = function (node, tokens, line, lineNumber)

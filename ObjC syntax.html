@@ -134,6 +134,36 @@
 
 -->
 <textarea estyle='display: none'>
+	
+	// name + parameters
+	// function name(a, b) { ... }
+	var f0 = ƒ nameAndParams(a, b)
+	{
+		return a+b
+	}
+	
+	// name
+	// function name() { ... }
+	var f1 = ƒ name
+	{
+		return 'hello'
+	}
+	
+	// params
+	// function (a, b) { ... }
+	var f2 = ƒ (a, b)
+	{
+		return a*b
+	}
+	
+	// no name, no params
+	var f3 = ƒ
+	{
+		return 'world'
+	}
+	
+	
+	
 [NSArray arrayWithObjects:1, 2, 3]
 [variadic test2:'ehllo' blah:'hello', 'world']
 [variadic test3:'ehllo' andtherealso:'mlkre' blah3:'hello', 'world']
@@ -162,6 +192,11 @@ var a = [o class]
 		function blah(a, b, c)
 		{
 			return 'must be part of class'
+		}
+		
+		ƒ hello(y, z)
+		{
+			return y*z
 		}
 		
 /* 1*/		+ (int)hop /* 2 */
@@ -390,7 +425,26 @@ var a = [o class]
 				var whitespace = prevtoken.line != token.line ? line.substr(0, token.from) : line.substr(prevtoken.character, token.from-prevtoken.character)
 				tokenStream.push(String(whitespace.match(/\s*/)))
 
+
+
 				prevtoken = token
+				
+				
+
+				// Handle shortcut function token
+				if (token.value == 'ƒ')
+				{
+//					alert(dumpHashNoFunction(token) + '\n************\n' + dumpHashNoFunction(prevtoken))
+					token.rawValue = 'function'
+					
+					// Add parens if they're missing
+					if (tokens[i+1].type == '(identifier)')
+					{
+						if (tokens[i+2].value != '(')	tokens[i+1].rawValue += '()'
+					}
+					else
+						if (tokens[i+1].value != '(')	tokens[i].rawValue += '()'
+				}
 
 				// Handle ObjC classes
 				if (token.isObjCClassStart)
