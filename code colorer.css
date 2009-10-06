@@ -145,7 +145,11 @@
 
 		.newline
 		{
+/*
 			white-space: normal;
+			white-space: wrap;
+			white-space: nowrap;
+*/
 			eborder: solid 3px red;
 			edisplay: inline-block;
 		}

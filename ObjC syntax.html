@@ -425,11 +425,7 @@ var a = [o class]
 				var whitespace = prevtoken.line != token.line ? line.substr(0, token.from) : line.substr(prevtoken.character, token.from-prevtoken.character)
 				tokenStream.push(String(whitespace.match(/\s*/)))
 
-
-
 				prevtoken = token
-				
-				
 
 				// Handle shortcut function token
 				if (token.value == 'ƒ')
