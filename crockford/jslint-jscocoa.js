@@ -1414,7 +1414,7 @@ members)?
 //									alert('2' + s)
 									// ##
 									// All comment lines but the last one go through here
-									var c = lines[line].substr(from).length-1
+									var c = lines[line].substr(from).length
 									if (commentLineIndex == 0) c += firstCommentPrefix.length
 									if (!logTokenLock)	
 									{
@@ -2524,7 +2524,7 @@ members)?
                 advance(';');
             } else {
 				var s = statement()
-				logStatement(s)
+//				logStatement(s)
                 a.push(s);
             }
         }

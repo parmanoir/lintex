@@ -58,7 +58,12 @@
 	</style>
 </head>
 <body>
-REMOVE STYLESHEET
+
+<ul><li>REMOVE STYLESHEET
+	<li><h1 style='color: red'>save selection with all four types and offsets</h1>
+	<li>make an automated undo tester : random commands (including undo/redo) + consistency test : replay to initial state, then back to final
+	<li>make a statement list ?
+		</ul>
 
 
 <table border='1' style='table-layout: fixed; width: 100%; height: 800px; height: 650px' cellPadding='0' cellSpacing='0'><tr>
@@ -67,13 +72,17 @@ REMOVE STYLESHEET
 	</td>
 	<td style='width: 300px'>
 		<div id='birdView'></div>
+		<hr>
+		<div id='birdViewDump'>LOG ALL COMMANDS HERE. typing (typing count, line extent + sel) + move + undo/redo</div>
 	</td>
 </tr></table>
 
-	<textarea style='display: none'>	
+	<textarea style='display: none'>
 	// List launched applications
 	var apps = [[NSWorkspace sharedWorkspace] launchedApplications]
+
 	for (var i=0; i<apps.length; i++)
+		// option-right from next EOL
 		log(apps[i].NSApplicationName)	
 
 
@@ -190,1562 +199,12 @@ REMOVE STYLESHEET
 				for (var i in o) { if (typeof o[i] == 'function') continue; str += i + '=' + (o[i].toString == 'toStringToken' in this ? ('*TOKEN*'+o[i].value + '*') : o[i]) + '\n' }
 				return str
 			}
-
-/*
-			var charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
-			
-			
-			function	dumpHighlighted()
-			{
-				var str = getTickCount() + '\n'
-				str += '<textarea id="dumpHighlighted">' + highlighted.innerHTML + '</textarea>'
-				document.getElementById('dump2').innerHTML = str
-			}
-			
-			function	dumpInternalSource()
-			{
-				document.getElementById('dump3').innerHTML = lines.join('\n')
-			}
-			
-			
-			function	lineNodeFromNode(node)
-			{
-				while (node)
-				{
-					if (node.nodeType == 1 && node.className.match(/\bline\b/))
-						return node
-					node = node.parentNode
-				}
-			}
-			
-			function	lineNumberFromNode(node)
-			{
-				node = lineNodeFromNode(node)
-				if (!node)	return
-//				return parseFloat(node.id.match(/\d+/))
-				var i = 0
-				node = node.previousSibling
-				while (node)
-				{
-					i++
-					node = node.previousSibling
-				}
-				return i
-			}
-			function	nodeFromLineNumber(i)
-			{
-				return highlighted.childNodes[i]
-			}
-
-			// Inner offset : counting tab as ONE character
-			function	characterOffsetFromLineAndNode(node)
-			{
-				
-			}
-			
-			
-			
-			function	toStringToken(o)
-			{
-				if (!o)	o = this
-//				return this.value + '(' + this.line + ':' + this.from + '->' + this.character + ')'
-//				return dumpHashNoFunction(o) + '<hr>'
-//				rez()
-				return o.value + '(' + o.from + '->' + o.character + ')'
-			}
-			
-			var tokensByLine
-			var functionLines
-			
-			
-			var	debugStr
-			var debugCount
-			
-			
-			var traceTokens
-			
-			
-			var	tokensToTrace = { 'function' : true, 'if' : true, 'while' : true, 'do' : true, 'for' : true }
-			
-//			var currentlyOpenTraceIndex
-			function	logToken(token)
-			{
-				var line = token.line
-				
-				token.toString = toStringToken
-//				alert('TOKEN\n' + token.value + '\n' + token.left + '\n' + token.right)
-				for (var i=0; i<debugCount; i++) debugStr += ' '
-//				debugStr += ' TOKEN ' + token.value + '\n'
-				debugStr += '<span style="color: blue">' + (token.value || token.id) + '(' + token.line + ',' + token.character + ')</span>\n'
-//				debugStr += '<span style="color: blue">' + (token.id) + '(' + token.line + ',' + token.character + ')</span>\n'
-//				alert(token+'\n'+dumpHash(token))
-				//
-				//	Log traces
-				//	
-				//	functions : can start from 'function' tokens or next brace token if it's on a different line.
-				//	
-				 
-				if (tokensToTrace[token.id])
-				{
-					traceTokens.push( { type : token.id, token : token, openingBrace : null, closingBrace : null } )
-				}
-				if (traceTokens.length)
-				{
-					var topTrace = traceTokens[traceTokens.length-1]
-					if (token.id == '{')
-					{
-						topTrace.openingBrace = token
-					}
-					if (token.id == '}')
-					{
-						for (var idx=traceTokens.length-1; idx >= 0; idx--)
-						{
-							trace = traceTokens[idx]
-							if (!trace.openingBrace || trace.closingBrace) continue
-							trace.closingBrace = token
-							break
-						}
-					}
-				}
-				
-				if (!tokensByLine[line])	tokensByLine[line] = []
-				tokensByLine[line].push(token)
-			}
-			function	logStatement(statement)
-			{
-			}
-			
-			
-			function	logParseStart(rbp, initial)
-			{
-//				alert('parse start\n' + rbp + '\n' + initial)
-				for (var i=0; i<debugCount; i++) debugStr += ' '
-				debugStr += 'PSTART ' + rbp + ' ' + initial + '\n'
-				debugCount++
-			}
-			function	logParseEnd(rbp, initial)
-			{
-//				alert('parse END\n' + rbp + '\n' + initial)
-				debugCount--
-				for (var i=0; i<debugCount; i++) debugStr += ' '
-				debugStr += 'PEND ' + rbp + ' ' + initial + '\n'
-				if (initial) debugStr += '\n'
-			}
-
-
-			function	logFunctionStart(startToken)
-			{
-				functionLines.push(startToken.line)
-//				alert(startToken.line + ' ' + startToken)
-			}
-			function	logFunctionEnd(startToken, endToken)
-			{
-			}
-
-
-			function	logObjCStart()
-			{
-			}
-
-			
-			function	lintLines(lines)
-			{
-				var options = { forin : true, laxbreak : true, indent : true }
-				
-				tokensByLine = {}
-				functionLines = []
-				traceTokens = []
-    			tree = JSLINT(lines, options)
-//alert(lines + '\n********\n' + tree)
-//				alert(dumpHash(tokensByLine))
-//				if (!tree)
-				{
-//					alert('FAIL')
-//					return
-				}
-				
-				return { tokens : tokensByLine, res : !!tree, functionLines : functionLines, errors : JSLINT.errors }
-			}
-			
-			
-			function	makeWhitespaceVisible(space)
-			{
-//				space = space.replace(/ /g, '<span contentEditable="false"><span class="space"></span></span> ')
-//				space = space.replace(/\t/g, '<span contentEditable="false"><span class="tab"></span></span>	')
-				return	space					
-			}
-			
-			// 'line' is raw text, used to compute tab size
-			// tabs are replaced in 'html' 
-			function	replaceTabsInLine(line, html, customReplaceFunction)
-			{
-				var tabLengths = []
-				function	countTabs(str, idx)
-				{
-					var length = (idx+deltaTabPosition) % tabLength
-					length = tabLength - length
-					// Add spaces to position (minus one to 'remove' the tab)
-					deltaTabPosition += length-1
-					
-					tabLengths.push(length)
-				}
-				var tabIndex = 0
-				function	replaceTabs(str, idx)
-				{
-					// A tab is surrounded by a SPAN nulling its width (with negative letter-spacing) and padding it to the correct 4-size with charWidth (measured in fontWidthMeasurer)
-//					return '<span class="fakeTab">	</span>'
-					var w1 = charWidth
-					var w2 = tabLengths[tabIndex++]*charWidth
-					return '<span class="fakeTab" style="letter-spacing: -' + w1 + 'px; padding-right: ' + w2 + 'px">	</span>'
-				}
-				var tabLength = 4
-				var deltaTabPosition = 0
-
-				line.replace(/\t/g, countTabs)
-				var fn = customReplaceFunction ? function () { return customReplaceFunction(tabLengths[tabIndex++]) } : replaceTabs
-				html = html.replace(/\t/g, fn)
-
-				return	html
-			}
-			function	writeTokensToLine(node, tokens, line)
-			{
-				var i = 0
-				var lastIndex 	= 0
-				var str = ''
-				while (tokens[i])
-				{
-					var token = tokens[i]
-//alert('value=' + token.value + '\nlength=' + token.value.length + '\nrange=' + token.from + ',' + token.character)
-//					keep an index of current char, copy from source string with splice or substring if not there
-					if (token.value && token.from > lastIndex)
-					{
-						var space = line.substr(lastIndex, token.from-lastIndex)
-						str += htmlEncode(space)
-					}
-					var c = ''
-					var v = token.value
-					v = line.substr(token.from, token.character-token.from)
-					if (token.identifier) c = 'identifier-' + token.value
-					if (token.reserved) c = 'keyword'
-					if (token.id && !token.reserved) 
-					{
-						c = 'exps'
-					}
-					if (token.type == '(number)') c = 'number'
-					if (token.type == '(string)') 
-					{
-						c = 'string'
-					}
-					if (token.type == '(comment)') 
-					{
-						c = 'comment'
-//						alert(line + '*\ncharacter=' + token.character + '\nline.length=' + line.length + '\nv=' + v + '*')
-
-						// Single line markdown comment
-//						if (v.match(/^\/\/md/))
-//						{
-//							v = v.replace(/^\/\/md\s?/, '')
-//							v = MarkDownConverter.makeHtml(v)
-//							v = '<span class="markdown-singleline-container"><span class="markdown-singleline">' + v + '</span></span>'
-//							printEndLine = false
-//						}
-
-					}
-					v = htmlEncode(v)
-					str += '<span class="' + c + '">' + v + '</span>'
-					lastIndex = token.character
-					i++
-				}
-				// Copy end of line
-				if (lastIndex < line.length)
-				{
-					var space = line.substr(lastIndex)
-					str += htmlEncode(space)
-//					alert('COPY\n*' + str + '*' + '\n===\n' + line.substr(lastIndex) + '*')
-				}
-				
-				// Treat newlines in lines empty or containing only tabs as white-space: pre (so the caret lets you stop on them), use white-space: normal for the rest
-//				if (line.match(/^(\t*)\n$/))	str = str.replace(/\n/, '<span class="newline">\n</span>')
-//				else 							str = str.replace(/\n/, '<span class="newline-normal">\n</span>')
-
-				// TABS ! sized to any size you want.
-				str = replaceTabsInLine(line, str)
-				
-				node.innerHTML = str
-			}
-
-			//
-			// Get raw text from highlighted line
-			//
-			function	rawSourceFromLine(line)
-			{
-				return	line.innerText
-			}
-			
-			
-
-			var selectionStack = []
-			
-			function	rawSelection()
-			{
-				var sel = getSelection()
-//				return { baseNode : sel.baseNode, baseOffset : sel.baseOffset, extentNode : sel.extentNode, extentOffset : sel.extentOffset }
-				return sel.getRangeAt(0)
-			}
-			function	setRawSelection(r)
-			{
-				var sel = getSelection()
-				sel.removeAllRanges()
-				sel.addRange(r)
-//				sel.setBaseAndExtent(r.baseNode, r.baseOffset, r.extentNode, r.extentOffset)
-			}
-			
-			function	lineAndOffsetFromNodeAndOffset(node, offset)
-			{
-				var n = node
-				var lineNumber = lineNumberFromNode(n), offset2
-				// This is a line node
-				if (n.className == 'line')
-				{
-					offset2 = offset
-				}
-				// Walk up to the node having the line node as parent, then walk up its siblings to count offset from line start
-				else
-				{
-					while (n && n.parentNode && n.parentNode.className != 'line') n = n.parentNode
-					if (n)
-					{
-						offset2 = offset
-						var n2 = n.previousSibling
-						while (n2)
-						{
-							if (n2.nodeType == 1)	offset2 += rawSourceFromLine(n2).length
-							if (n2.nodeType == 3)	offset2 += n2.nodeValue.length
-							n2 = n2.previousSibling
-						}
-					}
-				}
-				return	{ line : lineNumber, offset : offset2 }
-			}
-			
-			function	selectionAsLineAndOffset()
-			{
-				var sel = getSelection()
-				var raw = rawSelection()
-
-				sel.modify('extend', 'left', 'paragraphboundary')
-				var selectionText = sel.toString()
-				var length = selectionText.length
-				var range = sel.getRangeAt(0)
-				var h = { type : 'Caret', line : lineNumberFromNode(sel.baseNode), offset : length }
-
-				setRawSelection(raw)
-
-				return h
-			}
-
-			function	setSelectionAsLineAndOffset(line, offset)
-			{
-				var line = nodeFromLineNumber(line)
-				var sel = getSelection()
-				sel.setPosition(line, 0)
-				for (var i=0; i<offset; i++)
-					sel.modify('move', 'right', 'character')
-			}
-
-			function	setRangeSelectionAsLinesAndOffsets(line1, offset1, line2, offset2)
-			{
-				var sel = getSelection()
-				setSelectionAsLineAndOffset(line1, offset1)
-				var baseNode	= sel.baseNode
-				var baseOffset	= sel.baseOffset
-				setSelectionAsLineAndOffset(line2, offset2)
-				var extentNode	= sel.extentNode
-				var extentOffset= sel.extentOffset
-				sel.setBaseAndExtent(baseNode, baseOffset, extentNode, extentOffset)
-			}
-			
-			//	Return the current range selection as 
-			//	{ 
-			//		 base : { line, offset }
-			//		,extent : { line, offset }
-			//	}
-			
-			function	rangeSelectionAsLineAndOffset()
-			{
-				var sel = getSelection()
-
-				var names = ['anchor', 'extent', 'focus', 'base']
-				var base = { line : 999999999, offset : 999999999 }
-				var extent = { line : -1, offset : -1 }
-				for (var i=0; i<names.length; i++)
-				{
-					var name = names[i]
-					var s = lineAndOffsetFromNodeAndOffset(sel[name + 'Node'], sel[name + 'Offset'])
-					if (s.line < base.line) 	base = s
-					if (s.line == base.line && s.offset < base.offset)		base = s
-					if (s.line > extent.line)	extent = s
-					if (s.line == extent.line && s.offset > extent.offset)	extent = s
-				}
-				return { base : base, extent : extent }
-			}
-
-			function	pushCaretSelection()
-			{
-				selectionStack.push(selectionAsLineAndOffset())
-			}
-			function	popCaretSelection()
-			{
-				var s = selectionStack.pop()
-				setSelectionAsLineAndOffset(s.line, s.offset)
-			}
-			function	pushRangeSelection()
-			{
-				selectionStack.push(rangeSelectionAsLineAndOffset())
-			}
-			function	popRangeSelection()
-			{
-				var s = selectionStack.pop()
-				setRangeSelectionAsLinesAndOffsets(s.base.line, s.base.offset, s.extent.line, s.extent.offset)
-			}
-			function	caretSelectionOnStack()
-			{
-				if (!selectionStack.length)	return
-				return	selectionStack[selectionStack.length-1]
-			}
-			
-			function	pushSelection()
-			{
-				pushCaretSelection()
-			}
-			function	popSelection()
-			{
-				popCaretSelection()
-			}
-			
-			
-			var lineCount
-			var currentLineNumber
-			var currentLineText
-//			var previousLineText
-//			var nextLineText
-*/			
-			function	keydown()
-			{
-				
-				
-				setTimeout(postKeydown, 0)
-//				alert(event.keyCode)
-				var keyCode = event.keyCode
-				
-				//  Check control key to account for emacs shortcuts
-				if (event.shiftKey || event.ctrlKey)	
-				{
-//					alert('SELEX')
-//					alert('mark newlines as normal')
-				}
-				
-				
-				var sel = getSelection()
-				
-				if (sel.type != 'Caret' && sel.type != 'Range')	return
-				
-				var line = lineNodeFromNode(sel.baseNode)
-
-				if (!line)
-				{
-					alert('Caret is not in a DIV')
-					return
-				}
-					
-				var lineNode 		= lineNodeFromNode(sel.baseNode)
-				lineCount			= highlighted.childNodes.length
-				currentLineNumber 	= lineNumberFromNode(sel.baseNode)
-//				currentLineText 	= lineNode.innerText
-				currentLineText		= rawSourceFromLine(lineNode)
-//				previousLineText	= lineNode.previousSibling ? lineNode.previousSibling.innerText : null
-//				nextLineText		= lineNode.nextSibling ? lineNode.nextSibling.innerText : null
-				
-
-				var lineNumber = lineNumberFromNode(sel.baseNode)
-
-				//  Insert tab
-				if (keyCode == 9)
-				{
-						var s = rangeSelectionAsLineAndOffset()
-						var lineNumber1 = s.base.line
-						var lineNumber2 = s.extent.line
-//						if (s.extent.offset == 0) lineNumber2--
-
-
-					event.preventDefault()
-					var lineNumber2 = lineNumberFromNode(sel.extentNode)
-					// Insert a single tab
-					if (lineNumber == lineNumber2)
-					{
-						if (sel.type == 'Range')	sel.deleteFromDocument()
-						pushCaretSelection()
-//alert('1')						
-						var t = currentLineText
-//						lineNode.innerText = t
-						var offset = caretSelectionOnStack().offset
-//alert('2')						
-//alert('3')						
-						var left = t.substr(0, offset)
-						var right = t.substr(offset)
-//						alert(left + '<CARET>' + right)
-//						alert('offset=' + offset + '\ntext=' + t + '\n\n\nleft=' + left + '\n\n\nright=' + right)
-						var text = left + '\t' + right
-						lineNode.innerHTML = replaceTabsInLine(text, text)
-//alert('4')						
-						popCaretSelection()
-						// Advance after tabbing
-						sel.modify('move', 'right', 'character')
-//alert('5')						
-//				document.getElementById('dump6').innerHTML += '\nselectionAsLineAndOffset line=' + h.line + ', offset=' + h.offset
-
-					}
-					else
-					// Move lines back and from
-					{
-//						alert(sel.extentNode.parentNode.innerText + ' ' + sel.extentOffset)
-//						alert('tab selection TODO, account shift')
-						
-						pushRangeSelection()
-/*
-						var str = 'when shift selecting keyboard, selection differs and selects part of the first line'
-						str += '\nanchor=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
-						str += '\nextent=(' + sel.extentOffset + ')' + lineNodeFromNode(sel.extentNode).innerText
-						str += '\nbase=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
-						str += '\noffset=(' + sel.focusOffset + ')' + lineNodeFromNode(sel.focusNode).innerText
-						alert(str)
-*/
-/*
-	alert('SEL TAB MULTIPLE LINES')
-						// Keyboard selecting lines will select the next line with a zero offset
-						// happens on triple-clicking left space on tabs on a function
-						if (sel.extentOffset == 0) lineNumber2--
-
-//						alert(lineNumber + ' ' + lineNumber2)
-//						alert(lineNodeFromNode(sel.baseNode).innerText)
-						
-						if (lineNumber2 <= lineNumber)
-						{
-							var tmp = lineNumber2
-							lineNumber2 = lineNumber
-							lineNumber = tmp
-						}
-*/
-						var s = rangeSelectionAsLineAndOffset()
-						var lineNumber1 = s.base.line
-						var lineNumber2 = s.extent.line
-						// Full line selections have an extent that starts to the next line with an offset of 0. (1 if line starts with a fake tab)
-						if (s.extent.offset == 0 || s.extent.offset == 1) lineNumber2--
-						for (var i=lineNumber1; i<=lineNumber2; i++)
-						{
-							var line = nodeFromLineNumber(i)
-							var t
-							if (!event.shiftKey)	t = '\t' + rawSourceFromLine(line)
-							else					t = rawSourceFromLine(line).toString().replace(/^\s/, '')
-							
-							line.innerHTML = replaceTabsInLine(t, t)
-						}
-						popRangeSelection()
-					}
-				}
-				
-				// Custom word delete handling
-				if (keyCode == 8 && event.altKey)
-				{
-					alert('CHECK ! extent selection to previous word. if overflows line, just move it to start of line')
-				}
-				
-				// Insert new line
-				// Check enter and CTRL+O
-				if (keyCode == 13 || (keyCode == 79 && event.ctrlKey))
-				{
-					if (sel.type == 'Caret')
-					// OR if one line range
-					{
-						event.preventDefault()
-						pushCaretSelection()
-						lineNode.innerText = rawSourceFromLine(lineNode)
-						popCaretSelection()
-						var l = lineNumberFromNode(sel.baseNode)
-						
-						var line = lineNodeFromNode(sel.baseNode)
-						
-						sel.setBaseAndExtent(line, 0, sel.baseNode, sel.baseOffset)
-//						alert(line.innerText + '\n' + l)
-//						var c = characterOffsetFromLineAndNode(sel.baseNode, sel.baseOffset)
-						
-//						sel.modify('extend', 'left', 'line')
-						
-						
-						
-						var leftLength = sel.toString().length
-//						var newLine = line.innerText.substr(leftLength)
-						
-//						alert(l)
-//						alert(lines[l])
-//						alert(sel.toString().length + '\n' + line.innerText.length)
-						
-						var n = document.createElement('DIV')
-						n.className = 'line'
-						
-						// Add \n if it's not here (happens on one-line documents)
-						var rightText = rawSourceFromLine(line).substr(leftLength)
-						if (!rightText.match(/\n/)) rightText += '\n'
-						// Get space (minus \n) on cursor left
-						var leftSpace = rawSourceFromLine(line).substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
-						
-						// Add a tab if we're pressing enter AFTER a brace
-						if (rawSourceFromLine(line).match(/^\s*\{/) && !rightText.match(/\{/))	leftSpace += '	'
-						
-//						alert(line.innerText)
-						
-						var text = leftSpace + rightText
-						text = replaceTabsInLine(text, text)
-						n.innerHTML = text
-						
-						line.insertAdjacentElement('afterEnd', n)
-//						line.innerText = line.innerText.substr(0, leftLength) + '\n'
-						var text = rawSourceFromLine(line).substr(0, leftLength) + '\n'
-						lineNode.innerHTML = replaceTabsInLine(text, text)
-
-						if (keyCode == 13)
-						{
-							sel.setPosition(n, 0)
-							if (leftSpace.length)
-							{
-								for (var i=0; i<leftSpace.length; i++)
-									sel.modify('move', 'right', 'character')
-							}
-						}
-						else
-							sel.setPosition(sel.extentNode, sel.extentOffset)
-					}
-					else
-					{
-						// Nothing to do with a range as no newline is inserted.
-					}
-					
-				}
-				
-				/*
-					If Range selection, save all lines
-				*/
-			}
-			
-//			var previouslySelectedLine
-			function	postKeydown()
-			{
-				var sel = getSelection()
-//				var lineNumber = lineNumberFromNode(sel.baseNode)
-				
-				/*
-					Maybe 
-					* deleted everything
-						-> just a text node left, or a br
-					* backspace or delete
-						-> two spans on the same line					
-				*/
-				var line = lineNodeFromNode(sel.baseNode)
-				if (!line)
-				{
-					// Will be called even after ALT-L (select address bar), check if we have a selection
-					if (sel.type == 'None')	return
-
-					// Read the whole highlighted source
-					var newLines = highlighted.innerText.split('\n')
-					highlighted.innerHTML = ''
-
-					for (var i=0; i<newLines.length; i++)
-					{
-						var n = document.createElement('DIV')
-						n.className = 'line'
-						n.innerText = newLines[i] + '\n'
-						highlighted.appendChild(n)
-					}
-					// Select the text node
-					sel.setPosition(highlighted.firstChild.firstChild, 0)
-					var line = lineNodeFromNode(sel.baseNode)
-				}
-				
-//				if (previouslySelectedLine)	previouslySelectedLine.className = 'line'
-//				previouslySelectedLine = null
-				
-				var lineCount2			= highlighted.childNodes.length
-				var currentLineNumber2 	= lineNumberFromNode(sel.baseNode)
-				
-				var currentLineText2 	= rawSourceFromLine(lineNodeFromNode(sel.baseNode))
-
-				
-
-//alert(currentLineText + '\n\n' + currentLineText2 + '\n\n\nn1=' + currentLineNumber + '\nn2=' + currentLineNumber2)
-				
-				var mode = 'selecting'
-				var moved = lineCount2 != lineCount
-				var lineChanged = !(currentLineNumber2 == currentLineNumber && currentLineText2 == currentLineText)
-				if (moved || lineChanged)
-					mode = 'typing'
-				
-				// Custom handling for having inserted specific characters, eg closing a brace : remove one tab in front of it
-				if (mode == 'typing' && currentLineNumber == currentLineNumber2 && currentLineText.length+1 == currentLineText2.length)
-				{
-					
-					var s = selectionAsLineAndOffset()
-					var addedChar = currentLineText2.charAt(s.offset-1)
-
-					// If closed a block, remove a tab in front of it
-					if (addedChar == '}' && currentLineText2.match(/\t\}/))
-					{
-						pushCaretSelection()
-						var text = currentLineText2.replace(/\t\}/, '}')
-						line.innerText = text
-						selectionStack[selectionStack.length-1].offset--
-						popCaretSelection()
-					}
-				}
-				
-/*				
-				var str  = getTickCount() + ' '
-				if (mode == 'typing') 	str += '<span style="color: red">' + mode + '</span>'
-				else					str += mode
-				
-				
-				if (line.previousSibling && line.previousSibling.offsetTop == line.offsetTop)
-					str += '\n<span style="color: red">PREVIOUS SPAN ON SAME LINE</span>'
-				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
-					str += '\n<span style="color: red"><b>NEXT</b> SPAN ON SAME LINE</span>'
-*/
-				// While forward or backward deleting, the next line SPAN came onto the current SPAN. Remove it
-				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
-				{
-					alert('Does this still happen ?')
-					pushCaretSelection()
-					line.innerText = rawSourceFromLine(line)
-					line.nextSibling.innerText = rawSourceFromLine(line.nextSibling)
-					line.innerText += rawSourceFromLine(line.nextSibling)
-					line.nextSibling.parentNode.removeChild(line.nextSibling)
-					popCaretSelection()
-					// Selection stays the same, nice !
-				}
-
-var str = getTickCount()
-				str += '\nchildNodesCount=' + highlighted.childNodes.length + ' \\n count=' + (highlighted.innerText.match(/\n/g)||0).length
-				
-				str += '\nlineCount=' + lineCount
-				str += '\nlineCount2=' + lineCount2
-				str += '\nlineNumber=' + currentLineNumber
-				str += '\nlineNumber2=' + currentLineNumber2
-				str += '\ncurrentLineText=' + currentLineText
-				str += '\ncurrentLineText2=' + currentLineText2
-				str += '\n!=lineCount=' + (lineCount2 != lineCount)
-				str += '\n!=currentLineNumber=' + (currentLineNumber2 != currentLineNumber)
-				str += '\n!=currentLineText=' + (currentLineText2 != currentLineText)
-				
-				str += '\n<span style="color: blue">' + mode + '</span>'
-				
-				document.getElementById('dump4').innerHTML = str
-				var str = getTickCount()
-				var context = 'which function ?'
-				str += '\n<span style="color: red">CONTEXT=' + context + '</span>'
-				str += '\n<span style="color: red">extent of change=' + context + '</span>'
-				str += '\n<span style="color: red">last key pressed definetely makes it a MOVE (arrow keys)=' + context + '</span>'
-				document.getElementById('dump2').innerHTML = str
-				
-				
-//				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
-				
-				
-				if (mode != 'typing')	return
-				
-				if (sel.type == 'Range') alert('HIGHLIGHT WITH RANGE SELECTION')
-				highlightText()
-
-				//
-				// Selected line
-				// 
-				showSelectedLine()
-
-//				alert(lines)
-				
-			}
-
-			function	birdView(line, functionLines)
-			{
-				var str = ''
-				for (var i=0; i<functionLines.length; i++)
-				{
-					var idx = functionLines[i]
-					var line = lines[idx]
-					str += idx + '=' + line + '<br>'
-				}
-//				document.getElementById('birdView').innerHTML = str
-				
-			}
-			
-			var charWidth = 0
-			var paddedLines = []
-			
-			function	replaceExtensions(src)
-			{
-				var idx = src.indexOf('<' + '?')
-				var idx2 = 0
-				
-				var tag1 = /<\?/g
-				var tag2 = /\?>/g
-				
-				var r1
-				var lastIndex = 0
-				var src2 = []
-				while (r1 = tag1.exec(src))
-				{
-//					alert(r1.index  + '\n' + dumpHash(r1))
-					tag2.lastIndex = r1.index
-					var r2 = tag2.exec(src)
-					if (r2)
-					{
-						src2.push(src.substr(lastIndex, r1.index-lastIndex))
-//						src2.push(src.substr(r1.index, r2.index-r1.index+2))
-						var str = src.substr(r1.index, r2.index-r1.index+2)
-//						alert('IN=' + str + '\n**********************')
-						lastIndex = r2.index+2
-					}
-					else
-					{
-						return null
-					}
-//					alert(dumpHash(r1))
-//					alert(dumpHash(r2))
-//					alert(r.index + '\n' + (r2 ? r2.index : 'NO LASTMATCH'))
-				}
-				if (lastIndex)
-				{
-					src2.push(src.substr(lastIndex))
-//					alert('EXTRACTED=' + src2.join(''))
-					return src2.join('')
-				}
-				return	src
-				
-/*
-				if (idx)
-				{
-					var src2 = src.substr(idx2, idx)
-					var idx2 = src.indexOf('')
-				}
-*/
-			}
-
-			
-			function	errorBubbles(lint)
-			{
-				pushCaretSelection()
-				
-				var str = ''
-				
-				var bubbleContainer = document.getElementById('bubbleContainer')
-				bubbleContainer.innerHTML = ''
-
-				// Remove padding from bubble lines
-				for (var i=0; i<paddedLines.length; i++)	
-				{
-//					var line = nodeFromLineNumber(paddedLines[i].lineNumber)
-					var line = paddedLines[i].line
-					// Skip line if it's been deleted since
-					if (!line)	continue
-					line.style.padding = 0
-				}
-
-
-
-//				if (highlightCount > 1)	return
-//					pushSelection()
-
-				// Copy error list and remove trailing null
-				var errors = []
-				for (var i=0; i<lint.errors.length; i++) { if (lint.errors[i])	errors.push(lint.errors[i]) } 
-				
-				// Sort errors as they can come non ordered
-				errors.sort(function (a, b)
-							{
-								if (a.line < b.line)	return -1
-								if (a.line > b.line)	return 1
-								return 0
-							})
-
-				var previousErrorLine
-				// Error list is null-terminated
-				for (var i=0; i<errors.length; i++)
-				{
-					var error = errors[i]
-
-					// This error will be made visible by the non-highlighted source appearing black
-					if (error['reason'].match(/unable to continue/))	continue
-
-					// Only show one error per line
-					if (error.line == previousErrorLine)				continue
-
-					// Copy these as they can be modified
-					var errorLine = error.line
-					var errorReason = error.reason
-					
-					
-					var ll = nodeFromLineNumber(errorLine)
-
-					// JSLint will sometimes give the error one (non existant) line ahead,
-					// Try getting previous line
-					if (!ll /*&& error.reason == 'Unexpected early end of program.'*/)
-					{
-						ll = nodeFromLineNumber(errorLine-1)
-						if (ll) 
-						{
-							errorLine--
-							if (errorLine == previousErrorLine)	continue
-						}
-					}
-					previousErrorLine = errorLine
-
-					if (!ll)
-					{
-						document.getElementById('dump2').innerHTML = 'NULL LINE IN LINT ERROR\n' + dumpHash(error) + '\nhighlighted.childNodes.length=' + highlighted.childNodes.length
-						return
-					}
-
-					var sel = getSelection()
-					if (!sel.baseNode)
-					{
-						alert(getSelection().type + '\n' + error.line + '(' + errorLine + ')' + ',' + error.character)
-					}
-					
-					// Create an empty span to measure position of caret in line
-					var span = insertMeasuringSpanAtLineAndOffset(errorLine, error.character)
-
-					// Create bubble
-					var line = nodeFromLineNumber(errorLine)
-					var x = (span.offsetLeft + highlighted.offsetLeft)
-					var y = /*span.offsetTop +*/ line.offsetTop + line.offsetHeight
-					var margin = span.offsetHeight
-
-//##					
-					x = span.offsetLeft+60
-					y = line.offsetTop-4
-					
-					var bubbleWrapper	= document.createElement('DIV')
-					bubbleWrapper.className = 'bubbleWrapper'
-					bubbleWrapper.style.top = y + 'px'
-					bubbleWrapper.style.marginLeft = 0 + 'px'
-					bubbleWrapper.innerHTML = "<span class='bubbleArrow'>▾</span>"
-
-					var quoteCount = 0
-					function	boldQuotes(r)
-					{
-						quoteCount++
-						return quoteCount&1 ? '<b>' : '</b>'
-					}
-					// Bold quotes
-					errorReason = errorReason.replace(/\'/g, boldQuotes)
-					// Remove trailing dot
-					errorReason = errorReason.replace(/\.$/g, '')
-					
-					var bubble			= document.createElement('DIV')
-					bubble.innerHTML = errorReason
-					bubble.className = 'bubble'
-					
-					bubbleWrapper.appendChild(bubble)
-					bubbleContainer.appendChild(bubbleWrapper)
-
-					// Clamp bubble position so it doesn't overflow on the right side
-					if (x+bubbleWrapper.offsetWidth > highlighted.offsetWidth)
-						x = highlighted.offsetWidth - bubbleWrapper.offsetWidth
-
-					bubbleWrapper.style.marginLeft = x + 'px'
-
-					// Pad line bottom to leave space for the bubble, stored one layer down
-					var paddingBottom = bubbleWrapper.offsetHeight
-//##
-					paddingBottom = 0
-
-					line.style.paddingBottom = paddingBottom + 'px'
-					paddedLines.push( { lineNumber : errorLine, line : line } )
-				}
-
-
-				str = '\n<span style="color: red">' + str + '</span>'
-				document.getElementById('dump5').innerHTML += str
-
-				popCaretSelection()
-			}
-			
-			function	lineNumbers()
-			{
-				var lineNumbers = document.getElementById('lineNumbers')
-				lineNumbers.innerHTML = ''
-				var lines = highlighted.childNodes
-				var f = highlighted.firstChild
-				var numbers = []
-				var i = 1
-				while (f)
-				{
-					var h = f.offsetHeight
-					var c = 'lineNumber'
-					if ((i % 10) == 0) c += ' l10'
-					numbers.push('<div class="' + c + '" style="height: ' + h + 'px">' + i++ + '</div>')
-					f = f.nextSibling
-				}
-				lineNumbers.innerHTML = numbers.join('')
-			}
-			
-			
-			
-			var highlightCount = 0
-			
-			//
-			// Highlight
-			// 
-			function	highlightText()
-			{
-				var str = ''
-				try
-				{
-					str = 'childNodes.length=' + highlighted.childNodes.length + ' innerText.newlineCount=' + highlighted.innerText.match(/\n/g).length
-				}
-				catch (e) { str = 'NOT EVENT ONE LINE RETURN'}
-//				str += ' newline-normal=' + document.getElementsByClassName('newline-normal').length + ' newline=' + document.getElementsByClassName('newline').length
-//				document.getElementById('dump4').innerHTML = str
-
-
-document.getElementById('dump3').innerHTML = getTickCount()
-
-
-				highlightCount++
-				charWidth = document.getElementById('fontWidthMeasurer').firstChild.offsetWidth
-				lines = []
-				var f = highlighted.firstChild
-				while (f)
-				{
-					var text = rawSourceFromLine(f)
-					lines.push(text)
-					
-					if (text.indexOf('<'+'?') != -1)
-					{
-//						alert('ext start line=' + text)
-					}
-					
-					f = f.nextSibling
-				}
-//				var src = lines.join('')
-//				src = replaceExtensions(src)
-//				lines = src.split('\n')
-//				for (var i=0; i<lines.length-1; i++)	lines[i] += '\n'
-/*				if (src.match(/<\?/))
-				{
-					function	r(a, b, c, d)
-					{
-//						alert(a + '!' + String(a).indexOf('\n'))//+ ' ' + b)
-						
-					}					
-					src.replace(/<\?.*\?>/g, r)
-				}
-*/				
-//				alert(lines.join('').substr(0, 200))
-
-
-				debugStr = ''
-				debugCount = 0
-				
-				var lint = lintLines(lines)
-//				var lint = lintLines(src)
-				
-
-				//
-				// Highlight
-				//
-				pushCaretSelection()
-//				alert(dumpHash(caretSelectionOnStack()))
-
-				var f = highlighted.firstChild
-				var i = 0
-				
-				while (f)
-				{
-					var tokens = lint.tokens[i]
-					if (!tokens) tokens = []
-					var line = lines[i]
-					writeTokensToLine(f, tokens, line, i)
-					
-					f = f.nextSibling
-					i++
-				}
-				
-
-				var str = getTickCount()
-/*				
-				str += '\ntokens=' + dumpHash(lint.tokens)
-				for (var i=0; i<lint.tokens.length; i++)
-				{
-					str += lint.tokens[i]
-					str += i + '*'
-				}
-*/
-				str += '\nSTACKLENGTH=' + selectionStack.length + '\n'// + str
-				str += 'traceTokens count=' + traceTokens.length + '\n'
-				for (var i=0; i<traceTokens.length; i++)
-				{
-					var trace = traceTokens[i]
-					var l1 = trace.token.line+1
-					var l2 = (trace.openingBrace ? trace.openingBrace : trace.token) .line+1
-					str += trace.token.id + '=' + (l1==l2 ? l1 : (l1 + '(' + l2 + ')'))
-					if (trace.closingBrace)
-						str += '->' + (trace.closingBrace.line+1)
-//					if (trace.closingBrace)
-//						str += '->' + trace.closingBrace.line
-					str += '\n'
-				}
-				str += getTickCount() + ' highlight'
-//				document.getElementById('dump3').innerHTML = str
-//				document.getElementById('dump2').innerHTML = debugStr
-//				alert(debugStr)
-//				alert(lines)
-				//
-				// Bird view
-				// 
-				birdView(lines, lint.functionLines)
-//				alert(lint.errors)
-
-
-				//
-				// Save selected line's className
-				// 
-/*
-				var selectedLineClassName
-				if (previouslySelectedLine)
-				{
-					selectedLineClassName = previouslySelectedLine.className
-					previouslySelectedLine.className = 'line'
-				}
-*/				
-				
-				
-
-
-
-				var str = getTickCount() + ' highlight (' + highlightCount + ') selectionStack.length=' + selectionStack.length + '<br>' 
-				document.getElementById('dump5').innerHTML = str
-				
-				
-				
-				//
-				// Show error bubbles
-				// 
-				
-				popCaretSelection()
-				errorBubbles(lint)
-//return
-//				alert(lint.errors[0].reason)
-//				alert(str)
-				
-				
-				//
-				// Line numbers
-				//
-				lineNumbers()
-				
-				//
-				// Traces
-				// 
-				traces()
-				
-				//
-				// White space
-				// 
-//				revealWhiteSpace()
-				
-
-//					popSelection()
-
-
-
-//				if (previouslySelectedLine)	previouslySelectedLine.className = selectedLineClassName
-			}
-			
-			
-			function	insertMeasuringSpanAtLineAndOffset(line, offset)
-			{
-				var sel = getSelection()
-				setSelectionAsLineAndOffset(line, offset)
-				var range = sel.getRangeAt(0)
-				// Special case for tabs : insert them in front of the next node instead of the end of current tab
-				if (sel.baseOffset == 1 && sel.baseNode && sel.baseNode.parentNode && sel.baseNode.parentNode.className == 'fakeTab' && sel.baseNode.parentNode.nextSibling)
-				{
-					range = range.cloneRange()
-					var n = sel.baseNode.parentNode.nextSibling
-					range.selectNode(n)
-				}
-
-				// Create an empty span to measure position
-				var span = document.createElement('SPAN')
-				range.insertNode(span)
-				return span
-			}
-			
-			function	traces()
-			{
-				pushCaretSelection()
-				var tracesContainer = document.getElementById('tracesContainer')
-				tracesContainer.innerHTML = ''
-				for (var i=0; i<traceTokens.length; i++)
-				{
-					var traceToken = traceTokens[i]
-					
-					// Only show traces of tokens having braces
-					if (!traceToken.closingBrace)	continue
-
-					// Insert two blank spans to measure position of opening tokens
-					// Opening token is a keyword or a brace on a following line
-					var openingToken = traceToken.token.line == traceToken.openingBrace.line ? traceToken.token : traceToken.openingBrace
-					var topSpan 	= insertMeasuringSpanAtLineAndOffset(openingToken.line, openingToken.from)
-					var bottomSpan	= insertMeasuringSpanAtLineAndOffset(traceToken.closingBrace.line, traceToken.closingBrace.from)
-
-					// Top position
-					var ll = nodeFromLineNumber(openingToken.line)
-					var topPosition = document.createElement('DIV')
-					var x = topSpan.offsetLeft
-					var y = ll.offsetTop
-					topPosition.style.position = 'absolute'
-					topPosition.style.left = x + 'px'
-					topPosition.style.top = y + 'px'
-					tracesContainer.appendChild(topPosition)
-
-					// Bottom position
-					var ll2 = nodeFromLineNumber(traceToken.closingBrace.line)
-					var bottomPosition = document.createElement('DIV')
-					var x = bottomSpan.offsetLeft
-					var y = ll2.offsetTop
-					bottomPosition.style.position = 'absolute'
-					bottomPosition.style.left = x + 'px'
-					bottomPosition.style.top = y + 'px'
-					tracesContainer.appendChild(bottomPosition)
-					
-					//
-					// Trace div
-					// 
-					var trace = document.createElement('DIV')
-					tracesContainer.appendChild(trace)
-					trace.className = 'trace'
-					trace.style.left = topPosition.style.left
-					
-					
-					var traceEncompassesTokenHeight = false
-					// Exclude top and bottom token height
-					if (!traceEncompassesTokenHeight)
-					{
-						var x = topPosition.offsetTop + topSpan.offsetHeight
-						var h = bottomPosition.offsetTop - topPosition.offsetTop + bottomPosition.offsetHeight - bottomSpan.offsetHeight
-					}
-					// Include top and bottom token height
-					else
-					{
-						var x = topPosition.offsetTop
-						var h = bottomPosition.offsetTop - topPosition.offsetTop + bottomSpan.offsetHeight
-					}
-					trace.style.top = x + 'px'
-					trace.style.height = h + 'px'
-				}
-				popCaretSelection()
-			}
-			
-			function	showSelectedLine()
-			{
-				var sel = getSelection()
-				var selectedLine = document.getElementById('selectedLine')
-				if (sel.type == 'Caret')
-				{
-					var line = lineNodeFromNode(sel.baseNode)
-					selectedLine.style.top = line.offsetTop + 'px'
-					selectedLine.style.height = line.offsetHeight + 'px'
-
-					var s = selectionAsLineAndOffset()
-					
-					var selectedLinePosition = document.getElementById('selectedLinePosition')
-					selectedLinePosition.innerHTML = (s.line+1) + ',' + (s.offset+1)
-//					alert(dumpHash(s))
-//					previouslySelectedLine = line
-//					line.className += ' selectedLine'
-				}
-				else
-					selectedLine.style.top = '-30000px'
-			}
-			
-			function	revealWhiteSpace()
-			{
-				var revealer = document.getElementById('whiteSpaceRevealer')
-				revealer.innerHTML = ''
-				
-				function	replaceTab(tabSize)
-				{
-//					alert(tabSize + '\n*\n' + text)
-					var t = '→'
-					if (tabSize == 2) t += ' '
-					if (tabSize == 3) t += '  '
-					if (tabSize == 4) t += '   '
-					return t
-				}
-				
-				function	revealWhite(match)
-				{
-					var str = String(match)
-					if (str.length == 1)
-					{
-						if (str == ' ')		return '<span style="position: absolute">·</span> '
-						if (str == '\n')	return '¶' 
-						if (str == '\t')	return str
-					}
-					return '<span style="opacity: 0">' + str + '</span>'
-				}
-				
-				var f = highlighted.firstChild
-
-				while (f)
-				{
-					var text = rawSourceFromLine(f)
-					var n2 = document.createElement('DIV')
-
-					var html = text					
-					var html = text.replace(/(\S+|\s|\t|\n)/g, revealWhite)
-					text = replaceTabsInLine(text, html, replaceTab)
-					n2.innerHTML = text
-					
-					var y = f.offsetTop
-					n2.style.top = y + 'px'
-					revealer.appendChild(n2)
-					f = f.nextSibling
-				}
-			}
-			
-/*			
-			function	copy()
-			{
-				alert('handle copy cut paste')
-			}
-			function	cut()
-			{
-				alert('handle copy cut paste')
-			}
-*/
-			//
-			// If we could reenter after Webkit's right after paste, we'd just have to fixup existing text
-			// 
-			// http://developer.apple.com/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Tasks/CopyAndPaste.html#//apple_ref/doc/uid/30001234
-			function	paste()
-			{
-//				alert('handle copy cut paste - CHECK WHEN SELECTION RANGE')
-				var sel = getSelection()
-//				if (sel.type == 'Range')
-				var clipboard = event.clipboardData
-//				alert(dumpHash(clipboard))
-				clipboard.clearData()
-//				alert('->' + clipboard.types)
-				
-//				alert('TEXT=' + clipboard.getData('Text'))
-				
-//				clipboard.setData('Text', 'HO')
-//				alert('TEXT=' + clipboard.getData('Text'))
-				
-				// We'll handle paste as we need to create one DIV per line
-				event.preventDefault()
-
-
-				var caret = selectionAsLineAndOffset()
-				var caret = rangeSelectionAsLineAndOffset().base
-//				alert(dumpHash(caret))
-
-				// Delete selection if we have a range
-				if (sel.type == 'Range')
-				{
-//					alert('paste1 ' + dumpHash(caret))
-//					alert('SELECTIONASLINEANDOFFSET FROM RANGE')
-					sel.deleteFromDocument()
-					sel.collapseToStart()
-//					alert('paste2' + dumpHash(caret))
-				}
-				var ll = nodeFromLineNumber(caret.line)
-//				alert(sel.baseOffset)
-				
-				var text = clipboard.getData('Text')
-				var lines = text.split('\n')
-//				alert(lines.length)
-//				alert('*' + lines + '$')
-				
-/*				if (lines.length == 1)
-				{
-					sel
-				}
-*/
-//				alert(ll.outerHTML)
-				
-				// Split line according to caret : prefix (caret) suffix
-				var text = rawSourceFromLine(ll)
-				var prefix = text.substr(0, caret.offset)
-				var suffix = text.substr(caret.offset)
-
-//				alert('text=' + text + '\nprefix=' + prefix + '\nsuffix=' + suffix)
-
-				// The first line becomes prefix + first line of selection (+ suffix in one line pastes)
-				ll.innerText = prefix + lines[0]
-				var currentLine = ll
-				
-				var newLineForCaret = caret.line
-
-				// Each of the remaining lines gets its own html node
-				for (var i=1; i<lines.length; i++)
-				{
-					var n2 = document.createElement('DIV')
-					n2.className = ll.className
-					n2.innerText = lines[i]
-//					if (i < lines.length-1) n2.innerText += '\n'
-//					else					n2.innerText += suffix
-					currentLine.innerText += '\n'
-					currentLine.insertAdjacentElement('afterEnd', n2)
-					currentLine = n2
-					newLineForCaret++
-				}
-				// Append suffix to last line
-				var newOffsetForCaret = rawSourceFromLine(currentLine).length
-				currentLine.innerText += suffix
-				
-				setSelectionAsLineAndOffset(newLineForCaret, newOffsetForCaret)
-				highlightText()
-//				currentLine.
-			}
-			
-/*			
-			highlighted.onkeydown = keydown
-//			highlighted.oncopy	= copy
-//			highlighted.oncut 	= cut
-			highlighted.onpaste	= paste
-*/			
-			
-			function	selectstart()
-			{
-//				document.getElementById('dump4').innerHTML = getTickCount() + ' selectstart'
-			}
-//			highlighted.onselectstart = selectstart
-			
-			
-			
-			function	dumpSelection()
-			{
-				var str = getTickCount()
-				var sel = getSelection()
-				str += '\ntype=' + sel.type
-//				if (sel.type == 'Caret')
-				{
-
-					function dumpSelectionNode(name)
-					{
-						var node = sel[name + 'Node']
-						var offset = sel[name + 'Offset']
-						if (!node)	return str += '(null)'
-						var t = ''
-						if (node.nodeType == 3) t = node.nodeValue
-						if (node.nodeType == 1) t = node + '->' + htmlEncode(rawSourceFromLine(node).substr(0, 80))
-						str += '\n' + name + '(' + offset + ')=' + (t) + '<span style="color:red">*</span>'
-
-						var o = lineAndOffsetFromNodeAndOffset(node, offset)
-						var lineNumber = o.line
-						var offset2 = o.offset
-/*						
-						var n = node
-						if (!n)	str += 'NULL'
-						
-						var lineNumber, offset2
-						if (n.className == 'line')
-						{
-							lineNumber = lineNumberFromNode(n)
-							offset2 = offset
-							str += '<b>DIV</b> '
-						}
-						else
-						{
-							while (n && n.parentNode.className != 'line') n = n.parentNode
-							if (n)
-							{
-								lineNumber = lineNumberFromNode(n)
-								offset2 = offset
-								var n2 = n.previousSibling
-								while (n2)
-								{
-									if (n2.nodeType == 1)	offset2 += n2.innerText.length
-									if (n2.nodeType == 3)	offset2 += n2.nodeValue.length
-//									else 				str += '*' + n2 + '*'
-									n2 = n2.previousSibling
-								}
-							}
-						}
-*/
-						str += '<span style="color: blue">' + (lineNumber+1) + ',' + (offset2+1) + ' <span style="font-size: 50%; opacity: 0.5">' + lineNumber + ',' + offset2 +  '</span></span>'
-						
-//						alert(n.parentNode.outerHTML)
-//						rez()
-//						str += 'line=' + lineNumberFromNode(n.parentNode)
-					}
-					
-					dumpSelectionNode('base')
-					dumpSelectionNode('anchor')
-					dumpSelectionNode('extent')
-					dumpSelectionNode('focus')
-					str += '\nselection=<span style="color:red">*</span>' + sel.toString() + '<span style="color:red">*</span>'
-					
-					str += '\n'
-					var s = rangeSelectionAsLineAndOffset()
-					str += '\nbase=<span style="color: blue">' + s.base.line + ',' + s.base.offset + '</span>'
-					str += '\nextent=<span style="color: blue">' + s.extent.line + ',' + s.extent.offset + '</span>'
-					
-					var ll = nodeFromLineNumber(s.extent.line)
-					if (ll)
-					{
-						var t = ll.innerText
-						str += '\nline(' + s.extent.line + ')=' + t + '*'
-						str += '\nline(' + s.extent.line + ').length=' + t.length + '*'
-					}
-
-/*
-type=Range
-focusOffset=14
-baseNode=[object Text]
-baseNode=[object Text]
-baseOffset=279
-baseOffset=289
-isCollapsed=false
-type=Range
-focusNode=[object Text]
-extentNode=[object Text]
-rangeCount=1
-extentOffset=18
-collapseToStart=function collapseToStart() {
-    [native code]
-*/
-				}
-//				str += dumpHash(sel)
-				document.getElementById('dump3').innerHTML = str
-			}
-//			setInterval(dumpSelection, 100)
-
-
-
 			function	newNodeAsChildOf(node, tagName)
 			{
 				var n2 = document.createElement(tagName||'DIV')
 				node.appendChild(n2)
 				return n2
 			}
-
-
-
-
-
 
 
 
@@ -1848,8 +307,8 @@ collapseToStart=function collapseToStart() {
 				if (lines.length == 0) lines = ['']
 				for (var i=0; i<lines.length; i++)
 				{
-					var l = htmlEncode(lines[i])
-					l = this.replaceTabsInLine(l, l)
+					var l = lines[i]
+					l = this.replaceTabsInLine(l)
 					l = '<div class="line">' + l + '\n</div>'
 					src.push(l)
 				}
@@ -1868,6 +327,8 @@ collapseToStart=function collapseToStart() {
 			CCp.sourceFromLine = function(line)
 			{
 				var t = line.innerText
+				// When suppr-ing text from the end of line, Safari might delete newline - readd it
+				if (!t.match(/\n/)) t += '\n'
 //				if (line.lastChild && line.lastChild.className == 'newline') t += '\n'
 				return	t
 			}
@@ -2052,7 +513,7 @@ collapseToStart=function collapseToStart() {
 				var str = this.sourceFromLine(line).substr(0, s.offset)
 
 				var o = {}
-				this.replaceTabsInLine(str, str, null, o)
+				this.replaceTabsInLine(str, null, null, o)
 				return { line : s.line, offset : o.totalWidth }
 			}
 
@@ -2090,11 +551,18 @@ collapseToStart=function collapseToStart() {
 					this.measureCharWidth()
 				
 				var lines = this.gatherLinesToLint()
-				var lint = this.lintLines(lines)
+				var lint = this.lintLines(lines.join(''))
+//				alert(lines)
 				if (!lint.res)	
 				{
-					this.warn('Lint error dump ...\n' + this.dumpLintErrors(lint.errors))
+					this.warn('Lint error dump ... ' + getTickCount() + '\n' + this.dumpLintErrors(lint.errors))
 				}
+				else
+				{
+					document.getElementById('dump3').innerHTML = getTickCount() + ' <span style="color: lime; font-weight: bold">OK</span>'
+				}
+				
+				
 				//
 				// Color
 				//
@@ -2123,6 +591,7 @@ collapseToStart=function collapseToStart() {
 			//
 			CCp.replaceTabsInLine = function (line, html, customReplaceFunction, o)
 			{
+				if (!html)	html = htmlEncode(line)
 				var tabWidths = []
 				function	countTabs(str, idx)
 				{
@@ -2172,7 +641,7 @@ collapseToStart=function collapseToStart() {
 				while (tokens[i])
 				{
 					var token = tokens[i]
-					if (token.value && token.from > lastIndex)
+					if (token.rawValue && token.from > lastIndex)
 					{
 						var space = line.substr(lastIndex, token.from-lastIndex)
 						str += htmlEncode(space)
@@ -2256,29 +725,65 @@ collapseToStart=function collapseToStart() {
 			{
 //				alert(syntaxName)
 			}
+
+			
+			CCp.mousedown = function()
+			{
+				var self = this
+				function h()
+				{
+					self.highlightSelectedLine()
+				}
+				setTimeout(h, 0)
+			}
+			
 			
 			//
 			// Events
 			// 
 			CCp.keydown = function ()
 			{
-				var str = getTickCount() + ' keydown<br>'
-				str += event.keyCode
-				this.birdViewNode.innerHTML = str
-
-				setTimeout(this.postKeydownEventFunction, 0)
-//				alert(event.keyCode)
-				var keyCode = event.keyCode
-/*				
-				//  Check control key to account for emacs shortcuts
-				if (event.shiftKey || event.ctrlKey)	
-				{
-//					alert('SELEX')
-//					alert('mark newlines as normal')
-				}
-*/				
 				
+				setTimeout(this.postKeydownEventFunction, 0)
+
+
 				var sel = getSelection()
+
+
+								if (!sel.baseNode)
+									return
+
+
+				var keyCode = event.keyCode
+
+				var str = getTickCount() + ' postKeydown<br>'
+				str += keyCode
+				var movingForSure = keyCode >= 37 && keyCode <= 40
+				this.movingForSure = movingForSure
+				str += '<br>movingForSure='  + movingForSure
+				str += '<br>altKey=' + event.altKey
+//alert(dumpHash(event))			
+
+				// Update lineCount
+				var lineCount = this.editorNode.childNodes.length
+				if (!this.previousLineCount)	this.previousLineCount = lineCount
+				var lineText 		= this.lineNodeFromNode(sel.baseNode).innerText
+				if (!this.previousLineText)		this.previousLineText = lineText
+				this.previousLineText = lineText
+
+				if (event.altKey && (keyCode == 8 || keyCode == 46))
+				{
+					str += '<br><b>option delete</b>'
+				}
+
+
+				// REMOVE ME
+				this.keydownStr = str
+//				this.birdViewNode.innerHTML = str
+
+
+
+
 				
 				if (sel.type != 'Caret' && sel.type != 'Range')	return
 				
@@ -2304,10 +809,9 @@ collapseToStart=function collapseToStart() {
 				//  Insert tab
 				if (keyCode == 9)
 				{
-						var s = this.rangeSelectionAsLineAndOffset()
-						var lineNumber1 = s.base.line
-						var lineNumber2 = s.extent.line
-//						if (s.extent.offset == 0) lineNumber2--
+					var s = this.rangeSelectionAsLineAndOffset()
+					var lineNumber1 = s.base.line
+					var lineNumber2 = s.extent.line
 
 
 					event.preventDefault()
@@ -2328,7 +832,7 @@ collapseToStart=function collapseToStart() {
 //						alert(left + '<CARET>' + right)
 //						alert('offset=' + offset + '\ntext=' + t + '\n\n\nleft=' + left + '\n\n\nright=' + right)
 						var text = left + '\t' + right
-						lineNode.innerHTML = this.replaceTabsInLine(text, text)
+						lineNode.innerHTML = this.replaceTabsInLine(text)
 //alert('4')						
 						this.popCaretSelection()
 						// Advance after tabbing
@@ -2380,82 +884,67 @@ collapseToStart=function collapseToStart() {
 							if (!event.shiftKey)	t = '\t' + this.sourceFromLine(line)
 							else					t = this.sourceFromLine(line).toString().replace(/^\s/, '')
 							
-							line.innerHTML = this.replaceTabsInLine(t, t)
+							line.innerHTML = this.replaceTabsInLine(t)
 						}
 						this.popRangeSelection()
 					}
 				}
-				
+/*				
 				// Custom word delete handling
 				if (keyCode == 8 && event.altKey)
 				{
 					alert('CHECK ! extent selection to previous word. if overflows line, just move it to start of line')
 				}
-				
+*/				
 				// Insert new line
-				// Check enter and CTRL+O
-				if (keyCode == 13 || (keyCode == 79 && event.ctrlKey))
+				if (keyCode == 13)
 				{
 					if (sel.type == 'Caret')
 					// OR if one line range
 					{
 						event.preventDefault()
+						// Transform line to raw text
 						this.pushCaretSelection()
 						lineNode.innerText = this.sourceFromLine(lineNode)
 						this.popCaretSelection()
 						var l = this.lineNumberFromNode(sel.baseNode)
 						
-						var line = this.lineNodeFromNode(sel.baseNode)
-						
-						sel.setBaseAndExtent(line, 0, sel.baseNode, sel.baseOffset)
-//						alert(line.innerText + '\n' + l)
-//						var c = characterOffsetFromLineAndNode(sel.baseNode, sel.baseOffset)
-						
-//						sel.modify('extend', 'left', 'line')
-						
-						
-						
+						sel.setBaseAndExtent(lineNode, 0, sel.baseNode, sel.baseOffset)
+
+
 						var leftLength = sel.toString().length
-//						var newLine = line.innerText.substr(leftLength)
-						
-//						alert(l)
-//						alert(lines[l])
-//						alert(sel.toString().length + '\n' + line.innerText.length)
-						
-						var n = document.createElement('DIV')
-						n.className = 'line'
 						
 						// Add \n if it's not here (happens on one-line documents)
-						var rightText = this.sourceFromLine(line).substr(leftLength)
+						var rightText = this.sourceFromLine(lineNode).substr(leftLength)
 						if (!rightText.match(/\n/)) rightText += '\n'
+
 						// Get space (minus \n) on cursor left
-						var leftSpace = this.sourceFromLine(line).substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
+						var leftSpace = this.sourceFromLine(lineNode).substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
 						
 						// Add a tab if we're pressing enter AFTER a brace
-						if (this.sourceFromLine(line).match(/^\s*\{/) && !rightText.match(/\{/))	leftSpace += '	'
-						
-//						alert(line.innerText)
-						
-						var text = leftSpace + rightText
-						text = this.replaceTabsInLine(text, text)
-						n.innerHTML = text
-						
-						line.insertAdjacentElement('afterEnd', n)
-//						line.innerText = line.innerText.substr(0, leftLength) + '\n'
-						var text = this.sourceFromLine(line).substr(0, leftLength) + '\n'
-						lineNode.innerHTML = this.replaceTabsInLine(text, text)
+						if (this.sourceFromLine(lineNode).match(/^\s*\{/) && !rightText.match(/\{/))	leftSpace += '	'
 
-						if (keyCode == 13)
+						// New node
+						var n = document.createElement('DIV')
+						n.className = 'line'
+						var text = leftSpace + rightText
+						text = this.replaceTabsInLine(text)
+						n.innerHTML = text
+						// Add new node right after current line
+						lineNode.insertAdjacentElement('afterEnd', n)
+
+
+						// Cut current line content
+						var text = this.sourceFromLine(lineNode).substr(0, leftLength) + '\n'
+						lineNode.innerHTML = this.replaceTabsInLine(text)
+
+
+						sel.setPosition(n, 0)
+						if (leftSpace.length)
 						{
-							sel.setPosition(n, 0)
-							if (leftSpace.length)
-							{
-								for (var i=0; i<leftSpace.length; i++)
-									sel.modify('move', 'right', 'character')
-							}
+							for (var i=0; i<leftSpace.length; i++)
+								sel.modify('move', 'right', 'character')
 						}
-						else
-							sel.setPosition(sel.extentNode, sel.extentOffset)
 					}
 					else
 					{
@@ -2468,48 +957,87 @@ collapseToStart=function collapseToStart() {
 					If Range selection, save all lines
 				*/
 			}
-			
-			CCp.mousedown = function()
-			{
-				var self = this
-				function h()
-				{
-					self.highlightSelectedLine()
-				}
-				setTimeout(h, 0)
-			}
-			
 			CCp.postKeydown = function ()
 			{
-				this.highlightSelectedLine()
 				var sel = getSelection()
+
+
+
+				var self = this
+				var str = ''
+					function dumpSelectionNode(name)
+					{
+						var node = sel[name + 'Node']
+						var offset = sel[name + 'Offset']
+						if (!node)	return str += '(null)'
+						var t = ''
+						if (node.nodeType == 3) t = node.nodeValue
+						if (node.nodeType == 1) t = node + '->' + htmlEncode(self.sourceFromLine(node).substr(0, 80))
+						str += '\n' + name + '(' + offset + ')=' + (t) + '<span style="color:red">*</span>'
+
+						var o = self.lineAndOffsetFromNodeAndOffset(node, offset)
+						var lineNumber = o.line
+						var offset2 = o.offset
+						str += '<span style="color: blue">' + (lineNumber+1) + ',' + (offset2+1) + ' <span style="efont-size: 50%; opacity: 0.5">' + lineNumber + ',' + offset2 +  '</span></span>'
+					}
+
+				this.birdViewNode.innerHTML = this.keydownStr
+				this.birdViewNode.innerHTML += str
+				
+				// Check editingForSure
+				var lineCount = this.editorNode.childNodes.length
+				var lineCountChanged = lineCount != this.previousLineCount
+				str += '<br>lineCountChanged=' + (lineCountChanged  ? ('<b>YES</b> ' + this.previousLineCount + '->' + lineCount) : 'no')
+
+				// Check if linetext changed
+				var lineTextChanged = false
+				if (sel.baseNode)
+				{
+					var lineText 		= this.lineNodeFromNode(sel.baseNode).innerText
+				
+					lineTextChanged = lineText != this.previousLineText
+					str += '<br>lineTextChanged=' + (lineTextChanged ? '<b>YES</b>' : 'no')
+				}
+				str += '<br>Selection is range=' + (sel.type == 'Range' ? '<b>YES</b>' : 'no')
+				
+				var type = 'moving'
+				if (!this.movingForSure && (lineCountChanged || lineTextChanged)) type = '<b style="color: red; font-size: 150%">editing</b>'
+				str += '<br>TYPE=' + type
+				
+				str += '<hr><pre>'
+					dumpSelectionNode('base')
+					dumpSelectionNode('anchor')
+					dumpSelectionNode('extent')
+					dumpSelectionNode('focus')
+				
+				this.birdViewNode.innerHTML += str
+				
+				
+				this.previousLineCount = lineCount
+				
+				
+				
+				//
+				//
+				// 
+				// 
+				// 
+				// 
+				// 
+				
+				this.highlightSelectedLine()
 //				var lineNumber = lineNumberFromNode(sel.baseNode)
 				
-				/*
-					Maybe 
-					* deleted everything
-						-> just a text node left, or a br
-					* backspace or delete
-						-> two spans on the same line					
-				*/
+				//	Maybe 	* deleted everything	-> just a text node left, or a br
+				//			* backspace or delete	-> two spans on the same line					
 				var line = this.lineNodeFromNode(sel.baseNode)
 				if (!line)
 				{
 					// Will be called even after ALT-L (select address bar), check if we have a selection
 					if (sel.type == 'None')	return
 
-					// Read the whole highlighted source
-					var newLines = this.editorNode.innerText.split('\n')
-					this.editorNode.innerHTML = ''
-
-					for (var i=0; i<newLines.length; i++)
-					{
-						var n = document.createElement('DIV')
-						n.className = 'line'
-						n.innerText = newLines[i] + '\n'
-						this.editorNode.appendChild(n)
-					}
-					// Select the text node
+					// Load and select
+					this.loadText(this.editorNode.innerText)
 					sel.setPosition(this.editorNode.firstChild.firstChild, 0)
 					var line = this.lineNodeFromNode(sel.baseNode)
 				}
@@ -2535,7 +1063,6 @@ collapseToStart=function collapseToStart() {
 				// Custom handling for having inserted specific characters, eg closing a brace : remove one tab in front of it
 				if (mode == 'typing' && currentLineNumber == currentLineNumber2 && currentLineText.length+1 == currentLineText2.length)
 				{
-					
 					var s = this.selectionAsLineAndOffset()
 					var addedChar = currentLineText2.charAt(s.offset-1)
 
@@ -2549,93 +1076,35 @@ collapseToStart=function collapseToStart() {
 						this.popCaretSelection()
 					}
 				}
+
+//				if (mode != 'typing')	return
+
+
+
 				
-/*				
-				var str  = getTickCount() + ' '
-				if (mode == 'typing') 	str += '<span style="color: red">' + mode + '</span>'
-				else					str += mode
-				
-				
-				if (line.previousSibling && line.previousSibling.offsetTop == line.offsetTop)
-					str += '\n<span style="color: red">PREVIOUS SPAN ON SAME LINE</span>'
-				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
-					str += '\n<span style="color: red"><b>NEXT</b> SPAN ON SAME LINE</span>'
-*/
-				// While forward or backward deleting, the next line SPAN came onto the current SPAN. Remove it
-				if (line.nextSibling && line.nextSibling.offsetTop == line.offsetTop)
-				{
-					alert('Does this still happen ?')
-					pushCaretSelection()
-					line.innerText = rawSourceFromLine(line)
-					line.nextSibling.innerText = rawSourceFromLine(line.nextSibling)
-					line.innerText += rawSourceFromLine(line.nextSibling)
-					line.nextSibling.parentNode.removeChild(line.nextSibling)
-					popCaretSelection()
-					// Selection stays the same, nice !
-				}
-/*
-var str = getTickCount()
-				str += '\nchildNodesCount=' + highlighted.childNodes.length + ' \\n count=' + (highlighted.innerText.match(/\n/g)||0).length
-				
-				str += '\nlineCount=' + lineCount
-				str += '\nlineCount2=' + lineCount2
-				str += '\nlineNumber=' + currentLineNumber
-				str += '\nlineNumber2=' + currentLineNumber2
-				str += '\ncurrentLineText=' + currentLineText
-				str += '\ncurrentLineText2=' + currentLineText2
-				str += '\n!=lineCount=' + (lineCount2 != lineCount)
-				str += '\n!=currentLineNumber=' + (currentLineNumber2 != currentLineNumber)
-				str += '\n!=currentLineText=' + (currentLineText2 != currentLineText)
-				
-				str += '\n<span style="color: blue">' + mode + '</span>'
-				
-				document.getElementById('dump4').innerHTML = str
-				var str = getTickCount()
-				var context = 'which function ?'
-				str += '\n<span style="color: red">CONTEXT=' + context + '</span>'
-				str += '\n<span style="color: red">extent of change=' + context + '</span>'
-				str += '\n<span style="color: red">last key pressed definetely makes it a MOVE (arrow keys)=' + context + '</span>'
-				document.getElementById('dump2').innerHTML = str
-				
-				
-//				document.getElementById('dump5').innerHTML += '*PKD*line=' + currentLineNumber2
-				
-*/				
-				if (mode != 'typing')	return
-				
-				if (sel.type == 'Range') alert('HIGHLIGHT WITH RANGE SELECTION')
+//				if (sel.type == 'Range') alert('HIGHLIGHT WITH RANGE SELECTION')
+				if (sel.type == 'Range') return
 				this.colorCode()
-
-				//
-				// Selected line
-				// 
-//				showSelectedLine()
-
-//				alert(lines)
-				
-				
 			}
 			CCp.highlightSelectedLine = function ()
 			{
-				var sel = getSelection()
+				var sel		= getSelection()
 				var line	= this.lineNodeFromNode(sel.baseNode)
+				if (!line)	return
 				this.selectedLine.style.top		= line.offsetTop + 'px'
 				this.selectedLine.style.height	= (line.offsetHeight+1) + 'px'
 
-//				var s = this.selectionAsLineAndOffset()
-
-
 				var s = this.textPositionAsLineAndOffset()
 				this.selectedLinePosition.innerHTML = (s.line+1) + ',' + (s.offset+1)
-
-//				this.selectedLine.style
 			}
 			
 			CCp.copy = function ()
 			{
+				alert('handle copy')
 			}
 			CCp.cut = function ()
 			{
+				alert('handle cut')
 			}
 			//
 			// If we could reenter after Webkit's right after paste, we'd just have to fixup existing text
@@ -2743,12 +1212,10 @@ var str = getTickCount()
 		* type some text
 		* option suppr
 		-> no newline
-* cmd-a plant parfois
 * check displayRawText([])
 * cmd-a, delete all, type -> newline disappears
 * on typing : should only show upstream errors as collapsed bubbles, opening after typing a bit 
 	OR don't padd top errors, just bubble them up with zIndex, no padding (downwards arrow)
-* handle invisible caret on second tab before brace
 * mousedown on DIV with one line : focus last line
 
 	everything on the same line : white-space: wrap
@@ -2775,7 +1242,9 @@ var str = getTickCount()
 		ctrl+K delete to end of line
 		
 * before undo, or after move, call commitTypingTransaction() to save undo state		
-
+* handle oncut
+* keyboard selection from right to left seems to fail
+	-> my fault, disabling JS works
 
 </body>
 </html>
