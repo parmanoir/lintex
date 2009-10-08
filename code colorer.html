@@ -55,6 +55,19 @@
 			margin-right: 4px;
 			efont-size: 70%;
 		}
+		
+		.selectionDump
+		{
+			width: 350px;
+		}
+		.selectionDump, .selectionDump td
+		{
+			border: solid 1px #aaa;
+		}
+		.selectionDump .header
+		{
+			font-weight: bold;
+		}
 	</style>
 </head>
 <body>
@@ -74,6 +87,8 @@
 		<div id='birdView'></div>
 		<hr>
 		<div id='birdViewDump'>LOG ALL COMMANDS HERE. typing (typing count, line extent + sel) + move + undo/redo</div>
+		<hr>
+		<div id='selectionDump'>SELECTION DUMP</div>
 	</td>
 </tr></table>
 
@@ -205,6 +220,52 @@
 				node.appendChild(n2)
 				return n2
 			}
+			
+			function	dumpSelection()
+			{
+					function dumpSelectionNode(name)
+					{
+						var node = sel[name + 'Node']
+						var offset = sel[name + 'Offset']
+						if (!node)	return str += '(null)'
+						var t = ''
+//						str += '\n' + name + '(' + offset + ')=' + (t)
+
+						str += '<tr><td>' + name + '<td>' + cc.lineNumberFromNode(node) + '<td>' + offset
+
+
+						var o = cc.lineAndOffsetFromNodeAndOffset(node, offset)
+						str += '<td>' + o.line + ',' + o.offset
+
+							str += '<tr><td colSpan="4">'
+						if (node.nodeType == 3) 
+						{
+							t = node.nodeValue
+							str += '<span style="color:#a00">*</span>' + t.substr(0, offset) + '<span style="color:red">*</span>' + t.substr(offset) + '<span style="color:#a00">*</span>'
+							str += ' length=' + t.length
+						}
+						if (node.nodeType == 1) 
+						{
+//							t = node + '->' + htmlEncode(cc.sourceFromLine(node).substr(0, 80))
+							t = htmlEncode(cc.sourceFromLine(node).substr(0, 80))
+							var line = cc.lineNumberFromNode(node)
+							str += '<span style="color: lime">DIV</span> line=' + line + ' content=' + t
+						}
+
+//						str += '<span style="color: blue">' + (lineNumber+1) + ',' + (offset2+1) + ' <span style="efont-size: 50%; opacity: 0.5">' + lineNumber + ',' + offset2 +  '</span></span>'
+//						str += '<span style="color: blue">' + (lineNumber) + ',' + (offset2) + '</span>'
+						str += '<br><br>'
+					}
+				var sel = getSelection()
+				var str = '<table class="selectionDump" eborder="1" style="border-collapse: collapse; table-layout: fixed">'
+				str += '<tr class="header"><td>name</td><td>line</td><td>offset</td><td><nobr>line, lineoffset</nobr></td></tr>'
+					dumpSelectionNode('base')
+					dumpSelectionNode('anchor')
+					dumpSelectionNode('extent')
+					dumpSelectionNode('focus')
+					str += '</table>'
+				return str
+			}
 
 
 
@@ -264,6 +325,7 @@
 				this.JSLINT = JSLintWithLogs(logs)
 				this.jslint = this.JSLINT()
 				
+				return
 				// Events
 				var self = this
 				this.editorNode.onkeydown		= function () { return self.keydown.apply(self, arguments) }
@@ -965,21 +1027,6 @@
 
 				var self = this
 				var str = ''
-					function dumpSelectionNode(name)
-					{
-						var node = sel[name + 'Node']
-						var offset = sel[name + 'Offset']
-						if (!node)	return str += '(null)'
-						var t = ''
-						if (node.nodeType == 3) t = node.nodeValue
-						if (node.nodeType == 1) t = node + '->' + htmlEncode(self.sourceFromLine(node).substr(0, 80))
-						str += '\n' + name + '(' + offset + ')=' + (t) + '<span style="color:red">*</span>'
-
-						var o = self.lineAndOffsetFromNodeAndOffset(node, offset)
-						var lineNumber = o.line
-						var offset2 = o.offset
-						str += '<span style="color: blue">' + (lineNumber+1) + ',' + (offset2+1) + ' <span style="efont-size: 50%; opacity: 0.5">' + lineNumber + ',' + offset2 +  '</span></span>'
-					}
 
 				this.birdViewNode.innerHTML = this.keydownStr
 				this.birdViewNode.innerHTML += str
@@ -1004,11 +1051,7 @@
 				if (!this.movingForSure && (lineCountChanged || lineTextChanged)) type = '<b style="color: red; font-size: 150%">editing</b>'
 				str += '<br>TYPE=' + type
 				
-				str += '<hr><pre>'
-					dumpSelectionNode('base')
-					dumpSelectionNode('anchor')
-					dumpSelectionNode('extent')
-					dumpSelectionNode('focus')
+//				str += '<hr><pre>' + dumpSelection()
 				
 				this.birdViewNode.innerHTML += str
 				
@@ -1198,6 +1241,11 @@
 				document.getElementById('dump6').innerHTML = ' '
 			}
 */
+			function ds()
+			{
+				document.getElementById('selectionDump').innerHTML = getTickCount() + '<br>' + dumpSelection()
+			}
+			setInterval(ds, 100)
 
 		</script>
 
