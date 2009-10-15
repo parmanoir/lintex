@@ -93,7 +93,7 @@
 </tr></table>
 
 	<textarea style='display: none'>
-	// List launched applications
+	//	List launched applications
 	var apps = [[NSWorkspace sharedWorkspace] launchedApplications]
 
 	for (var i=0; i<apps.length; i++)
@@ -221,21 +221,47 @@
 				return n2
 			}
 			
+
+			// Walkers
+			function nextNode(n)
+			{
+				if (n.firstChild)	return n.firstChild
+				while (n)
+				{
+					if (n.nextSibling)	return n.nextSibling
+					n = n.parentNode
+				}
+				return	null
+			}
+			function	previousNode(n)
+			{
+				if (n.previousSibling)
+				{
+					n = n.previousSibling
+					while (n && n.lastChild)
+						n = n.lastChild
+					return	n
+				}
+				n = n.parentNode
+				return	n
+			}
+			
+			
 			function	dumpSelection()
 			{
 					function dumpSelectionNode(name)
 					{
 						var node = sel[name + 'Node']
 						var offset = sel[name + 'Offset']
-						if (!node)	return str += '(null)'
+						if (!node)	return str += name + '=(null)<br>'
 						var t = ''
 //						str += '\n' + name + '(' + offset + ')=' + (t)
 
-						str += '<tr><td>' + name + '<td>' + cc.lineNumberFromNode(node) + '<td>' + offset
+						str += '<tr><td style="color: blue">' + name + '<td>' + cc.lineNumberFromNode(node) + '<td>' + offset
 
 
 						var o = cc.lineAndOffsetFromNodeAndOffset(node, offset)
-						str += '<td>' + o.line + ',' + o.offset
+						str += '<td>' + o.line + ',' + o.offset + ' &nbsp; l=' + cc.sourceFromLine(cc.lineNodeFromNode(node)).length
 
 							str += '<tr><td colSpan="4">'
 						if (node.nodeType == 3) 
@@ -249,7 +275,7 @@
 //							t = node + '->' + htmlEncode(cc.sourceFromLine(node).substr(0, 80))
 							t = htmlEncode(cc.sourceFromLine(node).substr(0, 80))
 							var line = cc.lineNumberFromNode(node)
-							str += '<span style="color: lime">DIV</span> line=' + line + ' content=' + t
+							str += '<span style="color: lime">DIV</span> line=' + line + ' content=' + node.innerText
 						}
 
 //						str += '<span style="color: blue">' + (lineNumber+1) + ',' + (offset2+1) + ' <span style="efont-size: 50%; opacity: 0.5">' + lineNumber + ',' + offset2 +  '</span></span>'
@@ -258,7 +284,7 @@
 					}
 				var sel = getSelection()
 				var str = '<table class="selectionDump" eborder="1" style="border-collapse: collapse; table-layout: fixed">'
-				str += '<tr class="header"><td>name</td><td>line</td><td>offset</td><td><nobr>line, lineoffset</nobr></td></tr>'
+				str += '<tr class="header"><td>name</td><td>line</td><td>offset</td><td><nobr>line, lineoffset, length</nobr></td></tr>'
 					dumpSelectionNode('base')
 					dumpSelectionNode('anchor')
 					dumpSelectionNode('extent')
@@ -325,7 +351,6 @@
 				this.JSLINT = JSLintWithLogs(logs)
 				this.jslint = this.JSLINT()
 				
-				return
 				// Events
 				var self = this
 				this.editorNode.onkeydown		= function () { return self.keydown.apply(self, arguments) }
@@ -359,6 +384,7 @@
 			//
 			CCp.loadText = function (text)
 			{
+				// Should remove \r
 				var lines = text.split('\n')
 				this.loadLines(lines)
 			}
@@ -375,6 +401,10 @@
 					src.push(l)
 				}
 				this.editorNode.innerHTML = src.join('')
+			}
+			CCp.lineCount = function()
+			{
+				return this.editorNode.childNodes.length
 			}
 			CCp.rawText = function ()
 			{
@@ -427,32 +457,43 @@
 			{
 				return this.editorNode.childNodes[i]
 			}
+			// Given a relative (node, offset), return an absolute offset in the matching line
 			CCp.lineAndOffsetFromNodeAndOffset = function (node, offset)
 			{
 				var n = node
-				var offset2, lineNumber = this.lineNumberFromNode(n)
-				// This is a line node
-				if (n.className == 'line')
+				var offset2 = offset, lineNumber = this.lineNumberFromNode(n)
+				if (n.className != 'line')
 				{
-					offset2 = offset
-				}
-				// Walk up to the node having the line node as parent, then walk up its siblings to count offset from line start
-				else
-				{
-					while (n && n.parentNode && n.parentNode.className != 'line') n = n.parentNode
-					if (n)
+					n = previousNode(n)
+					while (n && n.className != 'line')
 					{
-						offset2 = offset
-						var n2 = n.previousSibling
-						while (n2)
-						{
-							if (n2.nodeType == 1)	offset2 += this.sourceFromLine(n2).length
-							if (n2.nodeType == 3)	offset2 += n2.nodeValue.length
-							n2 = n2.previousSibling
-						}
+						if (n.nodeType == 3) offset2 += n.nodeValue.length
+						n = previousNode(n)
 					}
 				}
-				return	{ line : lineNumber, offset : offset2 }
+				return	{ line : lineNumber, offset : offset2, isDiv : node.className == 'line' && offset == 0 }
+			}
+			// Given an absolute (line, offset), return an inner line node and offset
+			CCp.nodeAndOffsetFromLineAndOffset = function (line, offset, isDiv)
+			{
+				var lineNode		= this.nodeFromLineNumber(line)
+				if (isDiv && offset == 0)	return { node : lineNode, offset : offset }
+				var currentOffset	= 0
+				
+				var n = nextNode(lineNode)
+				while (n && n.className != 'line')
+				{
+					if (n.nodeType == 3)
+					{
+						var t = n.nodeValue
+						if (currentOffset + t.length >= offset)
+							return { node : n, offset : offset-currentOffset }
+						else
+							currentOffset += t.length
+					}
+					n = nextNode(n)
+				}
+				return { node : null, offset : undefined }
 			}
 
 
@@ -564,6 +605,13 @@
 			CCp.popSelection = function ()
 			{
 				this.popCaretSelection()
+			}
+
+			CCp.pushSelection2 = function ()
+			{
+			}
+			CCp.popSelection2 = function ()
+			{
 			}
 			
 			// Return position - offset differs from selection offset, as tabs will count for 1 to 4 chars
@@ -703,6 +751,13 @@
 				while (tokens[i])
 				{
 					var token = tokens[i]
+					// Skip endline
+					if (token.id == '(endline)')
+					{
+						i++
+						continue
+					}
+					
 					if (token.rawValue && token.from > lastIndex)
 					{
 						var space = line.substr(lastIndex, token.from-lastIndex)
@@ -820,10 +875,54 @@
 
 				var str = getTickCount() + ' postKeydown<br>'
 				str += keyCode
-				var movingForSure = keyCode >= 37 && keyCode <= 40
-				this.movingForSure = movingForSure
-				str += '<br>movingForSure='  + movingForSure
-				str += '<br>altKey=' + event.altKey
+				this.movingForSure = keyCode >= 37 && keyCode <= 40
+				this.deletingForSure = keyCode == 8 || keyCode == 46
+				this.keydownKeycode = keyCode
+//				this.deletingDeletesLine = /*(lineCount > 0) && */ 
+
+				var s = this.selectionAsLineAndOffset()
+				
+				str += '<br>linePREKEYDOWN=' + s.line
+				str += '<br>lineCountPREKEYDOWN=' + this.lineCount()
+				str += '<br>movingForSure='  + this.movingForSure
+				str += '<br>deletingForSure='  + this.deletingForSure
+				str += '<br>altKey=' + event.altKey + ' metaKey=' + event.metaKey
+				
+
+
+//				str += '<br>line=' + s.line + ' lineNode='
+				var text = this.sourceFromLine(this.nodeFromLineNumber(s.line))
+				str += '<br>offset=' + s.offset + ' text='
+				str += text.substr(0, s.offset)
+				str += '<span style="color: red">*</span>'
+				str += text.substr(s.offset)
+				str += '<span style="color: red">*</span>'
+				var lastChar = text.charCodeAt(text.length-1)
+
+//				this.deletingForSure = keyCode == 8 || keyCode == 46
+//				this.keydownKeycode = keyCode
+				
+				var isDeletingLineBackwards = this.keydownKeycode == 8 && s.offset == 0
+				var isDeletingLineForwards = this.keydownKeycode == 46 && (lastChar == '\n' ? s.offset == text.length-2 : s.offset == text.length-1)
+				
+				// Deleting backwards only when we're not on the first line
+				isDeletingLineBackwards = isDeletingLineBackwards && s.line
+				// Deleting forwards only when we're not on the last line
+				isDeletingLineForwards = isDeletingLineForwards && ((s.line+1) != this.lineCount())
+				
+				var isInsertingNewLine = keyCode == 13
+
+				str += '<br>isDeletingLineBackwards=' +  (isDeletingLineBackwards ? '<b style="color: red">YES</b>' : 'no')
+				str += '<br>isDeletingLineForwards=' +  (isDeletingLineForwards ? '<b style="color: red">YES</b>' : 'no')
+				str += '<br>isInsertingNewLine=' +  (isInsertingNewLine ? '<b style="color: red">YES</b>' : 'no')
+				
+				// Undo
+				if (event.metaKey && event.keyCode == 90)
+				{
+					str += '<br><span style="font-weight: bold; color: red; font-size: 200%">' + (event.shiftKey ? '......REDO' : 'UNDO') + '</span>'
+				}
+//				alert(dumpHash(event))
+//				if ()
 //alert(dumpHash(event))			
 
 				// Update lineCount
@@ -840,7 +939,7 @@
 
 
 				// REMOVE ME
-				this.keydownStr = str
+				this.keydownStr = str + '<hr><b>END KEYDOWN</b><hr>'
 //				this.birdViewNode.innerHTML = str
 
 
@@ -1019,6 +1118,11 @@
 					If Range selection, save all lines
 				*/
 			}
+			
+			
+			//
+			// post key down
+			// 
 			CCp.postKeydown = function ()
 			{
 				var sel = getSelection()
@@ -1032,7 +1136,7 @@
 				this.birdViewNode.innerHTML += str
 				
 				// Check editingForSure
-				var lineCount = this.editorNode.childNodes.length
+				var lineCount = this.lineCount()
 				var lineCountChanged = lineCount != this.previousLineCount
 				str += '<br>lineCountChanged=' + (lineCountChanged  ? ('<b>YES</b> ' + this.previousLineCount + '->' + lineCount) : 'no')
 
@@ -1052,6 +1156,11 @@
 				str += '<br>TYPE=' + type
 				
 //				str += '<hr><pre>' + dumpSelection()
+
+				var s = this.selectionAsLineAndOffset()
+				str += '<br>line=' + s.line
+				str += '<br>lineCount=' + this.lineCount()
+
 				
 				this.birdViewNode.innerHTML += str
 				
@@ -1215,7 +1324,12 @@
 										document.getElementById('birdView'))
 			
 			var textarea = document.getElementsByTagName('TEXTAREA')[0]
+
+
 			cc.loadText(textarea.value)
+
+//			var JSLINT = JSLintWithLogs({})
+//			cc.loadText(JSLINT.toString())
 			
 
 
@@ -1244,8 +1358,68 @@
 			function ds()
 			{
 				document.getElementById('selectionDump').innerHTML = getTickCount() + '<br>' + dumpSelection()
+				cc.pushSelection2()
+				cc.popSelection2()
+				
+				var sel = getSelection()
+				function	saveSelectionPiece(name)
+				{
+					var node = sel[name + 'Node']
+					var offset = sel[name + 'Offset']
+					var line = cc.lineNumberFromNode()
+					var o1 = cc.lineAndOffsetFromNodeAndOffset(node, offset)
+					
+					var o2 = cc.nodeAndOffsetFromLineAndOffset(o1.line, o1.offset, o1.isDiv)
+					
+					document.getElementById('selectionDump').innerHTML += name + '(RAW)=' + node + ',' + offset + '<br>'
+					document.getElementById('selectionDump').innerHTML += name + '(lineOffset)=' + o1.line + ',' + o1.offset + ' '
+					document.getElementById('selectionDump').innerHTML += (o1.isDiv?'<b style="background-color: lime; color: red">DIV</b>':'') + '<br>'
+					document.getElementById('selectionDump').innerHTML += name + '(nodeOffset)=' + o2.node + ',' + o2.offset + '<br>'
+					var nodeEQ = (o2.node == node)
+					var offsetEQ = (o2.offset == offset)
+					document.getElementById('selectionDump').innerHTML += 'nodeEQ=' + nodeEQ + ' offsetEQ=' + offsetEQ + ' '
+					document.getElementById('selectionDump').innerHTML += (nodeEQ && offsetEQ) ? '<span style="color: lime">OK</span>' : '<span style="color: red">NO</span>'
+					document.getElementById('selectionDump').innerHTML += '<br>'
+//					return { lineNumber : line, isDIV : isDIV, }
+					return o1
+				}
+				var saved = {}
+				saved.base		= saveSelectionPiece('base')
+				saved.anchor	= saveSelectionPiece('anchor')
+				saved.extent	= saveSelectionPiece('extent')
+				saved.focus		= saveSelectionPiece('focus')
+/*				
+				var n = document.getElementById('coloredCode').firstChild
+				sel.setBaseAndExtent(n, 0, n, 0)
+
+				var base = cc.nodeAndOffsetFromLineAndOffset(saved.base.line, saved.base.offset)
+				var extent = cc.nodeAndOffsetFromLineAndOffset(saved.extent.line, saved.extent.offset)
+				sel.setBaseAndExtent(base.node, base.offset, extent.node, extent.offset)
+*/
+
+/*
+				restoreSelectionPiece(name, o1)
+				{
+					var o2 = cc.nodeAndOffsetFromLineAndOffset(o1.line, o1.offset, o1.isDiv)
+					sel[name + 'Node'] = o2.node
+					sel[name + 'Offset'] = o2.offset
+				}
+				restoreSelectionPiece('base', saved.base)
+				restoreSelectionPiece('anchor', saved.anchor)
+				restoreSelectionPiece('extent', saved.extent)
+				restoreSelectionPiece('extent', saved.extent)
+*/				
+				
+//					dumpSelectionNode('base')
+//					dumpSelectionNode('anchor')
+//					dumpSelectionNode('extent')
+//					dumpSelectionNode('focus')
+				
+				document.getElementById('selectionDump').innerHTML += '<br>PUSH / POP 2<br><br>'
+				document.getElementById('selectionDump').innerHTML += getTickCount() + '<br>' + dumpSelection()
 			}
-			setInterval(ds, 100)
+//			setInterval(ds, 1000)
+//			setTimeout(ds, 3000)
 
 		</script>
 
@@ -1277,12 +1451,12 @@
 		ctrl+A line start
 		ctrl+E line end
 		ctrl+T invert pre and post caret chars, advance caret
-		ctrl+Y paste?
 		ctrl+P move to end of previous line
 		ctrl+F advance caret
 		ctrl+B backwards caret
 		ctrl+N move to next line
 	EDIT
+		ctrl+Y yank - undelete last thing deleted
 		ctrl+O insert line in place
 		ctrl+Q ?????
 		ctrl+D front delete
@@ -1294,5 +1468,18 @@
 * keyboard selection from right to left seems to fail
 	-> my fault, disabling JS works
 
+* base, extent, anchor, focus
+	when dragging to a range
+		base, anchor mark selection start
+		extent, focus mark selection end
+	click
+		all 4 to the same value : caret
+	double click
+		base, extent keep caret value
+		anchor, focus move to highlight the word
+			anchor is where selection starts from : when using shift, it stays fixed to extend selection
+			focus is where selection expands from : when using shift, it moves to extend selection
+
+* detect insertion by Character Viewer
 </body>
 </html>

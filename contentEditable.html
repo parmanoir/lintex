@@ -8,11 +8,13 @@
 		{
 			font-size: 80%;
 		}
-		div
+		body > div
 		{
 			white-space: pre;
 			height: 600px;
 			overflow: auto;
+			border: solid 1px #aaa;
+			outline: none;
 		}
 		span
 		{
@@ -120,7 +122,8 @@ This doesn't sound like DoTheSimplestThingThatCouldPossiblyWork at all to me. It
 	<script>
 		function	f()
 		{
-			document.getElementsByTagName('DIV')[0].focus()
+			var n = document.getElementsByTagName('DIV')[0]
+			n.focus()
 				var s = getSelection()
 				s.collapseToStart()
 			

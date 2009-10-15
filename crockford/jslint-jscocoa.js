@@ -199,7 +199,7 @@ function JSLintWithLogs(logs)
 	function	enableLogToken()	{ logTokenLock-- }
 	
 	
-JSLINT = (function () {
+JSLINT = (function renamedJSLint () {
 	
 	// ## (internal) Guard against Inner class
 	var parsingClass;
