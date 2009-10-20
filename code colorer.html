@@ -68,6 +68,10 @@
 		{
 			font-weight: bold;
 		}
+		#undoStackDump
+		{
+			color: #8c0;
+		}
 	</style>
 </head>
 <body>
@@ -89,10 +93,14 @@
 		<div id='birdViewDump'>LOG ALL COMMANDS HERE. typing (typing count, line extent + sel) + move + undo/redo</div>
 		<hr>
 		<div id='selectionDump'>SELECTION DUMP</div>
+		<div id='undoStackDump'>UNDO DUMP</div>
+		<button onclick='undo()'>undo</button>
+		<button onclick='redo()'>redo</button>
 	</td>
 </tr></table>
 
 	<textarea style='display: none'>
+		
 	//	List launched applications
 	var apps = [[NSWorkspace sharedWorkspace] launchedApplications]
 
@@ -338,6 +346,8 @@
 
 
 				this.selectionStack = []
+				this.undoStack = []
+				this.redoStack = []
 				
 				// Create lint and register our logs
 				var logNames = ['logToken', 'logExtraSyntax']
@@ -418,6 +428,9 @@
 
 			CCp.sourceFromLine = function(line)
 			{
+				if (typeof line == 'number')
+					line = this.nodeFromLineNumber(line)
+				
 				var t = line.innerText
 				// When suppr-ing text from the end of line, Safari might delete newline - readd it
 				if (!t.match(/\n/)) t += '\n'
@@ -852,6 +865,65 @@
 					self.highlightSelectedLine()
 				}
 				setTimeout(h, 0)
+				this.closeUndoAction()
+			}
+			
+			CCp.closeUndoAction = function ()
+			{
+				if (this.currentEditingAction == 'typing')
+				{
+					this.currentEditingAction = 'moving'
+					if (this.undoStack.length)
+					{
+						var action = this.topUndoAction()
+						action.closed = true
+						
+						var text = ''
+						var lineChangedCount = action.newLineCount - action.backwardLineDeleteCount - action.forwardLineDeleteCount
+						lineChangedCount = Math.abs(lineChangedCount)
+//						if (lineChangedCount < 1) lineChangedCount = 1
+//						alert(action.lastDeletedBackwardLineNumber + '\n' + lineChangedCount)
+						for (var i=action.lastDeletedBackwardLineNumber; i<=action.lastDeletedBackwardLineNumber+lineChangedCount; i++)
+							text += this.sourceFromLine(i)
+						action.newText = text
+						// Remove action if nothing was changed
+						if (action.isBlank)	this.undoStack.pop()
+					}
+				}
+				this.dumpUndoStack()
+			}
+			CCp.dumpUndoStack = function ()
+			{
+				if (this.undoStack.length)
+				{
+					var str = getTickCount() + ' actionCount=' + this.undoStack.length + ' redoActionCount=' + this.redoStack.length
+					for (var j=this.undoStack.length-1; j>=0; j--)
+					{
+						var action = this.undoStack[j]
+					
+						str += '<br><br><b> ACTION ' + j  + '</b>  ' + (action.closed ? '' : ' ...IN PROGRESS') + ' ' + (action.isBlank ? '<b>isBlank</b>' : '')
+						str += '<br>startedAtLine=' + action.startedAtLine
+						if (j == this.undoStack.length-1)
+							str += '<br>currentLine=' + action.currentLine
+						str += '<br>range=' + action.startLine + ',' + action.endLine
+						str += '<br>backwardLineDeleteCount=' + action.backwardLineDeleteCount
+						str += '<br>forwardLineDeleteCount=' + action.forwardLineDeleteCount
+						str += '<br>newLineCount=' + action.newLineCount
+						str += '<br>lastDeletedBackwardLineNumber=' + action.lastDeletedBackwardLineNumber
+						str += '<br>total line change count=' + (action.newLineCount - action.backwardLineDeleteCount - action.forwardLineDeleteCount)
+//						str += '<br>text=' + action.text.split('n').length
+						str += '<br>text=' + (action.text.split('\n').length-1) + ' lines'
+						str += '<pre style="background-color: #eee">' + htmlEncode(action.text) + '</pre>'
+						str += '<br>newText=' + (action.newText.split('\n').length-1) + ' lines'
+						str += '<pre style="background-color: #eee">' + htmlEncode(action.newText) + '</pre>'
+					}
+					document.getElementById('undoStackDump').innerHTML = str
+				}
+			}
+			
+			CCp.topUndoAction = function ()
+			{
+				return this.undoStack[this.undoStack.length-1]
 			}
 			
 			
@@ -875,7 +947,9 @@
 
 				var str = getTickCount() + ' postKeydown<br>'
 				str += keyCode
+				// up down left right
 				this.movingForSure = keyCode >= 37 && keyCode <= 40
+				// Backspace or suppr
 				this.deletingForSure = keyCode == 8 || keyCode == 46
 				this.keydownKeycode = keyCode
 //				this.deletingDeletesLine = /*(lineCount > 0) && */ 
@@ -887,6 +961,30 @@
 				str += '<br>movingForSure='  + this.movingForSure
 				str += '<br>deletingForSure='  + this.deletingForSure
 				str += '<br>altKey=' + event.altKey + ' metaKey=' + event.metaKey
+				
+				if (this.deletingForSure)
+				{
+					// Need to account range
+					var rawSelection = this.rawSelection()
+					if (keyCode == 8)
+					{
+						sel.modify('extend', 'left', 'word')
+						sel.collapseToStart()
+					}
+					else
+					{
+						sel.modify('extend', 'right', 'word')
+						sel.collapseToEnd()
+					}
+					
+					var s2 = this.selectionAsLineAndOffset()
+					if (s.line != s2.line)
+					{
+						str += '<br><b style="color: red">DELETE OVERFLOW</b>'
+					}
+//					event.returnValue = false
+					this.setRawSelection(rawSelection)
+				}
 				
 
 
@@ -919,6 +1017,7 @@
 				// Undo
 				if (event.metaKey && event.keyCode == 90)
 				{
+//					if (event.shiftKey)
 					str += '<br><span style="font-weight: bold; color: red; font-size: 200%">' + (event.shiftKey ? '......REDO' : 'UNDO') + '</span>'
 				}
 //				alert(dumpHash(event))
@@ -936,11 +1035,79 @@
 				{
 					str += '<br><b>option delete</b>'
 				}
+				
+				
+				
+				
+				if (!this.movingForSure)
+				{
+//					var justStarted = false
+					var previousAction = this.currentEditingAction
+					// Create new action
+					if (this.currentEditingAction != 'typing')
+					{
+						this.currentEditingAction = 'typing'
+						
+						var action = {}
+						action.startedAtLine = s.line
+						action.currentLine = action.startLine = action.endLine = s.line
+						action.text = this.sourceFromLine(this.nodeFromLineNumber(s.line))
+						action.newText = ''
+						action.forwardLineDeleteCount = 0
+						action.backwardLineDeleteCount = 0
+						action.lastDeletedBackwardLineNumber = s.line
+						action.newLineCount = 0
+						
+						this.undoStack.push(action)
+					}
+					// Update current undo action
+					if (this.currentEditingAction == 'typing')
+					{
+						var action = this.topUndoAction()
+
+						var currentLine = action.currentLine
+						if (isDeletingLineBackwards)	currentLine--
+						if (isInsertingNewLine)			currentLine++
+						
+						if (isDeletingLineBackwards)	action.backwardLineDeleteCount++
+						if (isDeletingLineForwards)		action.forwardLineDeleteCount++
+						if (isInsertingNewLine)			action.newLineCount++
+						
+						
+						action.startLine	= Math.min(action.startLine, currentLine)
+						action.endLine		= Math.max(action.endLine, currentLine)
+						
+						action.currentLine = currentLine
+						
+						if (isDeletingLineForwards)
+						{
+							var nextLineText = this.sourceFromLine(s.line+1)
+							action.text += nextLineText
+						}
+						if (isDeletingLineBackwards && (s.line-1) < action.lastDeletedBackwardLineNumber)
+						{
+							action.lastDeletedBackwardLineNumber = s.line-1
+							var previousLineText = this.sourceFromLine(s.line-1)
+							action.text = previousLineText + action.text
+						}
+					}					
+					if (previousAction != 'typing')	this.topUndoAction().isBlank = true
+				}
+				else
+				{
+					// Close undo action
+					this.closeUndoAction()
+				}
+				
+				this.dumpUndoStack()
+				
 
 
 				// REMOVE ME
 				this.keydownStr = str + '<hr><b>END KEYDOWN</b><hr>'
+//				alert('clean action in postkeydown if no typing')
 //				this.birdViewNode.innerHTML = str
+
 
 
 
@@ -1125,6 +1292,8 @@
 			// 
 			CCp.postKeydown = function ()
 			{
+				this.dumpUndoStack()
+				
 				var sel = getSelection()
 
 
@@ -1211,6 +1380,7 @@
 				var lineChanged = !(currentLineNumber2 == currentLineNumber && currentLineText2 == currentLineText)
 				if (moved || lineChanged)
 					mode = 'typing'
+					
 				
 				// Custom handling for having inserted specific characters, eg closing a brace : remove one tab in front of it
 				if (mode == 'typing' && currentLineNumber == currentLineNumber2 && currentLineText.length+1 == currentLineText2.length)
@@ -1228,6 +1398,8 @@
 						this.popCaretSelection()
 					}
 				}
+				
+				if (mode == 'typing')	this.topUndoAction().isBlank = false
 
 //				if (mode != 'typing')	return
 
@@ -1238,6 +1410,15 @@
 				if (sel.type == 'Range') return
 				this.colorCode()
 			}
+			
+			
+			
+			CCp.undo = function ()
+			{
+				
+			}
+			
+			
 			CCp.highlightSelectedLine = function ()
 			{
 				var sel		= getSelection()
@@ -1331,6 +1512,15 @@
 //			var JSLINT = JSLintWithLogs({})
 //			cc.loadText(JSLINT.toString())
 			
+			
+			function	undo()
+			{
+				cc.undo()
+			}
+			function	redo()
+			{
+				cc.redo()
+			}
 
 
 
@@ -1481,5 +1671,13 @@
 			focus is where selection expands from : when using shift, it moves to extend selection
 
 * detect insertion by Character Viewer
+* undo start can be a line deletion !
+
+* bug : saving top deleted line too many times ! each time caret come on it
+	* go to line 3 'var apps'
+	* backspace to previous line : SAVES LINE
+	* enter
+	* backspace to previous line again : SAVES LINE AGAIN !
+	
 </body>
 </html>
