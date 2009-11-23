@@ -15,10 +15,6 @@
 			font-family: monaco;
 			font-size: 7pt;
 			epadding: 1em;
-			height: 300px;
-			overflow: auto;
-			position: relative;
-			z-index: 4;
 		}
 		#coloredCode
 		{
@@ -83,7 +79,6 @@
 			/* but if normal, shift-selecting up stops on newline */
 			/* inline-block works OK */
 			white-space: normal;
-			edisplay: -webkit-inline-box; 
 		}
 		.newline-blank
 		{
@@ -105,17 +100,7 @@
 			epadding-right: 40px;
 			emargin-right: -20px;
 			ebackground: -webkit-gradient(linear, left top, right top, from(#f44), to(#fcc));
-			ebackground: -webkit-gradient(linear, left top, right top, from(rgba(220, 245, 200, 0.81)), to(rgba(100, 255, 100, 0.81)));
-			
-			max-height: 1em;
-			eline-height: 0.2em;
-			overflow: none;
-		}
-		#warning
-		{
-			position: absolute;
-			color: red;
-			z-index: 1;
+			background: -webkit-gradient(linear, left top, right top, from(rgba(220, 245, 200, 0.81)), to(rgba(100, 255, 100, 0.81)));
 		}
 	</style>
 </head>
@@ -125,8 +110,8 @@
 	<li>make an automated undo tester : random commands (including undo/redo) + consistency test : replay to initial state, then back to final
 		</ul>
 
-<div id='warning'></div>
-<table border='1' style='table-layout: fixed; width: 100%; height: 800px; height: 650px; height: 300px; overflow: auto;' cellPadding='0' cellSpacing='0'><tr>
+
+<table border='1' style='table-layout: fixed; width: 100%; height: 800px; height: 650px' cellPadding='0' cellSpacing='0'><tr>
 	<td>
 		<div id='coloredCodeContainer'><div id='coloredCode'></div></div>
 	</td>
@@ -134,49 +119,26 @@
 		<div id='birdView'></div>
 		<hr>
 		<div id='birdViewDump'>LOG ALL COMMANDS HERE. typing (typing count, line extent + sel) + move + undo/redo</div>
-		<div id='clockDump'>clock dump</div>
 		<hr>
 		<div id='selectionDump'>SELECTION DUMP</div>
 		<div id='undoStackDump'>UNDO DUMP</div>
 		<button onclick='undo()'>undo</button>
 		<button onclick='redo()'>redo</button>
 		<button onclick='dumpUndoStack()'>dump undo</button>
-		<div id='orderDump'>order dump <br></div>
-		<div id='linesDump'>lines dump</div>
 	</td>
 </tr></table>
 
 	<textarea style='display: none'>
-		
-	function CheckBracketSpacing()
-	{
-		hello
-	}
-	
-abcd****1234+
 	2	3	4
 
-	var a = this.execute123('hello', world, 4)
-first line
-		second line
-			third line
-				fourth line
-					BIG BUG when careting to end of second line !
 
-// Doesn't stop on ponctuation except +
-a	*	1	+	4
-
-// Stops on star, SKIPS 1234, then + 
-abcd****1234+
-
-abcd****1234  /////// zaeza ze+
 
 
 	5	6	7
 1	*		+
 abcd****1234+
 	4	2	+
-        1234+
+abcd****1234+
 1	2	3	+
 abcd****1234+
 12	34	56	+
@@ -321,10 +283,6 @@ abcd****1234+
 				node.appendChild(n2)
 				return n2
 			}
-			function	log(str)
-			{
-				document.getElementById('warning').innerHTML += '<pre>' + getTickCount() + ' ' + str + '</pre>'
-			}
 			
 
 			// Walkers
@@ -392,8 +350,7 @@ abcd****1234+
 				// Measure width of one character
 				this.charWidthMeasurer	= newNodeAsChildOf(this.containerNode)
 
-				// Undo
-				this.actionId = 0
+
 				this.selectionStack = []
 				this.undoStack = []
 				this.redoStack = []
@@ -413,14 +370,11 @@ abcd****1234+
 				// Events
 				var self = this
 				this.editorNode.onkeydown		= function () { return self.keydown.apply(self, arguments) }
-//				this.editorNode.oncopy			= function () { return self.copy.apply(self, arguments) }
-//				this.editorNode.oncut			= function () { return self.cut.apply(self, arguments) }
+				this.editorNode.oncopy			= function () { return self.copy.apply(self, arguments) }
+				this.editorNode.oncut			= function () { return self.cut.apply(self, arguments) }
 				this.editorNode.onpaste			= function () { return self.paste.apply(self, arguments) }
-				this.containerNode.onscroll		= function () { return self.scroll.apply(self, arguments) }
 				this.editorNode.onmousedown		= function () { return self.mousedown.apply(self, arguments) }
-				this.postKeydownFunction		= function () { return self.postKeydown.apply(self, arguments) }
-				// Safari might execute two keydowns in a row instead of keydown + postkeydown. Used a counter to ensure order execution.
-				this.postKeydownPending = 0
+				this.postKeydownEventFunction	= function () { return self.postKeydown.apply(self, arguments) }
 			}
 			
 			//
@@ -464,10 +418,10 @@ abcd****1234+
 				}
 				this.editorNode.innerHTML = src.join('')
 			}
-			CCp.__defineGetter__('lineCount', function ()
+			CCp.lineCount = function()
 			{
 				return this.editorNode.childNodes.length
-			})
+			}
 			CCp.rawText = function ()
 			{
 				return this.editorNode.innerText
@@ -478,41 +432,55 @@ abcd****1234+
 				var str = '<span>*</span><br/>'
 				this.charWidthMeasurer.innerHTML = str
 				this.charWidth = this.charWidthMeasurer.firstChild.offsetWidth
+
+
+
+
 				this.charTabWidths = {}
+/*
+				this.charTabWidths = {}
+				
+				var style = 'letter-spacing: -' + (this.charWidth-1) + 'px'
+//				alert('measure=' + style)
+				for (var i=0; i<=8; i++)
+				{
+					var str = ''
+					for (var j=0; j<i; j++) str += '*'
+					str += '<span class="fakeTab" style="' + style + '">	</span>'
+					this.charWidthMeasurer.innerHTML = str
+					var tabWidth = this.charWidthMeasurer.lastChild.offsetWidth
+					this.charTabWidths[8-i] = tabWidth
+//					alert('html=' + this.charWidthMeasurer.innerHTML + '\ntab character length=' + i + '\ntab pixel width=' + tabWidth + '\ncharWidth=' + this.charWidth)
+				}
+//				alert(dumpHash(this.charTabWidths))
+//				alert(this.charWidth)
+*/				
 			}
 
-			CCp.textFromLine = function(line)
+			CCp.sourceFromLine = function(line)
 			{
 				if (typeof line == 'number')
 					line = this.lineNodeFromLineNumber(line)
-				if (!line)	return null
+				
 				var t = line.innerText
-				// When suppr-ing text from the end of line, Safari might delete newline - re-add it
+				// When suppr-ing text from the end of line, Safari might delete newline - readd it
 				if (!t.match(/\n/)) t += '\n'
+//				if (line.lastChild && line.lastChild.className == 'newline') t += '\n'
 				return	t
-			}
-			CCp.setLineText = function (line, text)
-			{
-				var n = this.lineNodeFromLineNumber(line)
-				if (n) n.innerHTML = this.replaceTabsInLine(text)
 			}
 			
 			
 			//
 			// Line and offset computation
 			// 
-			CCp.lineNodeFromNode = function (startNode)
+			CCp.lineNodeFromNode = function (node)
 			{
-				if (!startNode)		return log('lineNodeFromNode called with (null)'), null
-				var node = startNode
 				while (node)
 				{
-					if (node.nodeType == 1 && node.className == 'line')
+					if (node.nodeType == 1 && node.className.match(/\bline\b/))
 						return node
 					node = node.parentNode
 				}
-				if (!node)	
-					log('lineNodeFromNode found no line with startNode=' + startNode + '' + (startNode.nodeType==1?startNode.outerHTML:startNode.nodeValue))
 				return node
 			}
 			
@@ -576,112 +544,127 @@ abcd****1234+
 			//
 			// Selection handling
 			// 
-			CCp.__defineGetter__('rawSelection', function ()
-			{
-				var s = getSelection()
-//				return [s.baseNode, s.baseOffset, s.extentNode, s.extentOffset]
-				return [s.anchorNode, s.anchorOffset, s.focusNode, s.focusOffset]
-			})
-			CCp.__defineSetter__('rawSelection', function (r)
-			{
-				getSelection().setBaseAndExtent(r[0], r[1], r[2], r[3])
-			})
-			
-			// Caret selection { line, offset }
-			CCp.__defineGetter__('caretSelection', function ()
+			CCp.rawSelection = function ()
 			{
 				var sel = getSelection()
-				var raw = this.rawSelection
+				return sel.getRangeAt(0)
+			}
+			CCp.setRawSelection = function (r)
+			{
+				var sel = getSelection()
+				sel.removeAllRanges()
+				sel.addRange(r)
+			}
+			
+			CCp.selectionAsLineAndOffset = function ()
+			{
+				var sel = getSelection()
+				var raw = this.rawSelection()
 
 				sel.modify('extend', 'left', 'paragraphboundary')
 				var selectionText = sel.toString()
 				var length = selectionText.length
 				var range = sel.getRangeAt(0)
-				var h = new Selection({ type : 'Caret', line : this.lineNumberFromNode(sel.baseNode), offset : length, CCp : this })
+				var h = { type : 'Caret', line : this.lineNumberFromNode(sel.baseNode), offset : length }
 
-				this.rawSelection = raw
+				this.setRawSelection(raw)
+
 				return h
-			})
-			CCp.__defineSetter__('caretSelection', function (s)
+			}
+
+			CCp.setSelectionAsLineAndOffset = function (line, offset)
 			{
-				var line = this.lineNodeFromLineNumber(s.line)
+				var line = this.lineNodeFromLineNumber(line)
 				var sel = getSelection()
 				sel.setPosition(line, 0)
-				for (var i=0; i<s.offset; i++)
+				for (var i=0; i<offset; i++)
 					sel.modify('move', 'right', 'character')
-			})
+			}
 
-			// Range selection { line, offset, line2, offset2 }
-			CCp.__defineGetter__('rangeSelection', function ()
-			{
-//				return { line : this.caret.line, offset : this.caret.offset, line2 : this.caret2.line, offset2 : this.caret2.offset }
-				var n = 'anchor'
-				var c1 = this.lineAndOffsetFromNodeAndOffset(getSelection()[n + 'Node'], getSelection()[n + 'Offset'])
-				var n = 'focus'
-				var c2 = this.lineAndOffsetFromNodeAndOffset(getSelection()[n + 'Node'], getSelection()[n + 'Offset'])
-				return new Selection({type : 'Range', line : c1.line, offset : c1.offset, line2 : c2.line, offset2 : c2.offset, CCp : this })
-			})
-			CCp.__defineSetter__('rangeSelection', function (s)
+			CCp.setRangeSelectionAsLinesAndOffsets = function (line1, offset1, line2, offset2)
 			{
 				var sel = getSelection()
-				this.caretSelection = { line : s.line, offset : s.offset }
+				this.setSelectionAsLineAndOffset(line1, offset1)
 				var baseNode	= sel.baseNode
 				var baseOffset	= sel.baseOffset
-				this.caretSelection = { line : s.line2, offset : s.offset2 }
+				this.setSelectionAsLineAndOffset(line2, offset2)
 				var extentNode	= sel.extentNode
 				var extentOffset= sel.extentOffset
 				sel.setBaseAndExtent(baseNode, baseOffset, extentNode, extentOffset)
-			})
+			}
 			
-			CCp.orderedLineNumbersFromRangeSelection = function (includeLastLine)
+			//	Return the current range selection as 
+			//	{ 
+			//		 base : { line, offset }
+			//		,extent : { line, offset }
+			//	}
+			
+			CCp.rangeSelectionAsLineAndOffset = function()
 			{
-				var c1 = this.caret, c2 = this.caret2
-				if (c1.lineNumber > c2.lineNumber) c1 = this.caret2, c2 = this.caret
-				var l1 = c1.lineNumber
-				var l2 = c2.lineNumber
-				if (!includeLastLine && c2.offset == 0) l2--
-				return { line : c1.lineNumber, offset : c1.offset, line2 : c2.lineNumber, offset2 : c2.offset, l1 : l1, l2 : l2 }
-			}
-			CCp.linesTextFromRangeSelection = function(includeLastLine)
-			{
-				var lineNumbers = this.orderedLineNumbersFromRangeSelection(includeLastLine)
-				var text = ''
+				var sel = getSelection()
 
-				// When a whole line is selected, deleting it will move caret to the next line. Save it too.
-				var l2 = lineNumbers.l2
-//				if (includeLastLine && lineNumbers.offset2 == 0) l2++
-				for (var i=lineNumbers.l1; i<=l2; i++)
+				var names = ['anchor', 'extent', 'focus', 'base']
+				var base = { line : 999999999, offset : 999999999 }
+				var extent = { line : -1, offset : -1 }
+				for (var i=0; i<names.length; i++)
 				{
-					var c = new Caret(i, 0, this)
-					text += c.text
+					var name = names[i]
+					var s = this.lineAndOffsetFromNodeAndOffset(sel[name + 'Node'], sel[name + 'Offset'])
+					if (s.line < base.line) 	base = s
+					if (s.line == base.line && s.offset < base.offset)		base = s
+					if (s.line > extent.line)	extent = s
+					if (s.line == extent.line && s.offset > extent.offset)	extent = s
 				}
-				return text
+				return { base : base, extent : extent }
 			}
 
-			CCp.selectionOnStack = function()
+			CCp.pushCaretSelection = function()
+			{
+				this.selectionStack.push(this.selectionAsLineAndOffset())
+			}
+			CCp.popCaretSelection = function()
+			{
+				var s = this.selectionStack.pop()
+				this.setSelectionAsLineAndOffset(s.line, s.offset)
+			}
+			CCp.pushRangeSelection = function()
+			{
+				this.selectionStack.push(this.rangeSelectionAsLineAndOffset())
+			}
+			CCp.popRangeSelection = function()
+			{
+				var s = this.selectionStack.pop()
+				this.setRangeSelectionAsLinesAndOffsets(s.base.line, s.base.offset, s.extent.line, s.extent.offset)
+			}
+			CCp.caretSelectionOnStack = function()
 			{
 				if (!this.selectionStack.length)	return
 				return	this.selectionStack[this.selectionStack.length-1]
 			}
+			
 			CCp.pushSelection = function ()
 			{
-				this.selectionStack.push(getSelection().type == 'Caret' ? this.caretSelection : this.rangeSelection)
+				this.pushCaretSelection()
 			}
 			CCp.popSelection = function ()
 			{
-				if (this.selectionStack.length == 0)	return log('popSelection exhausted selection stack')
-				var r = this.selectionStack.pop()
-				if (r.type == 'Caret')	this.caretSelection = r
-				else					this.rangeSelection = r
+				this.popCaretSelection()
 			}
 
+			CCp.pushSelection2 = function ()
+			{
+			}
+			CCp.popSelection2 = function ()
+			{
+			}
+			
 			// Return position - offset differs from selection offset, as tabs will count for 1 to 4 chars
 			CCp.textPositionAsLineAndOffset = function ()
 			{
-				var sel	= getSelection()
-				var s	= this.lineAndOffsetFromNodeAndOffset(sel.baseNode, sel.baseOffset)
-				var line= this.lineNodeFromNode(sel.baseNode)
-				var str	= this.textFromLine(line).substr(0, s.offset)
+				var sel = getSelection()
+				var s = this.selectionAsLineAndOffset()
+				var line	= this.lineNodeFromNode(sel.baseNode)
+				var str = this.sourceFromLine(line).substr(0, s.offset)
 
 				var o = {}
 				this.replaceTabsInLine(str, null, null, o)
@@ -695,7 +678,7 @@ abcd****1234+
 				var f = this.editorNode.firstChild
 				while (f)
 				{
-					var text = this.textFromLine(f)
+					var text = this.sourceFromLine(f)
 					lines.push(text)
 					f = f.nextSibling
 				}
@@ -722,22 +705,8 @@ abcd****1234+
 //				return
 //					this.measureCharWidth()
 				
-				var t
-				var str = ''
-				var clock = function (c)
-				{
-					if (!c) t = getTickCount()
-					if (c) str += '<br>' + c + '=' + (getTickCount()-t)
-				}
-				clock()
 				var lines = this.gatherLinesToLint()
-				str += 'linting ' + lines.length + ' lines'
-				clock('gather')
-
-				clock()
 				var lint = this.lintLines(lines.join(''))
-				clock('lint')
-				
 				if (!lint.res)	
 				{
 					this.warn('Lint error dump ... ' + getTickCount() + '\n' + this.dumpLintErrors(lint.errors))
@@ -747,12 +716,12 @@ abcd****1234+
 					document.getElementById('dump3').innerHTML = getTickCount() + ' <span style="color: lime; font-weight: bold">OK</span>'
 				}
 				
-				clock()
 				
 				//
 				// Color
 				//
 				this.pushSelection()
+
 				var f = this.editorNode.firstChild
 				var i = 0
 				while (f)
@@ -767,8 +736,6 @@ abcd****1234+
 				}
 				this.popSelection()
 				
-				clock('color')
-				document.getElementById('clockDump').innerHTML = str
 			}
 
 			//
@@ -880,7 +847,7 @@ Elements are stretched to fill the box.
 //alert(style)
 //style='white-space: normal; margin-right: 10px'
 style = ''
-style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden; height: 1em'
+style = 'display: -webkit-inline-box; width: ' + w + 'px'
 					return '<span class="fakeTab" style="' + style + '">	</span>'
 					
 					return '<span class="fakeTab" style="letter-spacing: -' + w1 + 'px; padding-right: ' + w2 + 'px">	</span>'
@@ -1022,69 +989,30 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 					self.highlightSelectedLine()
 				}
 				setTimeout(h, 0)
-				this.closeEditAction()
+				this.closeUndoAction()
 			}
 			
 			//
 			// Undo
 			// 
 			
-			function	EditAction()
+			CCp.newUndoAction = function ()
 			{
-			}
-			
-			
-			CCp.newEditAction = function ()
-			{
-				this.closeEditAction()
-				this.actionId++
-				var action	= new EditAction
-				action.id	= this.actionId
-				action.text	= ''
-				action.rangeSelection = this.rangeSelection
+				var action = {}
 				this.undoStack.push(action)
-				this.redoStack = []
 				return action
 			}
 			
-			CCp.closeEditAction = function ()
+			CCp.closeUndoAction = function ()
 			{
-				if (!this.currentEditAction)	return
-
-				this.currentEditAction.endRangeSelection = this.rangeSelection
-				// Go up to check for modified lines
-				var text = ''
-				var line = this.lineNodeFromLineNumber(this.currentEditAction.lastLineVisited)
-				while (line && line.id == this.actionId)
+				if (this.currentEditingAction == 'typing')
 				{
-					this.currentEditAction.startLine = this.lineNumberFromNode(line)
-					text = this.textFromLine(line) + text
-					line = line.previousSibling
-				}
-				// Go down to check for modified lines
-				var line = this.lineNodeFromLineNumber(this.currentEditAction.lastLineVisited).nextSibling
-				while (line && line.id == this.actionId)
-				{
-					text += this.textFromLine(line)
-					line = line.nextSibling
-				}
-				// Register newText
-				this.currentEditAction.newText = text
-				this.currentEditAction.closed = true
-				this.currentEditAction = null
-
-				
-				
-//				return
-/*				
-//				if (this.currentEditingAction == 'typing')
-				{
-//					this.currentEditingAction = 'moving'
+					this.currentEditingAction = 'moving'
 					if (this.undoStack.length)
 					{
-						var action = this.currentEditAction
-						action.closed = true*/
-/*						
+						var action = this.topUndoAction()
+						action.closed = true
+						
 						var text = ''
 						var lineChangedCount = action.newLineCount - action.backwardLineDeleteCount - action.forwardLineDeleteCount
 						var lineChangedCount = action.currentLine - action.lastDeletedBackwardLineNumber
@@ -1093,7 +1021,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 //						if (lineChangedCount < 1) lineChangedCount = 1
 //						alert(action.lastDeletedBackwardLineNumber + '\n' + lineChangedCount)
 						for (var i=action.lastDeletedBackwardLineNumber; i<=action.lastDeletedBackwardLineNumber+lineChangedCount; i++)
-							text += this.textFromLine(i)
+							text += this.sourceFromLine(i)
 						action.newText = text
 						// Remove action if nothing was changed
 						if (action.isBlank)	this.undoStack.pop()
@@ -1101,11 +1029,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 						{
 							this.redoStack = []
 						}
-*/
-/*
 					}
 				}
-*/				
 				this.dumpUndoStack()
 			}
 			CCp.dumpUndoStack = function ()
@@ -1116,16 +1041,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 					for (var j=this.undoStack.length-1; j>=0; j--)
 					{
 						var action = this.undoStack[j]
+					
 						str += '<br><br><b> ACTION ' + j  + '</b>  ' + (action.closed ? '' : ' ...IN PROGRESS') + ' ' + (action.isBlank ? '<b>isBlank</b>' : '')
-						str += '<br>startLine=' + action.startLine
-						try
-						{
-							str += '<br>text=' + (action.text.split('\n').length-1) + ' lines'
-							str += '<pre style="background-color: #eee">' + htmlEncode(action.text) + '</pre>'
-							str += '<br>newText=' + (action.newText.split('\n').length-1) + ' lines'
-							str += '<pre style="background-color: #eee">' + htmlEncode(action.newText) + '</pre>'
-						} catch (e) {}
-/*					
 						str += '<br>startedAtLine=' + action.startedAtLine
 						if (j == this.undoStack.length-1)
 							str += '<br>currentLine=' + action.currentLine
@@ -1136,48 +1053,58 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 						str += '<br>lastDeletedBackwardLineNumber=' + action.lastDeletedBackwardLineNumber
 						str += '<br>total line change count=' + (action.newLineCount - action.backwardLineDeleteCount - action.forwardLineDeleteCount)
 //						str += '<br>text=' + action.text.split('n').length
-						if (action.text)
-						{
-							str += '<br>text=' + (action.text.split('\n').length-1) + ' lines'
-							str += '<pre style="background-color: #eee">' + htmlEncode(action.text) + '</pre>'
-							str += '<br>newText=' + (action.newText.split('\n').length-1) + ' lines'
-							str += '<pre style="background-color: #eee">' + htmlEncode(action.newText) + '</pre>'
-						}
-*/
+						str += '<br>text=' + (action.text.split('\n').length-1) + ' lines'
+						str += '<pre style="background-color: #eee">' + htmlEncode(action.text) + '</pre>'
+						str += '<br>newText=' + (action.newText.split('\n').length-1) + ' lines'
+						str += '<pre style="background-color: #eee">' + htmlEncode(action.newText) + '</pre>'
 					}
 					document.getElementById('undoStackDump').innerHTML = str
 				}
 			}
 			
+			CCp.topUndoAction = function ()
+			{
+				return this.undoStack[this.undoStack.length-1]
+			}
+			
+			
+			
 			CCp.undo = function ()
 			{
-				this.closeEditAction()
+				this.closeUndoAction()
 				
 				if (!this.undoStack.length)	return
 				var action = this.undoStack.pop()
 				this.redoStack.push(action)
 
+				this.dumpUndoStack()
+				
+				
 				// Starting from lastDeletedBackwardLineNumber, delete newText.length lines
-				this.deleteTextAfterLineNumber(action.newText, action.startLine)
+				this.deleteTextAfterLineNumber(action.newText, action.lastDeletedBackwardLineNumber)
 				// Insert after lastDeletedBackwardLineNumber text lines
-				this.insertTextAfterLineNumber(action.text, action.startLine)
+				this.insertTextAfterLineNumber(action.text, action.lastDeletedBackwardLineNumber)
 				
 				// Reset selection
-				action.rangeSelection.select()
+				this.setSelectionAsLineAndOffset(action.lastDeletedBackwardLineNumber, 0)
 			}
 			CCp.redo = function ()
 			{
+				this.closeUndoAction()
 				if (!this.redoStack.length)	return
 				var action = this.redoStack.pop()
 				this.undoStack.push(action)
+
+				this.dumpUndoStack()
+				
 				
 				// Starting from lastDeletedBackwardLineNumber, delete newText.length lines
-				this.deleteTextAfterLineNumber(action.text, action.startLine)
+				this.deleteTextAfterLineNumber(action.text, action.lastDeletedBackwardLineNumber)
 				// Insert after lastDeletedBackwardLineNumber text lines
-				this.insertTextAfterLineNumber(action.newText, action.startLine)
+				this.insertTextAfterLineNumber(action.newText, action.lastDeletedBackwardLineNumber)
 				
 				// Reset selection
-				action.endRangeSelection.select()
+				this.setSelectionAsLineAndOffset(action.lastDeletedBackwardLineNumber, 0)
 			}
 			
 			
@@ -1187,14 +1114,14 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				for (var i=0; i<lineCount; i++)
 				{
 					var l = this.lineNodeFromLineNumber(lineNumber)
-					if (!l)	return log('deleteTextAfterLineNumber missing line ' + (lineNumber+i))
+					if (!l)	return this.warning('deleteTextAfterLineNumber missing line ' + (lineNumber+i))
 					l.parentNode.removeChild(l)
 				}
 			}
 			CCp.insertTextAfterLineNumber = function (text, lineNumber)
 			{
 				var l = this.lineNodeFromLineNumber(lineNumber-1)
-				if (lineNumber && !l)	return this.warning('insertTextAfterLineNumber missing line ' + lineNumber)
+//				if (lineNumber && !l)	return this.warning('insertTextAfterLineNumber missing line ' + lineNumber)
 				
 				var lineCount = text.match(/\n/g).length
 				var splitText = text.split('\n')
@@ -1208,9 +1135,9 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				var n2 = document.createElement('DIV')
 				n2.className = 'line'
 				n2.innerHTML = this.replaceTabsInLine(text + '\n')
-				n2.id = this.actionId
 
 				var l = this.lineNodeFromLineNumber(lineNumber)
+//				alert('insertafter\n' + lineNumber + '\n' + l.innerText)
 				if (l)	l.insertAdjacentElement('afterEnd', n2)
 				else	
 				{
@@ -1224,495 +1151,473 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			//
 			// Events
 			// 
-			CCp.keyName = function (keyCode)
-			{
-				if (!this.keyNames)
-					this.keyNames = { 90 : 'undo', 37 : 'left', 39 : 'right', 38 : 'up', 40 : 'down', 9 : 'tab', 13 : 'newline', 8 : 'leftdelete', 46 : 'rightdelete' }
-				return this.keyNames[keyCode]
-			}
-			CCp.keyIs = function (keyCode, keyName)
-			{
-				return this.keyName(keyCode) == keyName
-			}
-			
-			
-			//
-			// Selection object
-			//
-			function	Selection(s)
-			{
-				for (var i in s)	this[i] = s[i]
-			}
-			var Sp = Selection.prototype
-			Sp.toString = function ()
-			{
-				if (!this.line2)	return this.line + ',' + this.offset
-				else				return this.line + ',' + this.offset + '->' + this.line2 + ',' + this.offset
-			}
-			Sp.select = function ()	
-			{
-				if (!('line2' in this))	this.CCp.caretSelection = this
-				else 					this.CCp.rangeSelection = this
-			}
-			
-			//
-			// Line object
-			// 
-			function	Line(line, CC)
-			{
-				this.line	= typeof line == 'Number' ? line : line.valueOf()
-				this.CC		= CC
-			}
-			var Lp = Line.prototype
-			Lp.valueOf = Lp.toString = function ()		{	return this.line	}
-			Lp.__defineGetter__('text', function ()		{	return this.CC.textFromLine(this.line)		})
-			Lp.__defineSetter__('text', function (text)	{	this.CC.lineNodeFromLineNumber(this.line).id = this.CC.actionId; return this.CC.setLineText(this.line, text)	})
-			Lp.__defineGetter__('isFirst', function ()	{	return this.line == 0 })
-			Lp.__defineGetter__('isLast', function ()	{	return this.line == this.CC.lineCount-1 })
-			Lp.__defineGetter__('node', function ()		{	return this.CC.lineNodeFromLineNumber(this.line) })
-			Lp.insertNewlineBelow = function ()
-			{
-				var n = this.CC.lineNodeFromLineNumber(this.line)
-				if (!n)	return log('Line.insertNewlineBelow : invalid line number ' + this.line)
-				var n2 = document.createElement('DIV')
-				n2.className = 'line'
-				n2.innerHTML = '\n'
-				n2.id = this.CC.actionId
-				n.insertAdjacentElement('afterEnd', n2)
-				return new Line(this.line+1, this.CC)
-			}
-			Lp.select = function ()	
-			{
-				this.CC.caretSelection = { line : this.line, offset : 0 }
-			}
-			
-			//
-			// Caret object
-			// 
-			function	Caret(line, offset, CC)
-			{
-				this.line	= new Line(line, CC)
-				this.offset	= offset
-				this.CC		= CC
-			}
-			
-			// Get, set text
-			var Cp = Caret.prototype
-			Cp.__defineGetter__('leftText', function ()		{	return this.line.text.substr(0, this.offset) })
-			Cp.__defineGetter__('rightText', function ()	{	return this.line.text.substr(this.offset)	})
-			Cp.__defineGetter__('text', function ()			{	return this.line.text })
-			Cp.__defineSetter__('text', function (text)		{	this.line.text = text })
-			Cp.__defineGetter__('lineNumber', function ()	{	return this.line.valueOf() })
-			
-			// Move
-			Cp.caretMoved = function (direction, grain)	{
-				var raw = this.CC.rawSelection
-				this.CC.caretSelection = { line : this.line, offset : this.offset }
-				getSelection().modify('move', direction, grain)
-				var s = this.CC.caretSelection
-				this.CC.rawSelection = raw
-				return new Caret(s.line, s.offset, this.CC)
-			}
-			Cp.__defineGetter__('leftChar', 	function () { return this.caretMoved('left', 'character')	})
-			Cp.__defineGetter__('rightChar', 	function () { return this.caretMoved('right', 'character')	})
-			// These only move one line at a time. Cocoa skips whitelines.
-			Cp.__defineGetter__('leftWord', 	function () { 
-				var caret2 = this._leftWord
-				if (caret2.lineNumber != this.lineNumber)	{
-					caret2 = this.previousLine.lineEnd
-					if (caret2._leftWord.lineNumber == caret2.lineNumber) caret2 = caret2._leftWord
-				}
-				return caret2
-			})
-			Cp.__defineGetter__('rightWord', 	function () { 
-				var caret2 = this._rightWord
-				if (caret2.lineNumber != this.lineNumber)	
-					caret2 = this.nextLine.skipRightWhite()
-				return caret2
-			})
-
-			Cp.__defineGetter__('_leftWord', 	function () { return this.caretMoved('left', 'word')	})
-			Cp.__defineGetter__('_rightWord', 	function () { return this.caretMoved('right', 'word')	})
-			Cp.__defineGetter__('previousLine', function () { return this.caretMoved('left', 'paragraphBoundary').caretMoved('left', 'character').caretMoved('left', 'paragraphBoundary')	})
-			Cp.__defineGetter__('nextLine',		function () { return this.caretMoved('right', 'paragraphBoundary').caretMoved('right', 'character')	})
-			// Safari mishandles these on lines with tabs, do it by hand
-			Cp.__defineGetter__('lineStart',	function () { return new Caret(this.line, 0, this.CC)	})
-			Cp.__defineGetter__('lineEnd',		function () { return new Caret(this.line, this.text.length-1, this.CC)	})
-			Cp.__defineGetter__('startOfLine',	function () { return this.lineStart	})
-			Cp.__defineGetter__('endOfLine',	function () { return this.lineEnd	})
-
-			Cp.__defineGetter__('isAtStartOfLine',	function () { return this.offset == 0	})
-			Cp.__defineGetter__('isAtEndOfLine',	function () { return this.offset == this.line.text.length-1	})
-
-
-			Cp.__defineGetter__('pageUp', 		function () { var c = this; for (var i=0; i<10; i++) c = c.previousLine; return c.skipRightWhite();	})
-			Cp.__defineGetter__('pageDown', 	function () { var c = this; for (var i=0; i<10; i++) c = c.nextLine; return c.skipRightWhite();	})
-			
-			Cp.select = function ()	
-			{
-				this.CC.caretSelection = { line : this.line, offset : this.offset }
-			}
-			Cp.selectTo = function (caret)
-			{
-				this.CC.rangeSelection = { line : this.line, offset : this.offset, line2 : caret.line, offset2 : caret.offset }
-			}
-			Cp.deleteLine = function ()
-			{
-				var n = this.CC.lineNodeFromLineNumber(this.lineNumber)
-				if (!n)	return log('Line.delete : invalid line number ' + this.line)
-				n.parentNode.removeChild(n)
-			}
-			
-			
-			Cp.skipRightWhite = function ()
-			{
-				var t = String(this.rightText.match(/^(\u0009|\u0020)*/)[0])
-				if (!t)	return this
-				var c = this
-				for (var i=0; i<t.length; i++)	c = c.caretMoved('right', 'character')
-				return c
-			}
-			Cp.isBefore = function (caret)
-			{
-				if (this.isEqualTo(caret)) return false;
-				if (caret.lineNumber < this.lineNumber)	return false
-				if (caret.lineNumber > this.lineNumber) return true
-				if (caret.offset > this.offset)			return true
-			}
-			Cp.isEqualTo = function (caret)	{ return caret.lineNumber == this.lineNumber && caret.offset == this.offset }
-			Cp.isAfter = function (caret)	{ if (this.isEqualTo(caret)) return false; return !this.isBefore(caret) }
-			Cp.deleteTo = function (caret)
-			{
-				var caret2 = this
-				if (caret2.isBefore(caret))	caret2 = caret, caret = this
-				caret.line.text = caret.leftText + caret2.rightText
-				var lineDeleteCount = caret2.lineNumber - caret.lineNumber
-				for (var i=0; i<lineDeleteCount; i++)	
-					caret.nextLine.deleteLine()
-				caret.select()
-			}
-			Cp.toString = function ()		{	return this.line + ',' + this.offset	}
-			
-			
-			
-			
-			
-			CCp.__defineGetter__('caret', function ()
-			{
-				var c = this.lineAndOffsetFromNodeAndOffset(getSelection().anchorNode, getSelection().anchorOffset)
-				return new Caret(c.line, c.offset, this)
-/*
-				var sel = getSelection()
-				var raw = this.rawSelection
-				sel.setBaseAndExtent(sel.baseNode, sel.baseOffset, sel.baseNode, sel.baseOffset)
-				sel.modify('extend', 'left', 'paragraphboundary')
-				var c = new Caret(this.lineNumberFromNode(sel.baseNode), sel.toString().length, this)
-				this.rawSelection = raw
-				return c
-*/
-			})
-			CCp.__defineGetter__('caret2', function ()
-			{
-				var c = this.lineAndOffsetFromNodeAndOffset(getSelection().focusNode, getSelection().focusOffset)
-				return new Caret(c.line, c.offset, this)
-/*
-				var sel = getSelection()
-				var raw = this.rawSelection
-				sel.setBaseAndExtent(sel.extentNode, sel.extentOffset, sel.extentNode, sel.extentOffset)
-				sel.modify('extend', 'left', 'paragraphboundary')
-				var c = new Caret(this.lineNumberFromNode(sel.baseNode), sel.toString().length, this)
-				this.rawSelection = raw
-				return c
-*/
-			})
-			
 			CCp.keydown = function ()
 			{
-//				document.getElementById('orderDump').innerHTML += 'kd '
+				var sel = getSelection()
+				if (!sel.baseNode)	return
+				
+				var n = sel.baseNode
+//				alert (n.parentNode.outerHTML)
+				
+				// Check basenode, outlinenode, ...
+				if (n.parentNode.className == 'fakeTab')
+				{
+					n.parentNode.style.whiteSpace = 'pre'
+				}
+				
+				setTimeout(this.postKeydownEventFunction, 0)
+
+
+				var keyCode = event.keyCode
+
+				var str = getTickCount() + ' postKeydown<br>'
+				str += keyCode
+
+				// Arrow keys
+				this.movingForSure		= keyCode >= 37 && keyCode <= 40
+				// Backspace or suppr
+				this.deletingForSure	= keyCode == 8 || keyCode == 46
+				this.keydownKeycode		= keyCode
+
+				var s = this.selectionAsLineAndOffset()
+				var lineNode = this.lineNodeFromLineNumber(s.line)
+				
+				str += '<br>linePREKEYDOWN=' + s.line
+				str += '<br>lineCountPREKEYDOWN=' + this.lineCount()
+				str += '<br>movingForSure='  + this.movingForSure
+				str += '<br>deletingForSure='  + this.deletingForSure
+				str += '<br>altKey=' + event.altKey + ' metaKey=' + event.metaKey
+				
+				
+/*				
+				if (this.selection().line() )
+				
+				if (this.selection().line() != this.selection().moveLeft('word').line())
+				
+				this.selection().leftText()
+				this.selection().rightText()
 				//
-				// Setup
-				// 
-				var sel		= getSelection()
-				var self	= this
-				var keyIs	= function (keyName) { return self.keyIs(event.keyCode, keyName) }
-				var keyName = this.keyName(event.keyCode)
-				var command	= !!event.metaKey
-				var shift	= !!event.shiftKey
-				var option	= !!event.altKey
-				var preventDefault = function () { event.preventDefault(); event.returnValue = false }
-
-				// Undo / redo
-				if (command && keyIs('undo') && !shift)	return preventDefault(), this.undo()
-				if (command && keyIs('undo') && shift)	return preventDefault(), this.redo()
-
-				// Post key down : let safari do its stuff and react after it
-				var tryCount = 20
-				while (this.postKeydownPending && tryCount)	tryCount--; this.postKeydownFunction()
-				this.postKeydownPending++
-				setTimeout(this.postKeydownFunction, 0)
-
-				var wasMoving = this.editState ? this.editState.isMoving : false
-				this.editState = {
-					 isMoving : keyIs('left') || keyIs('right') || keyIs('up') || keyIs('down')
-				}
-
-				var action = this.currentEditAction
-				if (this.editState.isMoving)	this.closeEditAction()
-				if (!this.editState.isMoving)
-				{
-					var caret = this.caret
-					this.editState.lineCount 		= this.lineCount
-					this.editState.caretLineNumber	= caret.lineNumber
-					this.editState.caretLineText		= caret.text
-					this.editState.rangeSelection	= this.rangeSelection
-					if (!caret.line.isFirst)	this.editState.previousLineText	= caret.previousLine.text	, this.editState.previousLineId = caret.previousLine.line.node.id
-					if (!caret.line.isLast)		this.editState.nextLineText		= caret.nextLine.text		, this.editState.nextLineId = caret.nextLine.line.node.id
-					
-					if (sel.type == 'Range')
-						this.editState.rangeText = this.linesTextFromRangeSelection(true)
-				}
+				//	object : line, offset
+				//
 				
-				//###
-				var str = getTickCount()
-				str += '<br>keyCode=' + event.keyCode
-				str += '<br>isMoving=' + this.editState.isMoving + ' wasMoving=' + wasMoving
-				str += '<br>lineCount=' + this.editState.lineCount
-				str += '<br>caretLineNumber=' + this.editState.caretLineNumber
-				str += '<br>previousLineText=' + this.editState.previousLineText
-				str += '<br>caretLineText=' + this.editState.caretLineText
-				str += '<br>nextLineText=' + this.editState.nextLineText
-				this.keydownStr = str
-				//###
-				
+				this.selection.moveToStartOfLine()
+				this.selection.moveTo
+*/				
 
-				// Selection extent
-				if (shift)
-				{
-					if (option && (keyIs('left') || keyIs('right')))	return preventDefault(), this.caret.selectTo(this.caret2[keyName + 'Word'])
-					if (option && (keyIs('up') || keyIs('down')))		return preventDefault(), this.caret.selectTo(this.caret2[keyName == 'down' ? 'pageDown' : 'pageUp'])
-					if (command && keyIs('right'))	return preventDefault(), this.caret.selectTo(this.caret2.lineNumber == this.caret.lineNumber && this.caret2.isAtEndOfLine ? this.caret2.nextLine.nextLine : this.caret2.nextLine)
-					if (command && keyIs('left'))	
-					{
-//						this.caret2.isAtStartOfLine ? (this.caret2.lineNumber == this.caret.lineNumber || this.caret2.lineNumber == this.caret.lineNumber+1 ? this.caret.selectTo(this.caret2.previousLine.startOfLine.skipRightWhite()) : this.caret.selectTo(this.caret2.previousLine.startOfLine)) : 
+
+
+//				str += '<br>line=' + s.line + ' lineNode='
+				var text = this.sourceFromLine(this.lineNodeFromLineNumber(s.line))
+				str += '<br>offset=' + s.offset + ' text='
+				str += text.substr(0, s.offset)
+				str += '<span style="color: red">*</span>'
+				str += text.substr(s.offset)
+				str += '<span style="color: red">*</span>'
+				var lastChar = text.charCodeAt(text.length-1)
+
+//				this.deletingForSure = keyCode == 8 || keyCode == 46
+//				this.keydownKeycode = keyCode
+				
+				var isDeletingLineBackwards	= this.keydownKeycode == 8 && s.offset == 0
+				var isDeletingLineForwards	= this.keydownKeycode == 46 && (lastChar == '\n' ? s.offset == text.length-2 : s.offset == text.length-1)
+				
+				// Deleting backwards only when we're not on the first line
+				isDeletingLineBackwards		= isDeletingLineBackwards && s.line
+				// Deleting forwards only when we're not on the last line
+				isDeletingLineForwards		= isDeletingLineForwards && ((s.line+1) != this.lineCount())
+				// Newline
+				var isInsertingNewLine		= keyCode == 13
+
+
 /*
-						problem
+				if (this.overflowing('left', 'word' ...))
+					isDeletingLineForwards = true
+				this.overflowing('left', 'word' ...)
+*/
+
+				if (this.deletingForSure && event.altKey)
+				{
+					str += '<br><b>option delete</b>'
+					// Need to account range
+					var rawSelection = this.rawSelection()
+					if (keyCode == 8)
+					{
+						sel.modify('extend', 'left', 'word')
+						sel.collapseToStart()
+					}
+					else
+					{
+						sel.modify('extend', 'right', 'word')
+						sel.collapseToEnd()
+					}
+					
+					var s2 = this.selectionAsLineAndOffset()
+					var deleteOverflow = Math.abs(s.line - s2.line)
+					if (deleteOverflow)
+					{
+						str += '<br><b style="color: red">DELETE OVERFLOW= ' + deleteOverflow + '</b>'
+						if (keyCode == 8)	isDeletingLineForwards	= true
+						if (keyCode == 46)	isDeletingLineBackwards	= true
+					}
+					this.setRawSelection(rawSelection)
+				}
+
+				str += '<br>isDeletingLineBackwards=' +  (isDeletingLineBackwards ? '<b style="color: red">YES</b>' : 'no')
+				str += '<br>isDeletingLineForwards=' +  (isDeletingLineForwards ? '<b style="color: red">YES</b>' : 'no')
+				str += '<br>isInsertingNewLine=' +  (isInsertingNewLine ? '<b style="color: red">YES</b>' : 'no')
+				
+				// Undo
+				if (event.metaKey && event.keyCode == 90)
+				{
+//					if (event.shiftKey)
+					str += '<br><span style="font-weight: bold; color: red; font-size: 200%">' + (event.shiftKey ? '......REDO' : 'UNDO') + '</span>'
+					
+					!event.shiftKey ? this.undo() : this.redo()
+					event.preventDefault()
+					return
+				}
+//				alert(dumpHash(event))
+//				if ()
+//alert(dumpHash(event))			
+
+				// Update lineCount
+				var lineCount = this.editorNode.childNodes.length
+				if (!this.previousLineCount)	this.previousLineCount = lineCount
+				var lineText 		= this.lineNodeFromNode(sel.baseNode).innerText
+				if (!this.previousLineText)		this.previousLineText = lineText
+				this.previousLineText = lineText
+
+				
+				//
+				// Undo handling : prepare a new action or complete the existing one
+				// 
+				if (!this.movingForSure)
+				{
+//					var justStarted = false
+					var previousAction = this.currentEditingAction
+					// Create new action
+					if (this.currentEditingAction != 'typing')
+					{
+						this.currentEditingAction = 'typing'
 						
-							cmd right
-							-> selex right, nil pass FAIIIIIIIIIIL
-							
-							caret to end of line
-							cmd left
-							-> selex skip right, OK
-							cmd left
-							-> selex line start, OK
-							cmd left
-							-> selex prev line skip right, FAILLLLLLLLLLL
-*/							
+						var action = this.newUndoAction()
+						action.startedAtLine = s.line
+						action.currentLine = action.startLine = action.endLine = s.line
+						action.text = this.sourceFromLine(this.lineNodeFromLineNumber(s.line))
+						action.newText = ''
+						action.forwardLineDeleteCount = 0
+						action.backwardLineDeleteCount = 0
+						action.lastDeletedBackwardLineNumber = s.line
+						action.newLineCount = 0
+					}
+					// Update current undo action
+					if (this.currentEditingAction == 'typing')
+					{
+						var action = this.topUndoAction()
+
+						var currentLine = action.currentLine
+						if (isDeletingLineBackwards)	currentLine--
+						if (isInsertingNewLine)			currentLine++
+						
+						if (isDeletingLineBackwards)	action.backwardLineDeleteCount++
+						if (isDeletingLineForwards)		action.forwardLineDeleteCount++
+						if (isInsertingNewLine)			action.newLineCount++
 						
 						
-						if (this.caret2.isAtStartOfLine)
+						action.startLine	= Math.min(action.startLine, currentLine)
+						action.endLine		= Math.max(action.endLine, currentLine)
+						
+						action.currentLine = currentLine
+						
+						if (isDeletingLineForwards)
 						{
-							if (this.caret2.lineNumber == this.caret.lineNumber/* || this.caret2.lineNumber == this.caret.lineNumber+1*/)	this.caret.selectTo(this.caret2.previousLine.startOfLine)
-							else this.caret.selectTo(this.caret2.previousLine.startOfLine)
+							var nextLineText = this.sourceFromLine(s.line+1)
+							action.text += nextLineText
+						}
+						if (isDeletingLineBackwards && (s.line-1) < action.lastDeletedBackwardLineNumber)
+						{
+							action.lastDeletedBackwardLineNumber = s.line-1
+							var previousLineText = this.sourceFromLine(s.line-1)
+							action.text = previousLineText + action.text
+						}
+					}					
+					if (previousAction != 'typing')	this.topUndoAction().isBlank = true
+				}
+				else
+				{
+					// Close undo action when we're moving
+					this.closeUndoAction()
+				}
+				
+				this.dumpUndoStack()
+
+				// Handle (option|command) (delete|backspace)
+				if (this.deletingForSure && event.altKey)
+				{
+					// Need to account range
+					var rawSelection = this.rawSelection()
+					if (keyCode == 8)
+					{
+						sel.modify('extend', 'left', 'word')
+						sel.collapseToStart()
+					}
+					else
+					{
+						sel.modify('extend', 'right', 'word')
+						sel.collapseToEnd()
+					}
+					
+					var s2 = this.selectionAsLineAndOffset()
+					var deleteOverflow = Math.abs(s.line - s2.line)
+					if (deleteOverflow)
+					{
+						str += '<br><b style="color: red">DELETE OVERFLOW= ' + deleteOverflow + '</b>'
+					}
+					
+					
+					if (deleteOverflow)
+					{
+//						this.setRawSelection(rawSelection)
+						if (keyCode == 8)
+						{
+							var previousLine = this.lineNodeFromLineNumber(s.line-1)
+							var previousLineText = this.sourceFromLine(previousLine)
+//							previousLine.parentNode.removeChild(previousLine)
+							if (deleteOverflow > 1)
+							{
+								previousLine.parentNode.removeChild(previousLine)
+								lineNode.innerHTML = this.replaceTabsInLine(this.sourceFromLine(lineNode).substr(s.offset))
+								this.setSelectionAsLineAndOffset(s.line-1, 0)
+
+								event.preventDefault()
+							}
+							else
+							{
+								previousLine.innerHTML = this.replaceTabsInLine(this.sourceFromLine(previousLine).replace(/\n/, '') + this.sourceFromLine(lineNode))
+								this.setSelectionAsLineAndOffset(s.line-1, previousLineText.length-1+s.offset)
+							}
 						}
 						else
 						{
-							if ((this.caret.lineNumber == this.caret2.lineNumber) && this.caret2.isAfter(this.caret2.startOfLine.skipRightWhite()))
-								 this.caret.selectTo(this.caret2.startOfLine.skipRightWhite())
-							else this.caret.selectTo(this.caret2.startOfLine)
+							var nextLine = this.lineNodeFromLineNumber(s.line+1)
+							nextLine.parentNode.removeChild(nextLine)
+							if (deleteOverflow > 1)
+							{
+								lineNode.innerHTML = this.replaceTabsInLine(this.sourceFromLine(lineNode).substr(0, s.offset-1))
+								this.setSelectionAsLineAndOffset(s.line, s.offset-1)
+								event.preventDefault()
+							}
+							else
+							{
+								lineNode.innerHTML = this.replaceTabsInLine(this.sourceFromLine(lineNode).replace(/\n/, '') + this.sourceFromLine(nextLine))
+								this.setSelectionAsLineAndOffset(s.line, s.offset)
+							}
 						}
-						return preventDefault()
 					}
+					else
+						this.setRawSelection(rawSelection)
+//					event.returnValue = false
 				}
+				
 
-				var caret = this.caret
 
-				if (sel.type == 'Range')
+				// REMOVE ME
+				this.keydownStr = str + '<hr><b>END KEYDOWN</b><hr>'
+//				alert('clean action in postkeydown if no typing')
+//				this.birdViewNode.innerHTML = str
+
+
+
+
+
+				
+				if (sel.type != 'Caret' && sel.type != 'Range')	return
+				
+				var line = this.lineNodeFromNode(sel.baseNode)
+
+				if (!line)
 				{
-					if (keyIs('tab'))
+					alert('Caret is not in a DIV')
+					return
+				}
+					
+				var lineNode 		= this.lineNodeFromNode(sel.baseNode)
+				var lineNumber 		= this.lineNumberFromNode(sel.baseNode)
+				lineCount			= this.editorNode.childNodes.length
+				currentLineNumber 	= this.lineNumberFromNode(sel.baseNode)
+//				currentLineText 	= lineNode.innerText
+				currentLineText		= this.sourceFromLine(lineNode)
+//				previousLineText	= lineNode.previousSibling ? lineNode.previousSibling.innerText : null
+//				nextLineText		= lineNode.nextSibling ? lineNode.nextSibling.innerText : null
+				
+
+
+				//  Insert tab
+				if (keyCode == 9)
+				{
+					var s = this.rangeSelectionAsLineAndOffset()
+					var lineNumber1 = s.base.line
+					var lineNumber2 = s.extent.line
+
+
+					event.preventDefault()
+					var lineNumber2 = this.lineNumberFromNode(sel.extentNode)
+					// Insert a single tab
+					if (lineNumber == lineNumber2)
 					{
-						preventDefault()
-						this.editState.rangeText	= this.linesTextFromRangeSelection(false)
-						this.currentEditAction		= this.newEditAction()
-						this.currentEditAction.name	= 'tab'
-						var lineNumbers				= this.orderedLineNumbersFromRangeSelection(false)
-						for (var i=lineNumbers.l1; i<=lineNumbers.l2; i++)
+						if (sel.type == 'Range')	sel.deleteFromDocument()
+						this.pushCaretSelection()
+//alert('1')						
+						var t = currentLineText
+//						lineNode.innerText = t
+						var offset = this.caretSelectionOnStack().offset
+//alert('2')						
+//alert('3')						
+						var left = t.substr(0, offset)
+						var right = t.substr(offset)
+//						alert(left + '<CARET>' + right)
+//						alert('offset=' + offset + '\ntext=' + t + '\n\n\nleft=' + left + '\n\n\nright=' + right)
+						var text = left + '\t' + right
+						lineNode.innerHTML = this.replaceTabsInLine(text)
+//alert('4')						
+						this.popCaretSelection()
+						// Advance after tabbing
+						sel.modify('move', 'right', 'character')
+//alert('5')						
+//				document.getElementById('dump6').innerHTML += '\nselectionAsLineAndOffset line=' + h.line + ', offset=' + h.offset
+
+					}
+					else
+					// Move lines back and from
+					{
+//						alert(sel.extentNode.parentNode.innerText + ' ' + sel.extentOffset)
+//						alert('tab selection TODO, account shift')
+						
+						this.pushRangeSelection()
+/*
+						var str = 'when shift selecting keyboard, selection differs and selects part of the first line'
+						str += '\nanchor=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
+						str += '\nextent=(' + sel.extentOffset + ')' + lineNodeFromNode(sel.extentNode).innerText
+						str += '\nbase=(' + sel.baseOffset + ')' + lineNodeFromNode(sel.baseNode).innerText
+						str += '\noffset=(' + sel.focusOffset + ')' + lineNodeFromNode(sel.focusNode).innerText
+						alert(str)
+*/
+/*
+	alert('SEL TAB MULTIPLE LINES')
+						// Keyboard selecting lines will select the next line with a zero offset
+						// happens on triple-clicking left space on tabs on a function
+						if (sel.extentOffset == 0) lineNumber2--
+
+//						alert(lineNumber + ' ' + lineNumber2)
+//						alert(lineNodeFromNode(sel.baseNode).innerText)
+						
+						if (lineNumber2 <= lineNumber)
 						{
-							var c = new Caret(i, 0, this)
-							if (shift)	c.text = c.text.replace(/^\s/, '')
-							else		c.text = '\t' + c.text
+							var tmp = lineNumber2
+							lineNumber2 = lineNumber
+							lineNumber = tmp
 						}
-						this.rangeSelection = { line : lineNumbers.l1, offset : 0, line2 : lineNumbers.l2+1, offset2 : 0 }
-						return
+*/
+						var s = this.rangeSelectionAsLineAndOffset()
+						var lineNumber1 = s.base.line
+						var lineNumber2 = s.extent.line
+						// Full line selections have an extent that starts to the next line with an offset of 0. (1 if line starts with a fake tab)
+						if (s.extent.offset == 0 || s.extent.offset == 1) lineNumber2--
+						for (var i=lineNumber1; i<=lineNumber2; i++)
+						{
+							var line = this.lineNodeFromLineNumber(i)
+							var t
+							if (!event.shiftKey)	t = '\t' + this.sourceFromLine(line)
+							else					t = this.sourceFromLine(line).toString().replace(/^\s/, '')
+							
+							line.innerHTML = this.replaceTabsInLine(t)
+						}
+						this.popRangeSelection()
 					}
 				}
 
-				// Caret manipulation
-				// Insert tab
-				if (keyIs('tab'))
+				// Insert new line
+				if (isInsertingNewLine)
 				{
-					preventDefault()
-					if (shift)	caret = caret.leftChar, caret.text = caret.leftText + caret.rightText.replace(/^\u0009/, ''), caret.select()
-					else		caret.text = caret.leftText + '\t' + caret.rightText, caret.rightChar.select()						
-				}
-				
-				// Insert newline
-				if (keyIs('newline'))
-				{
-					preventDefault()
-					var newline		= caret.line.insertNewlineBelow()
-					var leftSpace	= String(caret.leftText.match(/^(\u0009|\u0020)*/)[0])
-					newline.text	= leftSpace + caret.rightText
-					caret.line.text	= caret.leftText
-					var newCaret = caret.nextLine
-					for (var i=0; i<leftSpace.length; i++) newCaret = newCaret.rightChar
-					newCaret.select()
-				}
-				
-				// Move
-				// Move to start of text (skipping whitespace, not to start of line), then to start of line, then to previous line
-				if (command && keyIs('left'))	preventDefault(), caret.isAtStartOfLine ? caret.previousLine.startOfLine.skipRightWhite().select() : (!caret.isAfter(caret.startOfLine.skipRightWhite()) ? caret.startOfLine.select() : caret.startOfLine.skipRightWhite().select())
-				if (command && keyIs('right'))	preventDefault(), caret.isAtEndOfLine ? caret.nextLine.skipRightWhite().select() : (caret.isBefore(caret.startOfLine.skipRightWhite()) ? caret.startOfLine.skipRightWhite().select() : caret.endOfLine.select())
-				if (option && keyIs('up'))		preventDefault(), caret.pageUp.select()
-				if (option && keyIs('down'))	preventDefault(), caret.pageDown.select()
-				if (option && keyIs('left'))	preventDefault(), caret.leftWord.select()
-				if (option && keyIs('right'))	preventDefault(), caret.rightWord.select()
+					if (sel.type == 'Caret')
+					// OR if one line range
+					{
+						event.preventDefault()
+						// Transform line to raw text
+						this.pushCaretSelection()
+						lineNode.innerText = this.sourceFromLine(lineNode)
+						this.popCaretSelection()
+						var l = this.lineNumberFromNode(sel.baseNode)
+						
+						sel.setBaseAndExtent(lineNode, 0, sel.baseNode, sel.baseOffset)
 
-				// Delete forward and backward
-				if (option && keyIs('leftdelete'))		preventDefault(), caret.deleteTo(caret.leftWord)
-				if (option && keyIs('rightdelete'))		preventDefault(), caret.deleteTo(caret.rightWord)
-				if (command && keyIs('leftdelete'))		preventDefault(), caret.deleteTo(caret.isAtStartOfLine ? caret.startOfLine.leftChar : !caret.isAfter(caret.startOfLine.skipRightWhite()) ? caret.startOfLine : caret.startOfLine.skipRightWhite())
-				if (command && keyIs('rightdelete'))	preventDefault(), caret.deleteTo(caret.isAtEndOfLine ? caret.endOfLine.rightChar : caret.endOfLine)
+
+						var leftLength = sel.toString().length
+						
+						// Add \n if it's not here (happens on one-line documents)
+						var rightText = this.sourceFromLine(lineNode).substr(leftLength)
+						if (!rightText.match(/\n/)) rightText += '\n'
+
+						// Get space (minus \n) on cursor left
+						var leftSpace = this.sourceFromLine(lineNode).substr(0, leftLength).toString().match(/^\s*/).toString().replace(/(\r|\n)/g, '').toString()
+						
+						// Add a tab if we're pressing enter AFTER a brace
+						if (this.sourceFromLine(lineNode).match(/^\s*\{/) && !rightText.match(/\{/))	leftSpace += '	'
+
+						// New node
+						var n = document.createElement('DIV')
+						n.className = 'line'
+						var text = leftSpace + rightText
+						text = this.replaceTabsInLine(text)
+						n.innerHTML = text
+						// Add new node right after current line
+						lineNode.insertAdjacentElement('afterEnd', n)
+
+
+						// Cut current line content
+						var text = this.sourceFromLine(lineNode).substr(0, leftLength) + '\n'
+						lineNode.innerHTML = this.replaceTabsInLine(text)
+
+
+						sel.setPosition(n, 0)
+						if (leftSpace.length)
+						{
+							for (var i=0; i<leftSpace.length; i++)
+								sel.modify('move', 'right', 'character')
+						}
+					}
+					else
+					{
+						// Nothing to do with a range as no newline is inserted.
+					}
+					
+				}
+				
+				/*
+					If Range selection, save all lines
+				*/
 			}
+			
 			
 			//
 			// post key down
 			// 
 			CCp.postKeydown = function ()
 			{
-				if (!this.postKeydownPending)	return
-				
-//				alert('bracket spacing')
-				
-//				document.getElementById('orderDump').innerHTML += 'pkd '
-				this.postKeydownPending--
 				this.dumpUndoStack()
 				
 				var sel = getSelection()
 
-				if (sel.type == 'None')	return
 
-				var str = ''
 
 				var self = this
+				var str = ''
 
 				this.birdViewNode.innerHTML = this.keydownStr
 				this.birdViewNode.innerHTML += str
 				
-				str += '<br>newLineCount=' + this.lineCount
-				str += '<br>newCaretLineNumber=' + this.caret.lineNumber
-//				if (this.editState.rangeText)
-				{
-					str += '<br>rangeText=<pre>' + this.editState.rangeText + '</pre>'
-				}
-				
-				var caret = this.caret
-				var mode = 'moving'
-				var typingAction
-				var lineChangeCount = this.lineCount - this.editState.lineCount
-
-
-				var reason
-				if (!this.editState.isMoving)
-				{
-					if (this.lineCount != this.editState.lineCount || this.caret.line.text != this.editState.caretLineText) mode = 'typing'
-					// If we were typing and now have a range selection, close it (handles actions like select all, check action name to not close tab actins)
-					if (sel.type == 'Range' && this.currentEditAction && !this.currentEditAction.name)	this.closeEditAction()
-/*
-					if (this.lineCount != this.editState.lineCount)	mode = 'typing', typingAction = this.lineCount > this.editState.lineCount ? 'added lines' : 'removed lines'
-					else
-					if (this.caret.line.text != this.editState.caretLineText)	mode = 'typing', reason = 'typed'
-*/
-				}
-
-				str += '<br>mode=' + mode
-				if (mode == 'typing')	str += ' reason=' + reason
-				str += '<br>caret=' + this.caret.line.node.innerText
-
-				if (mode == 'typing')	
-				{
-					if (this.editState.rangeText)
-					{
-						str += '<br>HasRange=' + String(getSelection()).length
-						str += '<br>is collapsed=' + getSelection().isCollapsed
-						str += '<br>this.currentEditAction=' + this.currentEditAction
-						
-						if (!this.currentEditAction)		this.currentEditAction = this.newEditAction()
-						this.caret.line.node.id		= this.actionId
-						this.currentEditAction.text	= this.editState.rangeText
-						this.currentEditAction.lastLineVisited	= this.caret.lineNumber
-						this.currentEditAction.rangeSelection	= this.editState.rangeSelection
-
-						if (this.currentEditAction.name == 'tab')
-							this.closeEditAction()
-					}
-					else
-					{
-						if (!this.currentEditAction)	
-						{
-							this.currentEditAction = this.newEditAction()
-							this.currentEditAction.rangeSelection	= this.editState.rangeSelection
-						}
-						this.currentEditAction.lastLineVisited = this.caret.lineNumber
-						if (this.caret.line.node.id != this.currentEditAction.id && !this.currentEditAction.text)
-						{
-							this.currentEditAction.text = this.editState.caretLineText
-							this.caret.line.node.id = this.actionId
-						}
-						// Deleted a line
-						if (this.lineCount < this.editState.lineCount)
-						{
-							// Deleted previous line
-							if (this.editState.caretLineNumber > this.caret.lineNumber)
-							{
-								if (this.editState.previousLineId != this.actionId) this.currentEditAction.text = this.editState.previousLineText + this.currentEditAction.text
-							}
-							else
-							{
-								if (this.editState.nextLineId != this.actionId) this.currentEditAction.text += this.editState.nextLineText
-							}
-							this.caret.line.node.id = this.actionId
-						}
-						// Inserted a line
-						if (this.lineCount > this.editState.lineCount)
-						{
-							this.caret.previousLine.line.node.id = this.actionId
-						}
-						
-						if (lineChangeCount == 1)
-						{
-							if (this.caret.previousLine.text.match(/^\s*\{/))
-							{
-//								alert('open brace')
-							}
-						}
-						if (this.caret.line.text.match(/^\s*\}/))
-						{
-//							alert('close brace')
-						}
-						
-					}
-				}
-				
-				str += '<hr>'
-/*				
-				this.editState.mode = mode
-				
-//				if (this.editState.caretLineNumber == )
-				
-				
 				// Check editingForSure
-				var lineCount = this.lineCount
+				var lineCount = this.lineCount()
 				var lineCountChanged = lineCount != this.previousLineCount
 				str += '<br>lineCountChanged=' + (lineCountChanged  ? ('<b>YES</b> ' + this.previousLineCount + '->' + lineCount) : 'no')
 
@@ -1730,18 +1635,18 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				var type = 'moving'
 				if (!this.movingForSure && (lineCountChanged || lineTextChanged)) type = '<b style="color: red; font-size: 150%">editing</b>'
 				str += '<br>TYPE=' + type
-*/				
+				
 //				str += '<hr><pre>' + dumpSelection()
-/*
+
 				var s = this.selectionAsLineAndOffset()
 				str += '<br>line=' + s.line
 				str += '<br>lineCount=' + this.lineCount()
-*/
+
 				
 				this.birdViewNode.innerHTML += str
 				
 				
-//				this.previousLineCount = lineCount
+				this.previousLineCount = lineCount
 				
 				
 				
@@ -1754,7 +1659,11 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				// 
 				
 				this.highlightSelectedLine()
-/*				
+//				var lineNumber = lineNumberFromNode(sel.baseNode)
+				
+				
+//if (this.movingForSure)				return alert('k')
+				
 				//	Maybe 	* deleted everything	-> just a text node left, or a br
 				//			* backspace or delete	-> two spans on the same line					
 				var line = this.lineNodeFromNode(sel.baseNode)
@@ -1768,7 +1677,52 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 					sel.setPosition(this.editorNode.firstChild.firstChild, 0)
 					var line = this.lineNodeFromNode(sel.baseNode)
 				}
-*/				
+				
+//				if (previouslySelectedLine)	previouslySelectedLine.className = 'line'
+//				previouslySelectedLine = null
+				
+				var lineCount2			= this.editorNode.childNodes.length
+				var currentLineNumber2 	= this.lineNumberFromNode(sel.baseNode)
+				
+				var currentLineText2 	= this.sourceFromLine(this.lineNodeFromNode(sel.baseNode))
+
+				
+
+//alert(currentLineText + '\n\n' + currentLineText2 + '\n\n\nn1=' + currentLineNumber + '\nn2=' + currentLineNumber2)
+				
+				var mode = 'selecting'
+				var moved = lineCount2 != lineCount
+				var lineChanged = !(currentLineNumber2 == currentLineNumber && currentLineText2 == currentLineText)
+				if (moved || lineChanged)
+					mode = 'typing'
+					
+				
+				// Custom handling for having inserted specific characters, eg closing a brace : remove one tab in front of it
+				if (mode == 'typing' && currentLineNumber == currentLineNumber2 && currentLineText.length+1 == currentLineText2.length)
+				{
+					var s = this.selectionAsLineAndOffset()
+					var addedChar = currentLineText2.charAt(s.offset-1)
+
+					// If closed a block, remove a tab in front of it
+					if (addedChar == '}' && currentLineText2.match(/\t\}/))
+					{
+						this.pushCaretSelection()
+						var text = currentLineText2.replace(/\t\}/, '}')
+						line.innerText = text
+						this.selectionStack[this.selectionStack.length-1].offset--
+						this.popCaretSelection()
+					}
+				}
+				
+				this.birdViewNode.innerHTML += '<hr><b>' + mode + '</b><hr>'
+				if (mode == 'typing' && this.topUndoAction())	this.topUndoAction().isBlank = false
+
+//				if (mode != 'typing')	return
+
+
+
+				
+//				if (sel.type == 'Range') alert('HIGHLIGHT WITH RANGE SELECTION')
 				if (sel.type == 'Range') return
 				this.colorCode()
 			}
@@ -1777,73 +1731,79 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			CCp.highlightSelectedLine = function ()
 			{
 				var sel		= getSelection()
-/*
-				if (sel.type == 'Range')
-				{
-					this.selectedLine.style.top		= '-300px'
-					return
-				}
-*/
 				var line	= this.lineNodeFromNode(sel.baseNode)
 				if (!line)	return
 				this.selectedLine.style.top		= line.offsetTop + 'px'
 				this.selectedLine.style.height	= (line.offsetHeight+1) + 'px'
+
 				var s = this.textPositionAsLineAndOffset()
 				this.selectedLinePosition.innerHTML = (s.line+1) + ',' + (s.offset+1)
 			}
-/*			
+			
 			CCp.copy = function ()
 			{
-//				alert('handle copy undo')
+				alert('handle copy undo')
 			}
 			CCp.cut = function ()
 			{
-//				alert('handle cut')
+				alert('handle cut')
 			}
-*/
 			//
-			// If we could reenter right after Webkit's paste, we'd just have to fixup existing text
+			// If we could reenter after Webkit's right after paste, we'd just have to fixup existing text
 			// 
 			// http://developer.apple.com/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Tasks/CopyAndPaste.html#//apple_ref/doc/uid/30001234
 			CCp.paste = function ()
 			{
-//				document.getElementById('orderDump').innerHTML += 'paste ' + this.currentEditAction
-				
-				this.currentEditAction		= this.newEditAction()
-				this.editState.rangeText	= this.linesTextFromRangeSelection(true)
-				this.currentEditAction.text	= this.editState.rangeText
-				this.currentEditAction.lastLineVisited	= this.caret.lineNumber
-				this.currentEditAction.rangeSelection	= this.rangeSelection
-
-				var sel			= getSelection()
-				var clipboard	= event.clipboardData
-				var text		= clipboard.getData('Text')
+				alert('handle paste undo')
+				var sel = getSelection()
+				var clipboard = event.clipboardData
+				clipboard.clearData()
 
 				// We'll handle paste as we need to create one DIV per line
 				event.preventDefault()
-				event.returnValue = false
-				
-				var caret = this.caret
+				// Caret postion
+				var caret = this.rangeSelectionAsLineAndOffset().base
+
 				// Delete selection if we have a range
-				this.caret.deleteTo(this.caret2)
-				var rightText = caret.rightText
-				
-				var lines = clipboard.getData('Text').split('\n')
-				caret.line.text = caret.leftText + lines[0]
-				var line = caret.line
+				if (sel.type == 'Range')
+				{
+					sel.deleteFromDocument()
+					sel.collapseToStart()
+				}
+
+				var text = clipboard.getData('Text')
+				var lines = text.split('\n')
+
+				// Split line according to caret : prefix (caret) suffix
+				var ll		= this.lineNodeFromLineNumber(caret.line)
+				var text	= this.sourceFromLine(ll)
+				var prefix	= text.substr(0, caret.offset)
+				var suffix	= text.substr(caret.offset)
+
+				// The first line becomes prefix + first line of selection (+ suffix in one line pastes)
+				ll.innerText		= prefix + lines[0]
+				var currentLine		= ll
+				var newLineForCaret	= caret.line
+
+				// Each of the remaining lines gets its own html node
 				for (var i=1; i<lines.length; i++)
 				{
-					line = line.insertNewlineBelow()
-					line.text = lines[i]
+					var n2 = document.createElement('DIV')
+					n2.className = ll.className
+					n2.innerText = lines[i]
+//					if (i < lines.length-1) n2.innerText += '\n'
+//					else					n2.innerText += suffix
+					currentLine.innerText += '\n'
+					currentLine.insertAdjacentElement('afterEnd', n2)
+					currentLine = n2
+					newLineForCaret++
 				}
-				var o = line.text.length-1
-				line.text = line.text.replace(/\n/g, '') + rightText
-				this.caretSelection = { line : line, offset : o }
-			}
-			
-			CCp.scroll = function ()
-			{
-				document.getElementById('selectionDump').innerHTML = getTickCount() + ' scroll'
+				// Append suffix to last line
+				var newOffsetForCaret = this.sourceFromLine(currentLine).length
+				currentLine.innerText += suffix
+				
+				this.setSelectionAsLineAndOffset(newLineForCaret, newOffsetForCaret)
+				this.colorCode()
 			}
 
 
@@ -1881,7 +1841,9 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			function	focusHighlighted()
 			{
 				cc.editorNode.focus()
-				getSelection().collapseToStart()				
+
+				var s = getSelection()
+				s.collapseToStart()
 				cc.colorCode()
 			}
 			setTimeout(focusHighlighted, 10)
@@ -1912,7 +1874,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 
 
 						var o = cc.lineAndOffsetFromNodeAndOffset(node, offset)
-						str += '<td>' + o.line + ',' + o.offset + ' &nbsp; l=' + (cc.textFromLine(cc.lineNodeFromNode(node)) || '').length
+						str += '<td>' + o.line + ',' + o.offset + ' &nbsp; l=' + cc.sourceFromLine(cc.lineNodeFromNode(node)).length
 
 							str += '<tr><td colSpan="4">'
 						if (node.nodeType == 3) 
@@ -1923,8 +1885,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 						}
 						if (node.nodeType == 1) 
 						{
-//							t = node + '->' + htmlEncode(cc.textFromLine(node).substr(0, 80))
-							t = htmlEncode(cc.textFromLine(node).substr(0, 80))
+//							t = node + '->' + htmlEncode(cc.sourceFromLine(node).substr(0, 80))
+							t = htmlEncode(cc.sourceFromLine(node).substr(0, 80))
 							var line = cc.lineNumberFromNode(node)
 							str += '<span style="color: lime">DIV</span> line=' + line + ' content=' + node.innerText
 						}
@@ -2012,27 +1974,24 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 //				document.getElementById('selectionDump').innerHTML += '<br>PUSH / POP 2<br><br>'
 //				document.getElementById('selectionDump').innerHTML += getTickCount() + '<br>' + dumpSelection()
 			}
-			function	dumpLines()
-			{
-				var str = ''
-//				str += cc.editorNode
-				var lines = cc.editorNode.childNodes
-				for (var i=0; i<lines.length; i++)
-				{
-					var line = lines[i]
-					str += '<br>' + i + '=' + (line.id||'')
-				}
-				document.getElementById('linesDump').innerHTML = getTickCount() + '<br>' + str
-				
-				dumpUndoStack()
-			}
-//			setInterval(ds, 100), ds()
-//			setInterval(dumpLines, 100), dumpLines()
+			setInterval(ds, 100)
+//			setTimeout(ds, 3000)
+
 		</script>
 
 <pre>
 	<h3 style='color: red; margin-top: -30px; font-weight: normal'>
-<!--
+* highlight happens on caret move : left/right + up/down on overflowing lines
+* try linting src, ie lines.join('')
+* when option/suppr, might delete an endline. need to restore it
+	deleted newline : 
+		* enter to create a line
+		* new tab
+		* type some text
+		* option suppr
+		-> no newline
+* check displayRawText([])
+* cmd-a, delete all, type -> newline disappears
 * on typing : should only show upstream errors as collapsed bubbles, opening after typing a bit 
 	OR don't padd top errors, just bubble them up with zIndex, no padding (downwards arrow)
 * mousedown on DIV with one line : focus last line
@@ -2076,6 +2035,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 		anchor, focus move to highlight the word
 			anchor is where selection starts from : when using shift, it stays fixed to extend selection
 			focus is where selection expands from : when using shift, it moves to extend selection
+
+* detect insertion by Character Viewer
 * undo start can be a line deletion !
 * also fix option move to end end start of line
 * check remove \n
@@ -2083,24 +2044,6 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 * move with option : move first to start of line
 * option up/down for pageup / pagedown
 * mousedown messes up mouse selection (when starting from the middle of a line)
-* double, triple click selection fails
-* do cmd del and suppr
-* howto handle tab move ?
--->
-* detect insertion by Character Viewer
-* 4-click selection : menu to select fonction, block, .... move caret to start of function ...
-
-
-
-* sel.setBaseAndExtent(sel.baseNode, sel.baseOffset, sel.extentNode, sel.extentOffset)	
-	breaks selection anchor : when shift selecting, selection will always grow instead of being anchored.
-	(base and offset show up as switched in the dump)`
 	
-* paste may break on being invoked from menu.	
-
-* option left, double click 'this.var' should not select 'this.var' but only 'this' or 'var'
-
-* SELECT ALL : IF selection changed from caret to range, CREATE NEW EDIT ACTION
-
 </body>
 </html>

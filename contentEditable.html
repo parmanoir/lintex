@@ -129,6 +129,31 @@ This doesn't sound like DoTheSimplestThingThatCouldPossiblyWork at all to me. It
 			
 		}
 		setTimeout(f, 10)
+
+
+
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + (o[i]) + '\n'
+				return str
+			}
+
+
+		function O()
+		{
+			this.a = 'foo'
+		}
+		O.prototype = { get test(){ return this.a },
+						set test(v) { this.a = v } }
+		var o = new O
+		o.test = 'foo2'
+//		alert(o.test)
+//		alert(dumpHash(O.prototype))
+		
+		
+//		var a = { get test(){ return "foo"; }}
+//		alert(a.test)
 	</script>
 
 

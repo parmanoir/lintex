@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Send event</title>
+<!--
+-->	
+	<style>
+		textarea
+		{
+			width: 100%;
+			height: 300px;
+		}
+		table
+		{
+		}
+		td
+		{
+			vertical-align: top;
+		}
+	</style>
+</head>
+<body>
+	
+<table border='1' style='width: 100%'>
+	<tr><td>
+	<p>Source</p>
+	<textarea>
+		hello
+		world
+	</textarea>
+</td>
+<td>
+	<p>Keydown / Keyup log</p>
+	<textarea></textarea>
+	<button onclick='clearLog()'>Clear log</button>
+	<br>
+	<p>Replay log</p>
+	<textarea></textarea>
+	<br>
+	<button onclick='replay()'>Replay</button>
+</td>
+</table>
+
+	<script>
+			function	dumpHash(o)
+			{
+				var str = ''
+				for (var i in o) str += i + '=' + (o[i]) + '\n'
+				return str
+			}
+	
+		function f()
+		{
+			n.focus()
+		}
+		
+		var n	= document.getElementsByTagName('TEXTAREA')[0]
+		var logNode = document.getElementsByTagName('TEXTAREA')[1]
+		
+		function	dumpEvent()
+		{
+			var str = ''
+			str += event.type + ' ' + event.keyCode
+			if (event.ctrlKey)	str += ' control'
+			if (event.shiftKey)	str += ' shift'
+			if (event.altKey)	str += ' alt'
+			if (event.meta)		str += ' meta'
+			logNode.value += str + '\n'
+		}
+		function	kd()
+		{
+			dumpEvent()
+		}
+		function	ku()
+		{
+			dumpEvent()
+//			alert(dumpHash(event))
+		}
+		
+		function	replay()
+		{
+			/*
+				event.initKeyEvent (type, bubbles, cancelable, viewArg, 
+                        ctrlKeyArg, altKeyArg, shiftKeyArg, metaKeyArg, 
+                        keyCodeArg, charCodeArg) 
+
+				void KeyboardEvent::initKeyboardEvent(const AtomicString& type, bool canBubble, bool cancelable, AbstractView* view,
+                                      const String &keyIdentifier, unsigned keyLocation,
+                                      bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey)
+
+			*/
+			var e = document.createEvent('KeyboardEvent')
+//			alert(dumpHash(e))
+			e.initKeyboardEvent('keydown', true, true, window, 'U+0041', 65, false, false, false, false, false)
+			e.keyCode = 65
+			alert(dumpHash(e))
+			n.dispatchEvent(e)
+		}
+		
+		function	clearLog()
+		{
+			logNode.value = ''
+		}
+		
+		n.onkeydown = kd
+		n.onkeyup = ku
+	
+		setTimeout(f, 10)
+	
+	</script>
+
+<pre>
+	Creating key events with initKeyboardEvent <span style='color: red; font-weight: bold'>FAILS</span>, ending up with a keyCode of 0.
+	Will resort to ObjC.
+	
+</body>
+</html>

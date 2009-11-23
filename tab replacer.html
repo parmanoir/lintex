@@ -15,9 +15,6 @@
 			ecolor: rgba(255, 255, 255, 0.1);
 			background-color: transparent;
 			font-family: courier;
-			font-family: Andale Mono;
-			font-family: Monaco;
-			font-size: 7pt;
 		}
 		td
 		{
@@ -27,12 +24,10 @@
 		#highlighted, .tabspaceviewer
 		{
 			white-space: pre;
-			font-family: monaco;
 		}
 		#fontWidthMeasurer
 		{
 			white-space: pre;
-			font-family: monaco;
 		}
 		
 		.visualtab
@@ -67,12 +62,16 @@
 		{
 			border: solid 1px #ddd;
 			font-family: courier;
-			font-family: Andale Mono;
 			white-space: pre;
-			font-family: monaco;
 
 			-webkit-user-modify: read-write;
 
+		}
+		#highlighted, #highlighted2, #fontWidthMeasurer, .tabspaceviewer, textarea
+		{
+			font-family: monaco;
+			efont-family: Andale Mono;
+			font-size: 7pt;
 		}
 		
 		.marginedTabContainer
@@ -150,11 +149,16 @@ block, compact, inline, inline-block, inline-table, list-item, none, run-in, tab
 		
 		#highlighted5
 		{
-			font-family: Monaco;
 			font-size: 7pt;
 			white-space: pre;
 			-webkit-user-modify: read-write;
 			border: solid 1px #888;
+		}
+
+
+		.fakeTab
+		{
+			background: -webkit-gradient(linear, left top, right top, from(rgba(220, 245, 200, 1)), to(rgba(100, 255, 100, 1)));
 		}
 		
 		.fakeTab5
@@ -186,23 +190,24 @@ block, compact, inline, inline-block, inline-table, list-item, none, run-in, tab
 <body>
 <table style='table-layout: fixed; width: 100%'><tr><td style='width: 480px'>
 	<textarea class='textarea'>
-Voici un tab
-123456781234567812345
-1	2	3	4	5	6	7	8
-12	34	56	78	12
-123	456	781	234	567
-123	4	56	781234	5
-1234	5678	1234	5678	1
-12345	67812	34567	81
-123456	789123	456789
-a	b.	c	.....	.
-...	.	.	...	..	......	.
-
-
+Voici un tab	, +1	+
+	*	**	***	****	+
+123456781234567812345	+
+1	2	3	4	5	6	+
+12	34	56	78	12		+
+123	456	781	234	567		+
+123	4	56	781234	5	+
+1234	5678	1234	+
+12345	67812	34567	+
+123456	789123	456789	+
+1	2	4548979	987987	+
+abcd****abcd****abcd****+
+a	b.	c	.....	.	+
+...	.	.	...	..	....+
 
 The following lines have the same length
 12345678123456781
-1	2	3	4	5
+1	2	3	4	1
 
 </textarea>
 <hr>
@@ -248,8 +253,15 @@ use scrollLeft to show cursor
 	<div id='highlighted' contentEditable='true'></div>
 highlighted2 :
 
-	<div id='highlighted2' econtentEditable='true'>
+	<div id='highlighted2' econtentEditable='true'></div>
+<!--
 Suiv.....	tab et...	tab ////
+	tab on the left
+		two tabs on the left
+1234
+	5678
+abcd
+****abcd	
 1**	2	3*	4**	5***	6	7**	8
 <div>1	2	3	4	5	6	7	8	9	0	1	2	3	4	5	6	7	8	a	b	c	d
 </div><div>12	34	56	78	12
@@ -259,6 +271,7 @@ Suiv.....	tab et...	tab ////
 12345	67812	34567	81
 123456	789123	456789
 </div>
+-->
 highlighted2 dump :
 	<textarea id='highlighted2dump' class='textarea'></textarea>
 highlighted2 measure :
@@ -295,6 +308,7 @@ hop
 			var textarea = document.getElementsByTagName('TEXTAREA')[0]
 			function update()
 			{
+				updateReplaceTab()
 				var source = textarea.value
 				
 				var lines = source.split('\n')
@@ -356,9 +370,11 @@ hop
 				
 				str2 = dumpHash(sizes) + str2
 				document.getElementById('dump').innerHTML = str2
+				
+				
+//				update2()
 			}
 
-			update()
 			
 			function	htmlEncode(str)
 			{
@@ -470,6 +486,43 @@ hop
 //					return '<span class="fakeImageTabContainer"><input disabled="true" type="text" value="' + s + '" size="' + pos + '" style="background-color: rgba(0, 255, 0, 0.3); border: 0; margin: 0; padding: 0; font-size: inherit; font-family: inherit; margin-left: -1px; margin-right: -1px; "></span>'
 //					return '*'
 
+
+					var x = pos-1
+					if (pos == 0)	x = tabLength
+					if (x == 0)
+					{
+						x = tabLength
+					}
+					var w = (x)*fontWidth
+					var w = pos
+//					return '	'
+					var w = 0
+					var p = 0
+					if (pos == 4)	
+					{
+						w = 4
+						w = 3
+						p = fontWidth
+						p = 35
+						p = 0
+					}
+					if (pos == 3)
+					{
+						w = 3
+					}
+					if (pos == 2)
+					{
+						w = 3
+					}
+					
+					w = '-3px'
+//					w = 0
+					return '<span style="letter-spacing: ' + w + '; padding-right: ' + p + 'px">	</span>'
+//					return '<span style="letter-spacing: ' + w + 'em; padding-right: ' + p + 'px">	</span>'
+//					return '<span style="letter-spacing: -' + w + 'px; padding-right: ' + p + 'px">	</span>'
+
+					return '<span style="white-space: normal; padding-right: ' + w + 'px">	</span>'
+
 					return "<img class='fakeTab5' src='' style='eborder: solid 1px red; height: 2px; background-color: lime; width: " + w + "px'>"
 //					return "<span class='fakeTab5' style='background-color: lime; emargin-right: 24px'><img src='' style='width: " + w + "px'></span>"
 
@@ -548,17 +601,36 @@ hop
 			
 //			document.body.onkeyup = update
 			textarea.onkeyup = update
+			
+			function	textareaKeydown()
+			{
+				// check tab
+				if (event.keyCode == 9)
+				{
+					event.preventDefault()
+					var sel = window.getSelection()
+//					alert(sel.baseNode.parentNode.parentNode.outerHTML)
+//					alert(sel.baseNode.parentNode.parentNode)
+//					var t = sel.baseNode.nodeValue
+//					var o = sel.baseOffset
+//					sel.baseNode.nodeValue = t.substr(0, o) + '!' + t.substr(o)
+					sel.getRangeAt(0).insertNode(document.createTextNode('\t'))
+					sel.modify('move', 'right', 'character')
+//					setTimeout(updateReplaceTab, 0)
+				}
+			}
+			textarea.onkeydown = textareaKeydown
 
 			function	keydown2()
 			{
 				setTimeout(update2, 0)
 			}
-			document.getElementById('highlighted2').onkeydown = keydown2
+//			document.getElementById('highlighted2').onkeydown = keydown2
 //			document.getElementById('highlighted2').onkeyup = update2
 			document.getElementById('highlighted2').onmouseup = dumpSelection
 //			document.getElementById('highlighted2').onkeyup = update3
-			update2()
-			update3()
+//			update2()
+//			update3()
 
 			//
 			// Focus textarea
@@ -569,9 +641,128 @@ hop
 				textarea.focus()
 			}
 			setTimeout(focusMe, 10)
+			
+			
+			function		updateReplaceTab()
+			{
+				var tabLength = 4
+				
+				
+//				alert(fontWidth)
+				function	replaceTabs(a, b, c)
+				{
+					var pos = (b+deltaTabPosition) % tabLength
+					var initialPos = pos
+					pos = tabLength - pos
+
+					// Add spaces to position (minus one to 'remove' the tab)
+					deltaTabPosition += pos-1
+
+					var w = (pos)*fontWidth
+					var s = ''
+//					for (var i=0; i<pos; i++) s += (i+2)
+					for (var i=initialPos; i<tabLength; i++) s += (i+1)
+//					return '<span class="fakeImageTabContainer"><textarea disabled="true" cols="' + pos + '" style="background-color: rgba(0, 255, 0, 0.3); border: 0; margin: 0; padding: 0; font-size: inherit; font-family: inherit; ewidth: 8px; overflow: hidden">' + s + '</textarea></span>'
+//					return '<span class="fakeImageTabContainer"><input disabled="true" type="text" value="' + s + '" size="' + pos + '" style="background-color: rgba(0, 255, 0, 0.3); border: 0; margin: 0; padding: 0; font-size: inherit; font-family: inherit; margin-left: -1px; margin-right: -1px; "></span>'
+//					return '*'
+
+
+					var x = pos-1
+					if (pos == 0)	x = tabLength
+					if (x == 0)
+					{
+						x = tabLength
+					}
+					var w = (x)*fontWidth
+//					var w = pos
+					
+//					w = '-3px'
+//					w = 0
+//					w = '-' + (fontWidth-1) + 'px'
+//					w = '-1px'
+					
+					p = 0
+					var mr = 0
+					if (pos == 4)
+					{
+//						p = 15
+						mr = 11
+					}
+					
+					var style = 'letter-spacing: ' + w + '; padding-right: ' + p + 'px; margin-right: ' + mr + 'px'
+					style = 'white-space: normal'
+//					style = 'display: inline-block; efloat: left; width: 8px'
+					style = 'display: inline-block; width: ' + w + 'px'
+					
+					style='font-size: 0.5px; margin-right: ' + timedValue + 'px'
+					style='font-size: 0.5px; border-right: solid red ' + timedValue + 'px'
+					style='font-size: 0.5px; letter-spacing: -0px; white-space: normal'
+					style='white-space: normal'
+					
+					var t =  ''
+style = ''
+//					t += '<span style="border-right: solid ' + timedValue + 'px red"></span>'
+//style = 'white-space: normal'					
+//style = 'display: inline-table; width: 20px'
+style = 'font-size: 1px; padding-right: ' + timedValue + 'px'
+style = 'efont-size: 1px'
+//style = ' eletter-spacing: -4px; font-size: ' + timedValue + 'px'
+
+style  = 'letter-spacing: -6px; padding-right: 20px'
+//style = 'white-space: pre-wrap'
+style = ' '
+//style = ' margin-right: 20px'
+//					t += '<span style="background-color: #fe0; padding-right: ' + timedValue + 'px; "></span>'
+style = 'display: -webkit-inline-box'
+					t += '<span class="fakeTab" style="' + style + '">	</span>'
+					t += '<span style="margin-left: -40px; white-space: normal;background-color: red; "></span>'
+//					t += '<span style="background-color: #fe0; padding-right: ' + timedValue + 'px; margin-right: -10px"></span>'
+
+//					t += '<span style="margin-right: -' + timedValue + 'px"></span>'
+					
+//					t = '<span class="fakeTab" estyle="display: inline-block; letter-spacing: -1px">	</span>'
+//					t += '<span style="letter-spacing: -16px">4</span>'
+//					t += '\u200b'
+//					t += '<span style="margin-left: -3px></span>'
+//					t += '<span style="border-right: solid ' + timedValue + 'px red"></span>'
+//					t += '<span style="border-right: solid ' + timedValue + 'px orange"></span>'
+
+					return t
+				}
+				
+				
+				var t = textarea.value
+				
+				var lines = t.split('\n')
+				var lines2 = []
+				for (var i=0; i<lines.length; i++)
+				{
+					var line = lines[i]
+					var deltaTabPosition = 0
+					line = line.replace(/\t/g, replaceTabs)
+					lines2.push(line)
+				}
+				document.getElementById('highlighted2').innerHTML = lines2.join('\n')
+			}
+
+			var timedValue = 0
+			function	changeTabSize()
+			{
+				timedValue++
+				if (timedValue > 40)	timedValue = 0
+				updateReplaceTab()
+			}
+			
+			setInterval(changeTabSize, 100)
+
+
+			update()
+
 		</script>
 
 <pre>
+	
+	* interessant ... a TEXTAREA is edited with a parentless div. check sel.baseNode : parentless DIV !
 
 </body>
 </html>
