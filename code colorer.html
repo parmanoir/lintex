@@ -148,7 +148,7 @@
 </tr></table>
 
 	<textarea style='display: none'>
-		
+// some text on the first line		
 	function CheckBracketSpacing()
 	{
 		hello
@@ -395,7 +395,7 @@ abcd****1234+
 
 				// Undo
 				this.actionId = 0
-				this.selectionStack = []
+//				this.selectionStack = []
 				this.undoStack = []
 				this.redoStack = []
 				
@@ -419,7 +419,7 @@ abcd****1234+
 
 				this.editorNode.onkeydown		= function () { return self.keydown.apply(self, arguments) }
 //				this.editorNode.oncopy			= function () { return self.copy.apply(self, arguments) }
-//				this.editorNode.oncut			= function () { return self.cut.apply(self, arguments) }
+				this.editorNode.oncut			= function () { return self.cut.apply(self, arguments) }
 				this.editorNode.onpaste			= function () { return self.paste.apply(self, arguments) }
 				this.containerNode.onscroll		= function () { return self.scroll.apply(self, arguments) }
 				this.editorNode.onmousedown		= function () { return self.mousedown.apply(self, arguments) }
@@ -545,7 +545,7 @@ abcd****1234+
 				return this.editorNode.childNodes[i]
 			}
 			// Given a relative (node, offset), return an absolute offset in the matching line
-			CCp.lineAndOffsetFromNodeAndOffset = function (node, offset)
+			CCp.caretFromNodeAndOffset = function (node, offset)
 			{
 				var n = node
 				var offset2 = offset, lineNumber = this.lineNumberFromNode(n)
@@ -558,8 +558,12 @@ abcd****1234+
 						n = previousNode(n)
 					}
 				}
-				return	{ line : lineNumber, offset : offset2, isDiv : node.className == 'line' && offset == 0 }
+//				return	{ line : lineNumber, offset : offset2, isDiv : node.className == 'line' && offset == 0 }
+				var c = new Caret(lineNumber, offset2, this)
+				c.isDiv = node.className == 'line' && offset == 0
+				return c
 			}
+/*
 			// Given an absolute (line, offset), return an inner line node and offset
 			CCp.nodeAndOffsetFromLineAndOffset = function (line, offset, isDiv)
 			{
@@ -582,7 +586,7 @@ abcd****1234+
 				}
 				return { node : null, offset : undefined }
 			}
-
+*/
 
 			//
 			// Selection handling
@@ -601,17 +605,8 @@ abcd****1234+
 			// Caret selection { line, offset }
 			CCp.__defineGetter__('caretSelection', function ()
 			{
-				var sel = getSelection()
-				var raw = this.rawSelection
-
-				sel.modify('extend', 'left', 'paragraphboundary')
-				var selectionText = sel.toString()
-				var length = selectionText.length
-				var range = sel.getRangeAt(0)
-				var h = new Selection({ type : 'Caret', line : this.lineNumberFromNode(sel.baseNode), offset : length, CCp : this })
-
-				this.rawSelection = raw
-				return h
+				var c1 = this.caretFromNodeAndOffset(getSelection().anchorNode, getSelection().anchorOffset)
+				return c1
 			})
 			CCp.__defineSetter__('caretSelection', function (s)
 			{
@@ -625,12 +620,12 @@ abcd****1234+
 			// Range selection { line, offset, line2, offset2 }
 			CCp.__defineGetter__('rangeSelection', function ()
 			{
-//				return { line : this.caret.line, offset : this.caret.offset, line2 : this.caret2.line, offset2 : this.caret2.offset }
 				var n = 'anchor'
-				var c1 = this.lineAndOffsetFromNodeAndOffset(getSelection()[n + 'Node'], getSelection()[n + 'Offset'])
+				var c1 = this.caretFromNodeAndOffset(getSelection()[n + 'Node'], getSelection()[n + 'Offset'])
 				var n = 'focus'
-				var c2 = this.lineAndOffsetFromNodeAndOffset(getSelection()[n + 'Node'], getSelection()[n + 'Offset'])
-				return new Selection({type : 'Range', line : c1.line, offset : c1.offset, line2 : c2.line, offset2 : c2.offset, CCp : this })
+				var c2 = this.caretFromNodeAndOffset(getSelection()[n + 'Node'], getSelection()[n + 'Offset'])
+				return { type : 'Range', line : c1.line, offset : c1.offset, line2 : c2.line, offset2 : c2.offset, CCp : this, 
+							select : function () { this.CCp.rangeSelection = this } }
 			})
 			CCp.__defineSetter__('rangeSelection', function (s)
 			{
@@ -653,7 +648,7 @@ abcd****1234+
 				if (!includeLastLine && c2.offset == 0) l2--
 				return { line : c1.lineNumber, offset : c1.offset, line2 : c2.lineNumber, offset2 : c2.offset, l1 : l1, l2 : l2 }
 			}
-			CCp.linesTextFromRangeSelection = function(includeLastLine)
+			CCp.textFromRangeSelection = function(includeLastLine)
 			{
 				var lineNumbers = this.orderedLineNumbersFromRangeSelection(includeLastLine)
 				var text = ''
@@ -667,7 +662,7 @@ abcd****1234+
 				}
 				return text
 			}
-
+/*
 			CCp.selectionOnStack = function()
 			{
 				if (!this.selectionStack.length)	return
@@ -684,7 +679,8 @@ abcd****1234+
 				if (r.type == 'Caret')	this.caretSelection = r
 				else					this.rangeSelection = r
 			}
-
+*/
+/*
 			// Return position - offset differs from selection offset, as tabs will count for 1 to 4 chars
 			CCp.textPositionAsLineAndOffset = function ()
 			{
@@ -697,7 +693,7 @@ abcd****1234+
 				this.replaceTabsInLine(str, null, null, o)
 				return { line : s.line, offset : o.totalWidth }
 			}
-
+*/
 
 			CCp.gatherLinesToLint = function ()
 			{
@@ -762,7 +758,8 @@ abcd****1234+
 				//
 				// Color
 				//
-				this.pushSelection()
+//				this.pushSelection()
+				var s = this.rangeSelection
 				var f = this.editorNode.firstChild
 				var i = 0
 				while (f)
@@ -775,7 +772,8 @@ abcd****1234+
 					f = f.nextSibling
 					i++
 				}
-				this.popSelection()
+				this.rangeSelection = s
+//				this.popSelection()
 				
 				clock('color')
 				document.getElementById('clockDump').innerHTML = str
@@ -1126,14 +1124,14 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 					for (var j=this.undoStack.length-1; j>=0; j--)
 					{
 						var action = this.undoStack[j]
-						str += '<br><br><b> ACTION ' + j  + '</b>  ' + (action.closed ? '' : ' ...IN PROGRESS') + ' ' + (action.isBlank ? '<b>isBlank</b>' : '')
+						str += '<br><b> ACTION ' + j  + '</b>  ' + (action.closed ? '' : ' ...IN PROGRESS') + ' ' + (action.isBlank ? '<b>isBlank</b>' : '')
 						str += '<br>startLine=' + action.startLine
 						try
 						{
 							str += '<br>text=' + (action.text.split('\n').length-1) + ' lines'
-							str += '<pre style="background-color: #eee">' + htmlEncode(action.text) + '</pre>'
-							str += '<br>newText=' + (action.newText.split('\n').length-1) + ' lines'
-							str += '<pre style="background-color: #eee">' + htmlEncode(action.newText) + '</pre>'
+							str += '<pre style="margin: 0; background-color: #eee">' + htmlEncode(action.text) + '</pre>'
+							str += 'newText=' + (action.newText.split('\n').length-1) + ' lines'
+							str += '<pre style="margin: 0; background-color: #eee">' + htmlEncode(action.newText) + '</pre>'
 						} catch (e) {}
 /*					
 						str += '<br>startedAtLine=' + action.startedAtLine
@@ -1249,6 +1247,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			//
 			// Selection object
 			//
+/*
 			function	Selection(s)
 			{
 				for (var i in s)	this[i] = s[i]
@@ -1264,7 +1263,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				if (!('line2' in this))	this.CCp.caretSelection = this
 				else 					this.CCp.rangeSelection = this
 			}
-			
+*/			
 			//
 			// Line object
 			// 
@@ -1410,22 +1409,93 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			CCp.__defineGetter__('caret', function ()
 			{
 				// Only update caret when we have a selection
-				if (getSelection().anchorNode)		this.lastValidCaret = this.lineAndOffsetFromNodeAndOffset(getSelection().anchorNode, getSelection().anchorOffset)
+				if (getSelection().anchorNode)		this.lastValidCaret = this.caretFromNodeAndOffset(getSelection().anchorNode, getSelection().anchorOffset)
 				return new Caret(this.lastValidCaret.line, this.lastValidCaret.offset, this)
 			})
 			CCp.__defineGetter__('caret2', function ()
 			{
-				var c = this.lineAndOffsetFromNodeAndOffset(getSelection().focusNode, getSelection().focusOffset)
+				var c = this.caretFromNodeAndOffset(getSelection().focusNode, getSelection().focusOffset)
 				return new Caret(c.line, c.offset, this)
 			})
 			
+			
+			CCp.saveUndoableState = function ()
+			{
+				
+			}
+			
 			CCp.keydown = function ()
 			{
-//				document.getElementById('orderDump').innerHTML += 'kd '
+				document.getElementById('orderDump').innerHTML += 'kd '
 				//
 				// Setup
 				// 
 				var sel		= getSelection()
+
+						
+						function dumpSel()
+						{
+
+				var sel		= getSelection()
+//					if (sel.type == 'Range')
+					{
+//						this.editState.rangeText = this.textFromRangeSelection(true)
+						var a = sel.anchorNode
+						var b = sel.anchorOffset
+						var c = sel.extentNode
+						var d = sel.extentOffset
+						
+						var r = sel.getRangeAt(0)
+//						sel.setBaseAndExtent(a, b, c, d)
+//						sel.setPosition(a, b)
+//						sel.extend(c, d)
+//						sel.removeAllRanges()
+//						sel.addRange(r)
+						var str = getTickCount()
+
+						str += '<br>startContainer=' + r.startContainer
+						str += '<br>startOffset=' + r.startOffset
+						str += '<br>endContainer=' + r.endContainer
+						str += '<br>endOffset=' + r.startOffset
+						
+
+						r = r.cloneRange()
+//						alert(dumpHash(r))
+//						alert(r.setStart)
+//						if (this.lineNumberFromNode(r.endContainer) > this.line
+						
+						
+						var r = this.orderedLineNumbersFromRangeSelection(true)
+						str += '<br>r=<pre>' + dumpHash(r) + '</pre>'
+						
+						var s1 = this.caretFromNodeAndOffset(sel.anchorNode, sel.anchorOffset)
+						var s2 = this.caretFromNodeAndOffset(sel.extentNode, sel.extentOffset)
+						if (s1.line > s2.line)	var s3 = s1, s1 = s2, s2 = s3
+						str += '<br>s1=' + s1.line + ',' + s1.offset
+						str += '<br>s2=' + s2.line + ',' + s2.offset
+						r = document.createRange()
+						r.setStart(this.lineNodeFromLineNumber(s1.line), 0)
+						r.setEnd(this.lineNodeFromLineNumber(s2.line), 0)
+						
+
+						str += '<br>rangeText=<pre>' + String(r).replace(/\n/g, '<span style="color: red">*</span>\n') + '</pre>'
+						
+/*						
+						str += 'anchorEquals=' + (a == sel.anchorNode) + '<br>'
+						
+						str += '=' + r.startContainer
+						str += '<pre>***' + r + '***</pre>'
+*/						
+						document.getElementById('birdViewDump').innerHTML = str
+						}
+					}
+
+
+						var self = this
+//						alert(dumpSel)
+						setTimeout(function () { dumpSel.apply(self) }, 0)
+// return
+
 				var self	= this
 				var keyIs	= function (keyName) { return self.keyIs(event.keyCode, keyName) }
 				var keyName = this.keyName(event.keyCode)
@@ -1439,8 +1509,11 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				if (command && keyIs('undo') && shift)	return preventDefault(), this.redo()
 
 				// Post key down : let safari do its stuff and react after it
-				var tryCount = 20
-				while (this.postKeydownPending && tryCount)	tryCount--; this.postKeydownFunction()
+//				var tryCount = 20
+//				while (this.postKeydownPending && tryCount)	tryCount--; this.postKeydownFunction()
+
+
+				if (this.postKeydownPending) this.postKeydownFunction()
 				this.postKeydownPending++
 				setTimeout(this.postKeydownFunction, 0)
 
@@ -1461,14 +1534,19 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 */
 				var action = this.currentEditAction
 				if (this.editState.isMoving)	this.closeEditAction()
+
 				if (!this.editState.isMoving)
 				{
 					if (!caret.line.isFirst)	this.editState.previousLineText	= caret.previousLine.text	, this.editState.previousLineId = caret.previousLine.line.node.id
 					if (!caret.line.isLast)		this.editState.nextLineText		= caret.nextLine.text		, this.editState.nextLineId = caret.nextLine.line.node.id
 					
 					if (sel.type == 'Range')
-						this.editState.rangeText = this.linesTextFromRangeSelection(true)
+					{
+						this.editState.rangeText = this.textFromRangeSelection(true)
+					}
 				}
+
+
 /*				
 				//###
 				var str = getTickCount()
@@ -1530,7 +1608,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 					if (keyIs('tab'))
 					{
 						preventDefault()
-						this.editState.rangeText	= this.linesTextFromRangeSelection(false)
+						this.editState.rangeText	= this.textFromRangeSelection(false)
 						this.currentEditAction		= this.newEditAction()
 						this.currentEditAction.name	= 'tab'
 						var lineNumbers				= this.orderedLineNumbersFromRangeSelection(false)
@@ -1584,7 +1662,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 					preventDefault()
 					self.rangeSelection = { line : self.caret.line, offset : self.caret.offset, line2 : c.line, offset2 : c.offset }
 					self.editState.rangeSelection = self.rangeSelection
-					self.editState.rangeText = self.linesTextFromRangeSelection(true)
+					self.editState.rangeText = self.textFromRangeSelection(true)
 					caret.deleteTo(c)
 				}
 				if (option && keyIs('leftdelete'))		deleteTo(caret.leftWord)
@@ -1595,6 +1673,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			
 			CCp.DOMCharacterDataModified = function ()
 			{
+				document.getElementById('orderDump').innerHTML += 'char '
 				// Called from keydown
 				if (this.postKeydownPending)	return
 				// Called from Character viewer
@@ -1619,6 +1698,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			// 
 			CCp.postKeydown = function ()
 			{
+				document.getElementById('orderDump').innerHTML += 'pkd '
 				if (!this.postKeydownPending)	return
 				
 				this.postKeydownPending--
@@ -1731,7 +1811,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 						
 					}
 				}
-return				
+//return				
 				
 				str += '<hr>'
 /*				
@@ -1791,38 +1871,39 @@ return
 			CCp.highlightSelectedLine = function ()
 			{
 				var sel		= getSelection()
-/*
-				if (sel.type == 'Range')
-				{
-					this.selectedLine.style.top		= '-300px'
-					return
-				}
-*/
+
 				var line	= this.lineNodeFromNode(sel.baseNode)
 				if (!line)	return
 				this.selectedLine.style.top		= line.offsetTop + 'px'
 				this.selectedLine.style.height	= (line.offsetHeight+1) + 'px'
-				var s = this.textPositionAsLineAndOffset()
-				this.selectedLinePosition.innerHTML = (s.line+1) + ',' + (s.offset+1)
+
+				var o = {}
+				this.replaceTabsInLine(this.caret.text.substr(0, this.caret.offset), null, null, o)
+				
+				this.selectedLinePosition.innerHTML = (this.caret.lineNumber+1) + ',' + (o.totalWidth+1)
 			}
 /*			
 			CCp.copy = function ()
 			{
 //				alert('handle copy undo')
 			}
+*/
 			CCp.cut = function ()
 			{
+				document.getElementById('orderDump').innerHTML += 'cut '
 //				alert('handle cut')
 			}
-*/
+
 			//
-			// If we could reenter right after Webkit's paste, we'd just have to fixup existing text
+			// Override paste to create new lines and mark them (insertNewlineBelow() does this)
+			//	If we could reenter right after Webkit's paste, we'd just have to fixup existing text
 			// 
 			// http://developer.apple.com/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Tasks/CopyAndPaste.html#//apple_ref/doc/uid/30001234
 			CCp.paste = function ()
 			{
+				document.getElementById('orderDump').innerHTML += 'paste '
 				this.currentEditAction		= this.newEditAction()
-				this.editState.rangeText	= this.linesTextFromRangeSelection(true)
+				this.editState.rangeText	= this.textFromRangeSelection(true)
 				this.currentEditAction.text	= this.editState.rangeText
 				this.currentEditAction.lastLineVisited	= this.caret.lineNumber
 				this.currentEditAction.rangeSelection	= this.rangeSelection
@@ -1927,7 +2008,7 @@ return
 						str += '<tr><td style="color: blue">' + name + '<td>' + cc.lineNumberFromNode(node) + '<td>' + offset
 
 
-						var o = cc.lineAndOffsetFromNodeAndOffset(node, offset)
+						var o = cc.caretFromNodeAndOffset(node, offset)
 						str += '<td>' + o.line + ',' + o.offset + ' &nbsp; l=' + (cc.textFromLine(cc.lineNodeFromNode(node)) || '').length
 
 							str += '<tr><td colSpan="4">'
@@ -1957,7 +2038,15 @@ return
 					dumpSelectionNode('extent')
 					dumpSelectionNode('focus')
 					str += '</table>'
+/*
+				str += '<pre>' + dumpHash(sel) + '</pre>'
+				try
+				{
+				var r = sel.getRangeAt(0)
+				if (r)		str += '<hr><pre>' + dumpHash(r) + '</pre>'
+				} catch (e) {}
 				return str
+*/				
 			}
 
 
@@ -2042,7 +2131,7 @@ return
 				
 				dumpUndoStack()
 			}
-//			setInterval(ds, 100), ds()
+			setInterval(ds, 100), ds()
 //			setInterval(dumpLines, 100), dumpLines()
 		</script>
 
@@ -2126,7 +2215,14 @@ return
 
 * 			CCp.paste = function ()
 				let safari handle paste, just save possible selection before hand AND mark lines as new action after paste
-				
+
+* bug while shift option left
+		}
+	
+	abcd****1234+
+	^start here, stops on }
+
+* problem select range then type : undo action closed right after first char. TOCHECK
 
 </body>
 </html>
