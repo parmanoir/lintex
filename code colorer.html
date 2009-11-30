@@ -15,7 +15,7 @@
 			font-family: monaco;
 			font-size: 7pt;
 			epadding: 1em;
-			height: 300px;
+			eheight: 300px;
 			overflow: auto;
 			position: relative;
 			z-index: 4;
@@ -47,6 +47,8 @@
 			border-right: 0;
 			margin-top: -2px;
 			background: -webkit-gradient(linear, left top, left bottom, from(#fec), to(#fda));
+			background: -webkit-gradient(linear, left top, left bottom, from(#ffd), to(#fec));
+			background: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 208, 0.5)), to(rgba(255, 240, 192, 1.0) ) );
 		}
 		.selectedLinePosition
 		{
@@ -117,6 +119,7 @@
 			color: red;
 			z-index: 1;
 		}
+		
 	</style>
 </head>
 <body>
@@ -132,11 +135,11 @@
 	</td>
 	<td style='width: 300px'>
 		<div id='birdView'></div>
+		<div id='selectionDump'>SELECTION DUMP</div>
 		<hr>
 		<div id='birdViewDump'>LOG ALL COMMANDS HERE. typing (typing count, line extent + sel) + move + undo/redo</div>
 		<div id='clockDump'>clock dump</div>
 		<hr>
-		<div id='selectionDump'>SELECTION DUMP</div>
 		<div id='undoStackDump'>UNDO DUMP</div>
 		<button onclick='undo()'>undo</button>
 		<button onclick='redo()'>redo</button>
@@ -148,7 +151,7 @@
 </tr></table>
 
 	<textarea style='display: none'>
-// some text on the first line		
+// some text on the first line
 	function CheckBracketSpacing()
 	{
 		hello
@@ -166,6 +169,10 @@ first line
 
 // Doesn't stop on ponctuation except +
 a	*	1	+	4
+
+		this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! 
+
+this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! this is a long line! 
 
 // Stops on star, SKIPS 1234, then + 
 abcd****1234+
@@ -324,7 +331,7 @@ abcd****1234+
 			}
 			function	log(str)
 			{
-				document.getElementById('warning').innerHTML += '<pre>' + getTickCount() + ' ' + str + '</pre>'
+				document.getElementById('warning').innerHTML += '<pre style="margin: 0">' + getTickCount() + ' ' + str + '</pre>'
 			}
 			
 
@@ -413,19 +420,29 @@ abcd****1234+
 				
 				// Events
 				var self = this
-				this.editorNode.addEventListener('DOMCharacterDataModified', function () { return self.DOMCharacterDataModified.apply(self, arguments) }, false)
-//				this.editorNode.addEventListener('keydown', function (e) { document.getElementById('selectionDump').innerHTML += ' keydown' }, false)
-//				this.editorNode.addEventListener('keydown', function (e) { alert(dumpHash(e)); rez() }, false)
+//				this.DOMCharacterDataModifiedListener = function () { return self.DOMCharacterDataModified.apply(self, arguments) }
+//				this.editorNode.addEventListener('DOMCharacterDataModified', this.DOMCharacterDataModifiedListener, false)
 
+//document.onselectionchange = function ()
+/*
+var self = this
+document.body.onselectstart = function ()
+{
+//	document.getElementById('linesDump').innerHTML = getTickCount() + ' selchange' + '<pre>' + dumpHash(self.rangeSelection) + '</pre>'
+	document.getElementById('selectionDump').innerHTML = getTickCount() + ' selchange' + '<pre>' + dumpHash(self.rangeSelection) + '</pre>'
+}
+*/
 				this.editorNode.onkeydown		= function () { return self.keydown.apply(self, arguments) }
-//				this.editorNode.oncopy			= function () { return self.copy.apply(self, arguments) }
 				this.editorNode.oncut			= function () { return self.cut.apply(self, arguments) }
 				this.editorNode.onpaste			= function () { return self.paste.apply(self, arguments) }
 				this.containerNode.onscroll		= function () { return self.scroll.apply(self, arguments) }
 				this.editorNode.onmousedown		= function () { return self.mousedown.apply(self, arguments) }
-				this.postKeydownFunction		= function () { return self.postKeydown.apply(self, arguments) }
+				this.editorNode.onmousemove		= function () { return self.mousemove.apply(self, arguments) }
+				this.editorNode.onmouseup		= function () { return self.mouseup.apply(self, arguments) }
+				this.editorNode.onblur			= function () { return self.blur.apply(self, arguments) }
+//				this.postBrowserActionFunction	= function () { return self.postBrowserAction.apply(self, arguments) }
 				// Safari might execute two keydowns in a row instead of keydown + postkeydown. Used a counter to ensure order execution.
-				this.postKeydownPending = 0
+//				this.postBrowserActionPending = 0
 				
 				// Keep last valid caret position. setting this.caret.text = newText deletes Safari's selection, querying caret after it will return the last known position
 				this.lastValidCaret = { line : 0, offset : 0 }
@@ -460,6 +477,8 @@ abcd****1234+
 				// Should remove \r
 				var lines = text.split('\n')
 				this.loadLines(lines)
+				this.caretSelection = { line : 0, offset : 0 }
+//				this.highlightSelectedLine()
 			}
 			CCp.loadLines = function (lines)
 			{
@@ -523,8 +542,16 @@ abcd****1234+
 					node = node.parentNode
 				}
 				if (!node)	
-					log('lineNodeFromNode found no line with startNode=' + startNode + '' + (startNode.nodeType==1?startNode.outerHTML:startNode.nodeValue))
+					log('lineNodeFromNode found no line with startNode=' + startNode + '' + (startNode.nodeType==1?startNode.outerHTML:startNode.nodeValue).substr(0, 100))
 				return node
+			}
+			CCp.nodeIsInEditor = function (node)
+			{
+				while (node)
+				{
+					if (node == this.editorNode)	return true
+					node = node.parentNode
+				}
 			}
 			
 			CCp.lineNumberFromNode = function (node)
@@ -547,6 +574,7 @@ abcd****1234+
 			// Given a relative (node, offset), return an absolute offset in the matching line
 			CCp.caretFromNodeAndOffset = function (node, offset)
 			{
+//				if (!node)	return new Caret(0, 0, this)
 				var n = node
 				var offset2 = offset, lineNumber = this.lineNumberFromNode(n)
 				if (n.className != 'line')
@@ -605,8 +633,7 @@ abcd****1234+
 			// Caret selection { line, offset }
 			CCp.__defineGetter__('caretSelection', function ()
 			{
-				var c1 = this.caretFromNodeAndOffset(getSelection().anchorNode, getSelection().anchorOffset)
-				return c1
+				return this.caretFromNodeAndOffset(getSelection().anchorNode, getSelection().anchorOffset)
 			})
 			CCp.__defineSetter__('caretSelection', function (s)
 			{
@@ -725,7 +752,6 @@ abcd****1234+
 			// 
 			CCp.colorCode = function ()
 			{
-//				return
 //					this.measureCharWidth()
 				
 				var t
@@ -888,10 +914,14 @@ Elements are stretched to fill the box.
 //alert(style)
 //style='white-space: normal; margin-right: 10px'
 style = ''
+
 style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden; height: 1em'
+
+
+
 					return '<span class="fakeTab" style="' + style + '">	</span>'
 					
-					return '<span class="fakeTab" style="letter-spacing: -' + w1 + 'px; padding-right: ' + w2 + 'px">	</span>'
+//					return '<span class="fakeTab" style="letter-spacing: -' + w1 + 'px; padding-right: ' + w2 + 'px">	</span>'
 //					w1 = 0
 //					w2 = 100
 //					return '<span class="fakeTab" style="eletter-spacing: ' + w1 + 'px; padding-right: ' + w2 + 'px; white-space:normal; border: solid 1px red">	</span>'
@@ -988,8 +1018,16 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				// TABS ! sized to any size you want.
 				str = this.replaceTabsInLine(line, str)
 //				if (lineNumber == 1)	alert(line.length + ' ' + (line == '\n'))
-				if (line == '\n')	str = str.replace(/\n/, '<span class="newline-blank">\n</span>')
-				else				str = str.replace(/\n/, '<span class="newline">\n</span>')
+//				if (line == '\n')	str = str.replace(/\n/, '<span class="newline-blank">\n</span>')
+//				else				str = str.replace(/\n/, '<span class="newline">\n</span>')
+				
+				// Blank lines are just a newline, non blank lines get their newline wiped out - it screws selection up. 
+				// (caret position wrong when going up, selecting end of line fails)
+				if (line.match(/^\n$/))	str = str.replace(/\n/, '<span class="newline-blank">\n</span>')
+				else					str = str.replace(/\n/, '')
+				
+//				if (lineNumber == 8)	alert(str + '\n*' + line + '*')
+//				str = str.replace(/\n/, '<span class="newline-blank">\n</span>')
 //				str = str.replace(/\n/, String.fromCharCode(0x200b))
 //				str = str.replace(/\n/, String.fromCharCode(0x0001))
 //				str = str.replace(/\n/, String.fromCharCode(0x0001))
@@ -1024,29 +1062,53 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			
 			CCp.mousedown = function()
 			{
+				this.performAfterDelay('highlightSelectedLine')
+/*
 				var self = this
 				function h()
 				{
 					self.highlightSelectedLine()
 				}
 				setTimeout(h, 0)
+*/
 				this.closeEditAction()
 			}
+			CCp.mousemove = function()
+			{
+//				var self = this
+//				function h()		{		self.highlightSelectedLine()		}
+				this.performAfterDelay('highlightSelectedLine')
+//				setTimeout(h, 0)
+			}
+			
+			CCp.mouseup = function()
+			{
+			}
+			
+			CCp.blur = function ()
+			{
+//				var self = this
+//				function h()		{		self.highlightSelectedLine()		}
+				this.performAfterDelay('highlightSelectedLine')
+//				setTimeout(h, 0)
+			}
+			
 			
 			//
 			// Undo
 			// 
-			
+/*			
 			function	EditAction()
 			{
 			}
-			
+*/			
 			
 			CCp.newEditAction = function ()
 			{
 				this.closeEditAction()
 				this.actionId++
-				var action	= new EditAction
+//				var action	= new EditAction
+				var action	= {}
 				action.id	= this.actionId
 				action.text	= ''
 				action.rangeSelection = this.rangeSelection
@@ -1172,6 +1234,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				
 				// Reset selection
 				action.rangeSelection.select()
+				this.editState.rangeText = this.textFromRangeSelection(true)
+				this.highlightSelectedLine()
 			}
 			CCp.redo = function ()
 			{
@@ -1186,6 +1250,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				
 				// Reset selection
 				action.endRangeSelection.select()
+				this.editState.rangeText = this.textFromRangeSelection(true)
+				this.highlightSelectedLine()
 			}
 			
 			
@@ -1418,20 +1484,72 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				return new Caret(c.line, c.offset, this)
 			})
 			
-			
-			CCp.saveUndoableState = function ()
+
+			//
+			// Save current undoable state before an action
+			// 
+			CCp.saveUndoable = function ()
 			{
+				var sel = getSelection(), self = this, keyIs = function (keyName) { return self.keyIs(event.keyCode, keyName) }
+/*				
+				var tryCount = 10
+				while (this.postBrowserActionPending && tryCount)	
+				{
+					tryCount--
+					this.postBrowserActionFunction()
+				}
+*/				
+				// Flush any remaining actions
+				this.exhaustDelayedPerforms()
 				
+//				this.postBrowserActionPending++
+//				setTimeout(this.postBrowserActionFunction, 0)
+				this.performAfterDelay('postBrowserAction')
+
+				var caret = this.caret
+				this.editState = {
+					 isMoving		: keyIs('left') || keyIs('right') || keyIs('up') || keyIs('down')
+					,lineCount 		: this.lineCount
+					,caretLineNumber: caret.lineNumber
+					,caretLineText	: caret.text
+					,rangeSelection	: this.rangeSelection
+				}
+
+				var action = this.currentEditAction
+				if (this.editState.isMoving)	this.closeEditAction()
+
+				if (!this.editState.isMoving)
+				{
+					if (sel.type == 'Caret')
+					{
+						if (!caret.line.isFirst)	this.editState.previousLineText	= caret.previousLine.text	, this.editState.previousLineId = caret.previousLine.line.node.id
+						if (!caret.line.isLast)		this.editState.nextLineText		= caret.nextLine.text		, this.editState.nextLineId = caret.nextLine.line.node.id
+					}
+					else
+						this.editState.rangeText = this.textFromRangeSelection(true)
+				}
 			}
 			
 			CCp.keydown = function ()
 			{
 				document.getElementById('orderDump').innerHTML += 'kd '
+
+
 				//
 				// Setup
 				// 
 				var sel		= getSelection()
 
+
+/*
+				var line = this.lineNodeFromNode(sel.baseNode)
+//alert(line + '\n***\n' + line.outerHTML)
+				if (!line)
+				{
+					log('Caret is not in a DIV')
+					return
+				}
+*/
 						
 						function dumpSel()
 						{
@@ -1504,20 +1622,25 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				var option	= !!event.altKey
 				var preventDefault = function () { event.preventDefault(); event.returnValue = false }
 
+
 				// Undo / redo
 				if (command && keyIs('undo') && !shift)	return preventDefault(), this.undo()
 				if (command && keyIs('undo') && shift)	return preventDefault(), this.redo()
+
+				// Not preventing this will delete our DIV line
+				if (keyIs('leftdelete') && this.caret.lineNumber == 0 && this.lineCount <= 1) 	return preventDefault()
 
 				// Post key down : let safari do its stuff and react after it
 //				var tryCount = 20
 //				while (this.postKeydownPending && tryCount)	tryCount--; this.postKeydownFunction()
 
-
+				this.saveUndoable()
+/*
 				if (this.postKeydownPending) this.postKeydownFunction()
 				this.postKeydownPending++
 				setTimeout(this.postKeydownFunction, 0)
 
-				var wasMoving = this.editState ? this.editState.isMoving : false
+//				var wasMoving = this.editState.isMoving
 				var caret = this.caret
 				this.editState = {
 					 isMoving		: keyIs('left') || keyIs('right') || keyIs('up') || keyIs('down')
@@ -1526,12 +1649,6 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 					,caretLineText	: caret.text
 					,rangeSelection	: this.rangeSelection
 				}
-/*
-				this.editState.lineCount 		= this.lineCount
-				this.editState.caretLineNumber	= caret.lineNumber
-				this.editState.caretLineText	= caret.text
-				this.editState.rangeSelection	= this.rangeSelection
-*/
 				var action = this.currentEditAction
 				if (this.editState.isMoving)	this.closeEditAction()
 
@@ -1545,7 +1662,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 						this.editState.rangeText = this.textFromRangeSelection(true)
 					}
 				}
-
+*/
 
 /*				
 				//###
@@ -1648,11 +1765,22 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				// Move
 				// Move to start of text (skipping whitespace, not to start of line), then to start of line, then to previous line
 				if (command && keyIs('left'))	preventDefault(), caret.isAtStartOfLine ? caret.previousLine.startOfLine.skipRightWhite().select() : (!caret.isAfter(caret.startOfLine.skipRightWhite()) ? caret.startOfLine.select() : caret.startOfLine.skipRightWhite().select())
-				if (command && keyIs('right'))	preventDefault(), caret.isAtEndOfLine ? caret.nextLine.skipRightWhite().select() : (caret.isBefore(caret.startOfLine.skipRightWhite()) ? caret.startOfLine.skipRightWhite().select() : caret.endOfLine.select())
+				if (command && keyIs('right'))	preventDefault(), caret.isAtEndOfLine ? caret.nextLine.skipRightWhite().select() : (/*caret.isBefore(caret.startOfLine.skipRightWhite()) ? caret.startOfLine.skipRightWhite().select() : */caret.endOfLine.select())
 				if (option && keyIs('up'))		preventDefault(), caret.pageUp.select()
 				if (option && keyIs('down'))	preventDefault(), caret.pageDown.select()
 				if (option && keyIs('left'))	preventDefault(), caret.leftWord.select()
 				if (option && keyIs('right'))	preventDefault(), caret.rightWord.select()
+				if (!option && !command && !shift)
+				{
+					if (keyIs('up'))
+					{
+//						preventDefault()
+					}
+					if (keyIs('down'))
+					{
+//						preventDefault()
+					}
+				}
 
 				// Delete forward and backward
 				var self = this
@@ -1671,37 +1799,17 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				if (command && keyIs('rightdelete'))	deleteTo(caret.isAtEndOfLine ? caret.endOfLine.rightChar : caret.endOfLine)
 			}
 			
-			CCp.DOMCharacterDataModified = function ()
-			{
-				document.getElementById('orderDump').innerHTML += 'char '
-				// Called from keydown
-				if (this.postKeydownPending)	return
-				// Called from Character viewer
-//				alert('lklk' + '\nnv=' + event.target.nodeValue + '\n'  + dumpHash(event))
-//				alert(event.prevValue + '\n' + event.newValue)
-				
-				// read line by patching value
-//				event.target.nodeValue = 'HOP'
-				
-				// WARNING MAY BE RANGE !
-				
-				this.editState.isMoving = false
-				this.editState.rangeSelection = this.rangeSelection
-				this.editState.caretLineText = 'TTTTTTTTTTTTEEEEEEEEEST'
-				this.postKeydownPending++
-				this.postKeydownFunction()
-				this.closeEditAction()
-			}
 			
 			//
 			// post key down
 			// 
-			CCp.postKeydown = function ()
+			CCp.postBrowserAction = function ()
 			{
 				document.getElementById('orderDump').innerHTML += 'pkd '
-				if (!this.postKeydownPending)	return
+//				if (!this.postBrowserActionPending)	return
+
 				
-				this.postKeydownPending--
+				this.postBrowserActionPending--
 				this.dumpUndoStack()
 				var sel = getSelection()
 
@@ -1731,7 +1839,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				{
 					if (this.lineCount != this.editState.lineCount || this.caret.line.text != this.editState.caretLineText) mode = 'typing'
 					// If we were typing and now have a range selection, close it (handles actions like select all, check action name to not close tab actins)
-					if (sel.type == 'Range' && this.currentEditAction && !this.currentEditAction.name)	this.closeEditAction()
+//					if (sel.type == 'Range' && this.currentEditAction && !this.currentEditAction.name)	this.closeEditAction()
 //				alert('k' + mode + '\n' + this.editState.caretLineText)
 /*
 					if (this.lineCount != this.editState.lineCount)	mode = 'typing', typingAction = this.lineCount > this.editState.lineCount ? 'added lines' : 'removed lines'
@@ -1763,7 +1871,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 						this.currentEditAction.rangeSelection	= this.editState.rangeSelection
 
 //						if (this.currentEditAction.name == 'tab')
-							this.closeEditAction()
+//							this.closeEditAction()
 					}
 					else
 					{
@@ -1812,6 +1920,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 					}
 				}
 //return				
+
+//				this.editState.rangeText = this.textFromRangeSelection(true)
 				
 				str += '<hr>'
 /*				
@@ -1863,35 +1973,38 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				// 
 				
 				this.highlightSelectedLine()
-				if (sel.type == 'Range') return
+				if (sel.type == 'Range' || mode == 'moving') return
 				this.colorCode()
 			}
-			
-			
-			CCp.highlightSelectedLine = function ()
-			{
-				var sel		= getSelection()
-
-				var line	= this.lineNodeFromNode(sel.baseNode)
-				if (!line)	return
-				this.selectedLine.style.top		= line.offsetTop + 'px'
-				this.selectedLine.style.height	= (line.offsetHeight+1) + 'px'
-
-				var o = {}
-				this.replaceTabsInLine(this.caret.text.substr(0, this.caret.offset), null, null, o)
-				
-				this.selectedLinePosition.innerHTML = (this.caret.lineNumber+1) + ',' + (o.totalWidth+1)
-			}
 /*			
-			CCp.copy = function ()
+			CCp.DOMCharacterDataModified = function ()
 			{
-//				alert('handle copy undo')
+				// Called from keydown
+				if (this.postBrowserActionPending)	return
+//				if (!this.editState.savedDuringMouseUp)	return
+//				alert('k')
+//				alert(this.postBrowserActionPending)
+				document.getElementById('orderDump').innerHTML += ' <b>DOMMOD</b> '
+//				alert(dumpHash(this.editState) + ' ' + getSelection().type)
+				// Called from Character viewer, text has been saved during mouseup
+				var text = this.editState.rangeText// || this.editState.caretLineText
+//				alert(this.lineNodeFromNode(event.target).innerText)
+//				alert('***' + text + '\n****\n' + dumpHash(this.editState))
+//				alert(dumpHash(event))
+				this.saveUndoable()
+				if (getSelection().type == 'Caret')	this.editState.caretLineText = text
+				else								this.editState.rangeText = text
+				
+//				alert('state1=' + this.editState.rangeText)
+//				alert('state1b=' + text)
 			}
 */
 			CCp.cut = function ()
 			{
-				document.getElementById('orderDump').innerHTML += 'cut '
-//				alert('handle cut')
+				// Called from keydown
+				if (this.postBrowserActionPending)	return
+				
+				this.saveUndoable()
 			}
 
 			//
@@ -1901,12 +2014,9 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			// http://developer.apple.com/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Tasks/CopyAndPaste.html#//apple_ref/doc/uid/30001234
 			CCp.paste = function ()
 			{
-				document.getElementById('orderDump').innerHTML += 'paste '
+				this.saveUndoable()
 				this.currentEditAction		= this.newEditAction()
-				this.editState.rangeText	= this.textFromRangeSelection(true)
-				this.currentEditAction.text	= this.editState.rangeText
-				this.currentEditAction.lastLineVisited	= this.caret.lineNumber
-				this.currentEditAction.rangeSelection	= this.rangeSelection
+				this.currentEditAction.text	= this.textFromRangeSelection(true)
 
 				var sel			= getSelection()
 				var clipboard	= event.clipboardData
@@ -1916,14 +2026,13 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				event.preventDefault()
 				event.returnValue = false
 				
-				var caret = this.caret
 				// Delete selection if we have a range
 				this.caret.deleteTo(this.caret2)
-				var rightText = caret.rightText
+				var rightText = this.caret.rightText
 				
 				var lines = clipboard.getData('Text').split('\n')
-				caret.line.text = caret.leftText + lines[0]
-				var line = caret.line
+				this.caret.line.text = this.caret.leftText + lines[0]
+				var line = this.caret.line
 				for (var i=1; i<lines.length; i++)
 				{
 					line = line.insertNewlineBelow()
@@ -1938,6 +2047,62 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			{
 				document.getElementById('selectionDump').innerHTML = getTickCount() + ' scroll'
 			}
+
+
+
+			
+			CCp.highlightSelectedLine = function ()
+			{
+				var sel			= getSelection()
+				if (sel.type == 'Range' || !this.nodeIsInEditor(sel.baseNode))	return this.selectedLine.style.visibility = 'hidden'
+
+				var line	= this.lineNodeFromNode(sel.baseNode)
+				this.selectedLine.style.visibility = ''
+				if (!line)	return
+
+				this.selectedLine.style.top		= line.offsetTop + 'px'
+				this.selectedLine.style.height	= (line.offsetHeight+1) + 'px'
+
+				var o = {}
+				this.replaceTabsInLine(this.caret.text.substr(0, this.caret.offset), null, null, o)
+				this.selectedLinePosition.innerHTML = (this.caret.lineNumber+1) + ',' + (o.totalWidth+1)
+			}
+			
+			//
+			// Register actions to be performed in the next run loop cycle
+			// 
+			CCp.performAfterDelay = function (fnName, delay)
+			{
+				if (!this.delayedPerformsCache)
+				{
+					this.delayedPerformsCache = {}
+					this.delayedPerformCount = 0
+				}
+				this.delayedPerformCount++
+				var self= this
+				var id
+				var fn	= function () { self[fnName].apply(self); delete self.delayedPerformsCache[id] }
+				id = setTimeout(fn, delay || 0)
+				this.delayedPerformsCache[id] = fn
+			}
+			
+			//
+			// (Called from Cocoa) 
+			//	Cocoa overrides WebHTMLView's keyDown, which call the original method then the browser handler,
+			//	then exhausts any actions. The browser's handler has changed state and CC can react to them.
+			//	This removes flicker, as CC is done after the browser's keydown has updated the page.
+			//
+			CCp.exhaustDelayedPerforms = function ()
+			{
+				if (!this.delayedPerformsCache)	return
+				for (var id in this.delayedPerformsCache)
+				{
+					this.delayedPerformsCache[id]()
+					clearTimeout(id)
+				}
+				this.delayedPerformsCache = {}
+			}
+
 
 
 			//
@@ -1977,8 +2142,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 
 			function	focusHighlighted()
 			{
-				cc.editorNode.focus()
-				getSelection().collapseToStart()				
+//				cc.editorNode.focus()
+//				getSelection().collapseToStart()				
 				cc.colorCode()
 			}
 			setTimeout(focusHighlighted, 10)
@@ -2045,8 +2210,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				var r = sel.getRangeAt(0)
 				if (r)		str += '<hr><pre>' + dumpHash(r) + '</pre>'
 				} catch (e) {}
-				return str
 */				
+				return str
 			}
 
 
@@ -2131,8 +2296,11 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				
 				dumpUndoStack()
 			}
-			setInterval(ds, 100), ds()
+//			setInterval(ds, 100), ds()
 //			setInterval(dumpLines, 100), dumpLines()
+//			setInterval(dumpUndoStack, 100)
+			
+//			alert('exhaust')
 		</script>
 
 <pre>
@@ -2192,9 +2360,28 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 * do cmd del and suppr
 * howto handle tab move ?
 * paste may break on being invoked from menu.	
--->
 * detect insertion by Character Viewer
 	^DOMCharacterDataModified
+
+* BUG
+	* select all
+	* suppr
+	* backspace
+
+* BUG
+	* click ayer (eg text rouge)
+	* pert selexion, plantage innerHTML (just dev au dump ?)
+
+* bug while shift option left
+		}
+	
+	abcd****1234+
+	^start here, stops on }
+
+* register postWebAction and highlight as notifications to be exhausted by timeout or by Cocoa.
+
+
+-->
 * 4-click selection : menu to select fonction, block, .... move caret to start of function ...
 
 
@@ -2203,26 +2390,12 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 	breaks selection anchor : when shift selecting, selection will always grow instead of being anchored.
 	(base and offset show up as switched in the dump)`
 	
-
 * option left, double click 'this.var' should not select 'this.var' but only 'this' or 'var'
 
-* need to handle menu CUT
+* need to hook up / down
 
-* character insertion MAY HAPPEN AFTER mouse selexion
-
-* 			CCp.DOMCharacterDataModified = function ()
-				if is moving, need to close action
-
-* 			CCp.paste = function ()
-				let safari handle paste, just save possible selection before hand AND mark lines as new action after paste
-
-* bug while shift option left
-		}
+* time innerText
+* time createRange text
 	
-	abcd****1234+
-	^start here, stops on }
-
-* problem select range then type : undo action closed right after first char. TOCHECK
-
 </body>
 </html>
