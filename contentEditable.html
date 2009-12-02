@@ -8,7 +8,7 @@
 		{
 			font-size: 80%;
 		}
-		body > div
+		#ed
 		{
 			white-space: pre;
 			height: 600px;
@@ -24,7 +24,7 @@
 </head>
 <body>
 
-	<div contentEditable='true' onchange='alert("s")'>
+	<div id='ed' contentEditable='true' onchange='alert("s")'>
 	// List launched applications
 	var apps = [[NSWorkspace sharedWorkspace] launchedApplications]
 
@@ -154,9 +154,39 @@ This doesn't sound like DoTheSimplestThingThatCouldPossiblyWork at all to me. It
 		
 //		var a = { get test(){ return "foo"; }}
 //		alert(a.test)
+			function	getTickCount()
+			{
+				return (new Date).getTime()
+			}
+		
+		function	modifySelection()
+		{
+			function f()
+			{
+				
+				document.getElementById('log').innerHTML = getTickCount()
+				try
+				{
+					var sel = getSelection()
+					sel.setBaseAndExtent(sel.baseNode, sel.baseOffset+1, sel.extentNode, sel.extentOffset)
+				}
+				catch(e)
+				{
+					
+				}
+			}
+			var d = 1000
+			document.getElementById('log').innerHTML = 'Starting in ' + d + 'ms'
+			setInterval(f, d)
+		}
 	</script>
+	
+	<div id='log'>log</div>
+	<button onclick='modifySelection()'>Start modifying selection by timeout</button>
 
 
+<pre>
+	Custom selexion : update after each move
 
 </body>
 </html>

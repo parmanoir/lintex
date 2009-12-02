@@ -7,6 +7,10 @@
 -->	
 	<link rel="stylesheet" href="code%20colorer.css" type="text/css" />
 	<style>
+		html
+		{
+			font-family: Lucida Grande;
+		}
 	
 		#coloredCodeContainer
 		{
@@ -291,14 +295,15 @@ abcd****1234+
 	<button onclick="clearDumps()">Clear</button>
 	<pre id='dump5'></pre>
 	<pre id='dump6'></pre>
-
-	<script src="crockford/json2.js"></script>
-	<script src="crockford/jslint-jscocoa.js"></script>
+<!--
+	<script src="json2.js"></script>
 	<script src='showdown.js'></script>
+-->	
+	<script src="jslint-jscocoa.js"></script>
 
 		<script>
 		
-			var MarkDownConverter = new Showdown.converter()
+//			var MarkDownConverter = new Showdown.converter()
 
 			function	htmlEncode(str)
 			{
@@ -1533,6 +1538,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			CCp.keydown = function ()
 			{
 				document.getElementById('orderDump').innerHTML += 'kd '
+				document.getElementById('selectionDump').innerHTML = '<pre><b>' + event.keyIdentifier + '</b>\n' + dumpHash(event)
 
 
 				//
@@ -1628,7 +1634,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				if (command && keyIs('undo') && shift)	return preventDefault(), this.redo()
 
 				// Not preventing this will delete our DIV line
-				if (keyIs('leftdelete') && this.caret.lineNumber == 0 && this.lineCount <= 1) 	return preventDefault()
+				if (keyIs('leftdelete') && this.caret.lineNumber == 0 && this.caret.offset == 0 && this.lineCount <= 1) 	return preventDefault()
 
 				// Post key down : let safari do its stuff and react after it
 //				var tryCount = 20
@@ -2394,8 +2400,22 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 
 * need to hook up / down
 
-* time innerText
-* time createRange text
+* do NOT intercept undo / redo in Cocoa, let Cocoa handle it
+
+* BUG
+	* type 
+	* click right pane
+	* click left pane
+	-> no node
 	
+* BUG
+	* newline
+	* tab
+	* space
+	-> no space !
+
+*  multi chars like ` don't work.
+	* pareil pour hiragana input. type mononoke　hime (us keyboard) to try and have the correct text.
+	circumflex and hiragana go through setMarkedText:selectedRange:
 </body>
 </html>
