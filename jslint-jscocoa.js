@@ -807,7 +807,7 @@ JSLINT = (function renamedJSLint () {
 				var r = "^\\s*([()}.,:;'\"~\\?\\]#@]|\\[\\+\\]|\\[|{\\+}|@selector|@|ƒ|{|==?=?|\\/(\\*(global|extern|jslint|member|members)?|=|\\/)?|\\*[\\/=]?|\\+[+=]?|-[\\-=]?|%=?|&[&=]?|\\|[|=]?|>>?>?=?|<([\\/=!]|<=?)?|\\^=?|\\!=?=?|[a-zA-Z\\u00c0-\\uffff_$][a-zA-Z0-9\\u00c0-\\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\\.[0-9]*)?([eE][+\\-]?[0-9]+)?)"
 				return new RegExp(r)
 
-			}()
+			}(),
 /*
         tx = 
 ^\s*([(){}\[.,:;'"~\?\]#@]
@@ -1957,6 +1957,20 @@ members)?
 */
     function parse(rbp, initial) {
         var left, o;
+
+		// ## Allow return a, b
+		function	maybeParseCommas()
+		{
+			if (rbp > 20 || skipCommas)	return
+			while (nexttoken.value == ',')
+			{
+				advance(',')
+           		parse(rbp)
+			}
+		}
+		var skipCommas = initial == 'singleExpression'
+		if (skipCommas) initial = undefined
+
 		// ## notify of expression parsing start
 		logParseStart(rbp, initial)
         if (nexttoken.id === '(end)') {
@@ -1983,6 +1997,8 @@ members)?
 "A leading decimal point can be confused with a dot: '.{a}'.",
                             token, nexttoken.value);
                     advance();
+					// ## 
+					maybeParseCommas()
 					// ## notify of expression parsing end
 					logParseEnd(rbp, initial)
                     return token;
@@ -2014,9 +2030,14 @@ members)?
             }
 */
         }
+
+		// ##
+		maybeParseCommas()
+
 		// ## notify of expression parsing end
 		logParseEnd(rbp, initial)
 
+		
         return left;
     }
 
@@ -2578,7 +2599,9 @@ members)?
 
 
     function countMember(m) {
-        if (membersOnly && membersOnly[m] !== true) {
+	// ## Causing errors while linting jslint. Disabled for now.
+
+        if (0 && membersOnly && membersOnly[m] !== true) {
             warning("Unexpected /*member '{a}'.", nexttoken, m);
         }
         if (typeof member[m] === 'number') {
@@ -3930,7 +3953,7 @@ members)?
     infix('+', function (left, that) {
         var right = parse(130);
 /*
-## String constant folding messes up token stream : logToken outputs token stream on the fly.
+## String constant folding messes up token stream from logToken
 ## Disabled.
         if (left && right && left.id === '(string)' && right.id === '(string)') {
             left.value += right.value;
@@ -4171,7 +4194,8 @@ members)?
         }
         if (nexttoken.id !== ')') {
             for (;;) {
-                p[p.length] = parse(10);
+				// ## singleExpression
+                p[p.length] = parse(10, 'singleExpression');
                 n += 1;
                 if (nexttoken.id !== ',') {
                     break;
@@ -4444,7 +4468,8 @@ members)?
                 countMember(i);
                 advance(':');
                 nonadjacent(token, nexttoken);
-                parse(10);
+				// ## Don't allow comma expressions (a, b, c)
+                parse(10, 'singleExpression');
                 if (nexttoken.id === ',') {
                     comma();
                     if (nexttoken.id === ',' || nexttoken.id === '}') {
@@ -4502,7 +4527,8 @@ members)?
                     error("Variable {a} was not declared correctly.",
                             nexttoken, nexttoken.value);
                 }
-                value = parse(0);
+				// ## 'var'
+                value = parse(0, 'singleExpression');
                 name.first = value;
             }
             if (nexttoken.id !== ',') {
@@ -4579,7 +4605,8 @@ members)?
 	// ##
 	var functionBlockFunction = function () {
         if (inblock) {
-            warning("Function statements cannot be placed in blocks. Use a function expression or move the statement to the top of the outer function.", token);
+			// ## Allowed !
+//            warning("Function statements cannot be placed in blocks. Use a function expression or move the statement to the top of the outer function.", token);
         }
         var i = identifier();
         adjacent(token, nexttoken);
@@ -4900,6 +4927,8 @@ members)?
         if (funct['(breakage)'] === 0) {
             warning("Unexpected '{a}'.", nexttoken, this.value);
         }
+		// ## Allow missing semicolon
+        if (this.line !== nexttoken.line)	return
         nolinebreak(this);
         if (nexttoken.id !== ';') {
             if (token.line === nexttoken.line) {
@@ -4920,6 +4949,8 @@ members)?
         if (funct['(breakage)'] === 0) {
             warning("Unexpected '{a}'.", nexttoken, this.value);
         }
+		// ## Allow missing semicolon
+        if (this.line !== nexttoken.line)	return
         nolinebreak(this);
         if (nexttoken.id !== ';') {
             if (token.line === nexttoken.line) {
@@ -4975,6 +5006,7 @@ members)?
         if (nexttoken.id !== ';' && !nexttoken.reach /*## only parse what's on current line */ && token.line == nexttoken.line) {
             nonadjacent(token, nexttoken);
             parse(20);
+/*
 			// ## Allow multiple expression return
 			// return a(), b(), 'hello'
 			while (nexttoken.value == ',')
@@ -4982,6 +5014,7 @@ members)?
 				advance(',')
             	parse(20)
 			}
+*/
 			// ## Maybe if return
 			if (isIfReturn())		parseIfReturn()
         }
@@ -5198,6 +5231,7 @@ members)?
                         o[nexttoken.value] = true;
                     }
                     advance();
+//##
                     advance(':');
                     jsonValue();
                     if (nexttoken.id !== ',') {

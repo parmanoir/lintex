@@ -181,6 +181,15 @@ This doesn't sound like DoTheSimplestThingThatCouldPossiblyWork at all to me. It
 		}
 	</script>
 	
+	<script>
+		// Test comma expressions
+		
+		var c = 1, d = 2, array = [2, 3]
+		var a = (alert('hello'), d), b = alert('world'), d, test = [alert('blah'), array[2]]
+		
+		alert('passed a=' + (a==d) + ' b=' + (b==undefined) + ' test=' + (test[0]==array[2]))
+	</script>
+	
 	<div id='log'>log</div>
 	<button onclick='modifySelection()'>Start modifying selection by timeout</button>
 

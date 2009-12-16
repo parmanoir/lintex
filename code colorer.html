@@ -113,7 +113,7 @@
 			ebackground: -webkit-gradient(linear, left top, right top, from(#f44), to(#fcc));
 			ebackground: -webkit-gradient(linear, left top, right top, from(rgba(220, 245, 200, 0.81)), to(rgba(100, 255, 100, 0.81)));
 			
-			max-height: 1em;
+			emax-height: 1em;
 			eline-height: 0.2em;
 			overflow: none;
 		}
@@ -155,11 +155,56 @@
 </tr></table>
 
 	<textarea style='display: none'>
-// some text on the first line
+                        var i = parseInt(s.substr(j + 1, n), 16);
+
+	var parsingClass;
+		var a = (alert('hello'), d), b = alert('world'), d, test = [alert('blah'), array[2]]
+	
+    var adsafe_id,      // The widget's ADsafe id.
+        adsafe_may,     // The widget may load approved scripts.
+        adsafe_went,    // ADSAFE.go has been called.
+        anonname,       // The guessed name for anonymous functions.
+        approved,       // ADsafe approved urls.
+
+        atrule = {
+            'import'   : true,
+            media      : true,
+            'font-face': true,
+			test 	: [hello[a(), 4]],
+            page       : true
+        },
+world = 3;
+
+while (1) a(), b()
+alert(document.getElementsByTagName('*')[alert('op'), 2])
+
+	// some text on the first line
 	function CheckBracketSpacing()
 	{
 		hello
+
+		if (token.value.toLowerCase() == 'swizzle')	token.reserved = true, advance()
+		
+		return hello(), 45
 	}
+
+for (var i=0; i<2; i++)
+	if (i==2) break
+	
+for (var i=0; i<2; i++)
+	if (i==2) continue
+
+broken:	
+for (var i=0; i<2; i++)
+{
+	if (i==2) break broken
+}
+continued:	
+for (var i=0; i<2; i++)
+{
+	if (i==2) break continued
+}
+	
 	
 abcd****1234+
 	2	3	4
@@ -922,8 +967,12 @@ style = ''
 
 style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden; height: 1em'
 
+//style = 'display: inline-block; width: ' + w + 'px'
 
+//style = 'display: inline; white-space: normal; width: ' + w + 'px'
 
+//style = ''
+//					return '<span class="fakeTab" style="' + style + '"><span>	</span></span>'
 					return '<span class="fakeTab" style="' + style + '">	</span>'
 					
 //					return '<span class="fakeTab" style="letter-spacing: -' + w1 + 'px; padding-right: ' + w2 + 'px">	</span>'
@@ -1306,7 +1355,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			CCp.keyName = function (keyCode)
 			{
 				if (!this.keyNames)
-					this.keyNames = { 90 : 'undo', 37 : 'left', 39 : 'right', 38 : 'up', 40 : 'down', 9 : 'tab', 13 : 'newline', 8 : 'leftdelete', 46 : 'rightdelete' }
+					this.keyNames = { 90 : 'undo', 37 : 'left', 39 : 'right', 38 : 'up', 40 : 'down', 9 : 'tab', 13 : 'newline', 8 : 'leftdelete', 46 : 'rightdelete', 32 : 'space' }
 				return this.keyNames[keyCode]
 			}
 			CCp.keyIs = function (keyCode, keyName)
@@ -1538,7 +1587,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 			CCp.keydown = function ()
 			{
 				document.getElementById('orderDump').innerHTML += 'kd '
-				document.getElementById('selectionDump').innerHTML = '<pre><b>' + event.keyIdentifier + '</b>\n' + dumpHash(event)
+//				document.getElementById('selectionDump').innerHTML = '<pre><b>' + event.keyIdentifier + '</b>\n' + dumpHash(event)
 
 
 				//
@@ -1730,6 +1779,10 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				{
 					if (keyIs('tab'))
 					{
+						// Option will use default browser action
+						if (option)	return
+						
+						// Indent or outdent selection
 						preventDefault()
 						this.editState.rangeText	= this.textFromRangeSelection(false)
 						this.currentEditAction		= this.newEditAction()
@@ -1767,6 +1820,14 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 					for (var i=0; i<leftSpace.length; i++) newCaret = newCaret.rightChar
 					newCaret.select()
 				}
+				// Manually insert spaces in fakeTabs, as Safari doesn't move caret when inserting a space after a tab
+				if (keyIs('space') && sel.baseNode.parentNode.className == 'fakeTab')
+				{
+					preventDefault()
+					caret.line.text = caret.leftText + ' ' + caret.rightText
+					caret.rightChar.select()
+					return
+				}
 				
 				// Move
 				// Move to start of text (skipping whitespace, not to start of line), then to start of line, then to previous line
@@ -1803,6 +1864,8 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				if (option && keyIs('rightdelete'))		deleteTo(caret.rightWord)
 				if (command && keyIs('leftdelete'))		deleteTo(caret.isAtStartOfLine ? caret.startOfLine.leftChar : !caret.isAfter(caret.startOfLine.skipRightWhite()) ? caret.startOfLine : caret.startOfLine.skipRightWhite())
 				if (command && keyIs('rightdelete'))	deleteTo(caret.isAtEndOfLine ? caret.endOfLine.rightChar : caret.endOfLine)
+
+
 			}
 			
 			
@@ -1815,7 +1878,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 //				if (!this.postBrowserActionPending)	return
 
 				
-				this.postBrowserActionPending--
+//				this.postBrowserActionPending--
 				this.dumpUndoStack()
 				var sel = getSelection()
 
@@ -1834,7 +1897,7 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 				{
 					str += '<br>rangeText=<pre>' + this.editState.rangeText + '</pre>'
 				}
-				
+
 				var caret = this.caret
 				var mode = 'moving'
 				var typingAction
@@ -2386,11 +2449,19 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 
 * register postWebAction and highlight as notifications to be exhausted by timeout or by Cocoa.
 
+* BUG
+	* newline
+	* tab
+	* space
+	-> no space !
+
+	
+*  multi chars like ` don't work.
+	* pareil pour hiragana input. type mononoke　hime (us keyboard) to try and have the correct text.
+	circumflex and hiragana go through setMarkedText:selectedRange:
 
 -->
 * 4-click selection : menu to select fonction, block, .... move caret to start of function ...
-
-
 
 * sel.setBaseAndExtent(sel.baseNode, sel.baseOffset, sel.extentNode, sel.extentOffset)	
 	breaks selection anchor : when shift selecting, selection will always grow instead of being anchored.
@@ -2407,15 +2478,10 @@ style = 'display: -webkit-inline-box; width: ' + w + 'px;' //' overflow: hidden;
 	* click right pane
 	* click left pane
 	-> no node
+	-> node choisi HORS contenteditable, exec en postWebAction plutot que direx mousedown
 	
-* BUG
-	* newline
-	* tab
-	* space
-	-> no space !
+* show function code on hover, allow 'window' to code -> open another window featuring the function, always centered on it
 
-*  multi chars like ` don't work.
-	* pareil pour hiragana input. type mononoke　hime (us keyboard) to try and have the correct text.
-	circumflex and hiragana go through setMarkedText:selectedRange:
+* <b>lint jslint</b>
 </body>
 </html>
