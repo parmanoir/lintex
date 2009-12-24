@@ -106,11 +106,26 @@
 		{
 			height: 200px;
 		}
+		
+ebody { -webkit-text-stroke:1px transparent; }
+		
 </style>
 </head>
 <body>
 	Refactor bouton : inline block, position: relative, vec les 2 flech en position absolute.
 	<span class='warningContainer'><span class='arrowContainer'><span class='arrow'>▾</span></span><span class='warning'><span class='arrowContainer2'><span class='arrow2'>▾</span></span>Check this out</span></span>
+
+<p>
+	<span class='warningContainer'><span class='arrowContainer'></span><span class='warning'><span class='arrowContainer2'><span class='arrow2'>▾</span></span>
+	<b style='-webkit-text-stroke: 0 black;'>Check this out</b>
+	</span></span>
+	
+<p>
+	<span class='warningContainer'><span class='arrowContainer'></span><span class='warning'><span class='arrowContainer2'><span class='arrow2'>▾</span></span>
+	<b style='-webkit-text-stroke: 1px transparent;'>Check this out</b>
+	</span></span>
+	
+	
 <p>
 	Some text
 	<span class='warningContainer'><span class='arrowContainer'><span class='arrow'>▾</span></span><span class='warning'><span class='arrowContainer2'><span class='arrow2'>▾</span></span>Expected an assignment or function call and instead saw an expression</span></span>
@@ -119,5 +134,7 @@
 	
 	 ▼▾
 
+<pre>
+	http://orderedlist.com/articles/thining-text-in-safari-under-snow-leopard
 </body>
 </html>

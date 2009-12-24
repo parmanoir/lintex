@@ -201,7 +201,7 @@ function JSLintWithLogs(logs)
 	
 JSLINT = (function renamedJSLint () {
 	
-	// ## (internal) Guard against Inner class
+	// ## (internal) Guard against inner classes definitions
 	var parsingClass;
 	
     var adsafe_id,      // The widget's ADsafe id.
@@ -804,7 +804,8 @@ JSLINT = (function renamedJSLint () {
 		tx = function ()
 			{
 //				var a  = /^\s*([(){}\[.,:;'"~\?\]#@]|==?=?|\/(\*(global|extern|jslint|member|members)?|=|\/)?|\*[\/=]?|\+[+=]?|-[\-=]?|%=?|&[&=]?|\|[|=]?|>>?>?=?|<([\/=!]|\!(\[|--)?|<=?)?|\^=?|\!=?=?|[a-zA-Z\u00c0-\uffff_$][a-zA-Z0-9\u00c0-\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\.[0-9]*)?([eE][+\-]?[0-9]+)?)/
-				var r = "^\\s*([()}.,:;'\"~\\?\\]#@]|\\[\\+\\]|\\[|{\\+}|@selector|@|ƒ|{|==?=?|\\/(\\*(global|extern|jslint|member|members)?|=|\\/)?|\\*[\\/=]?|\\+[+=]?|-[\\-=]?|%=?|&[&=]?|\\|[|=]?|>>?>?=?|<([\\/=!]|<=?)?|\\^=?|\\!=?=?|[a-zA-Z\\u00c0-\\uffff_$][a-zA-Z0-9\\u00c0-\\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\\.[0-9]*)?([eE][+\\-]?[0-9]+)?)"
+//				var r = "^\\s*([()}.,:;'\"~\\?\\]#@]|\\[\\+\\]|\\[|{\\+}|@implementation|@end|@selector|@|ƒ|{|==?=?|\\/(\\*(global|extern|jslint|member|members)?|=|\\/)?|\\*[\\/=]?|\\+[+=]?|-[\\-=]?|%=?|&[&=]?|\\|[|=]?|>>?>?=?|<([\\/=!]|<=?)?|\\^=?|\\!=?=?|[a-zA-Z\\u00c0-\\uffff_$][a-zA-Z0-9\\u00c0-\\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\\.[0-9]*)?([eE][+\\-]?[0-9]+)?)"
+				var r = "^\\s*([()}.,:;'\"~\\?\\]#@]|\\[\\+\\]|\\[|{\\+}|@implementation|@end|@selector|@|ƒ|{|==?=?|\\/(\\*|=|\\/)?|\\*[\\/=]?|\\+[+=]?|-[\\-=]?|%=?|&[&=]?|\\|[|=]?|>>?>?=?|<([\\/=!]|<=?)?|\\^=?|\\!=?=?|[a-zA-Z\\u00c0-\\uffff_$][a-zA-Z0-9\\u00c0-\\uffff_$]*|[0-9]+([xX][0-9a-fA-F]+|\\.[0-9]*)?([eE][+\\-]?[0-9]+)?)"
 				return new RegExp(r)
 
 			}(),
@@ -1411,14 +1412,13 @@ members)?
                                 }
 								else
 								{
-//									alert('2' + s)
 									// ##
 									// All comment lines but the last one go through here
 									var c = lines[line].substr(from).length
 									if (commentLineIndex == 0) c += firstCommentPrefix.length
 									if (!logTokenLock)	
 									{
-										var t = { type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : c }
+										var t = { type : '(comment)', line : line, from : from, value : firstCommentPrefix + s, character : c+from }
 										t.rawValue = lines[t.line] ? lines[t.line].substr(t.from, t.character-t.from) : ''
 										logToken(t)
 									}
@@ -4012,9 +4012,13 @@ members)?
 		}
 		else
 		{
-			logExtraSyntax('@', token)
-			if (token.id != '(string)')
-				warningAt('ObjC string immediate : Expected a Javascript string here', token.line, token.from)
+			if (token.value == 'implementation')	parseObjJClass('@implementation')
+			else
+			{
+				logExtraSyntax('@', token)
+				if (token.id != '(string)')
+					warningAt('ObjC string immediate : Expected a Javascript string here', token.line, token.from)
+			}
 		}
 	})
 
@@ -4269,6 +4273,10 @@ members)?
 		firstToken.isObjCCallOpener = true
 		firstToken.isObjCCall		= true
 		
+		var isObjCSuperCall			= (token.value == 'original' || token.value == 'super')
+		token.isObjCSuperCall		= isObjCSuperCall
+		nexttoken.isObjCSuperCall	= isObjCSuperCall
+
 		function	advanceParameterName()
 		{
 			advance()
@@ -4294,6 +4302,7 @@ members)?
 			// Remaining parameters
 			while (nexttoken && nexttoken.value != ']')
 			{
+				if (nexttoken.id === '(end)')	return warningAt('Unexpected end of ObjC call "' + token.value + '"', token.line, token.from)
 				// Handle variadic calls : must be comma list, last values before ]
 				if (nexttoken.value == ',')
 				{
@@ -4323,8 +4332,9 @@ members)?
 			firstMessagePart.objCJSSelector = jsselector
 		
 		if (nexttoken.value != ']')	warning('ObjC call not closed')
-		nexttoken.isObjCCallCloser = true
-		nexttoken.isObjCCall = true
+		nexttoken.isObjCCallCloser	= true
+		nexttoken.isObjCCall		= true
+		nexttoken.isObjCSuperCall	= isObjCSuperCall
 		instanceToken.objCParameterCountOpener	= parameterCount
 		nexttoken.objCParameterCountCloser		= parameterCount
 		// Mark expression as valid standalone (skip warning in parse(), 'Expected an assignment or function call and instead saw an expression')
@@ -5031,29 +5041,54 @@ members)?
     });
 
 
-
 	// ## JSCocoa class syntax
-    stmt('class', function () {
-	
+    function parseObjJClass(style) {
 		// Protect against inner definitions
 		if (parsingClass)	return warningAt('Inner classes are not of this world', token.line, token.from)
 		parsingClass = true
-	
+		
 		logExtraSyntax('class', token)
 		token.isObjCClassStart = true
-		
-		var className = advance()
-		if (token.type != '(identifier)')	warningAt('Class name must be an identifier', token.line, token.from)
+//		if (style == '@implementation')	advance()
+//		alert(token.value + ' '  + '' + '\n' + dumpHash(token))
+		advance()
+		var className = token
+		if (className.type != '(identifier)')	warningAt('Class name must be an identifier', token.line, token.from)
 		// If we have a '<', we're deriving from the following class.
 		// If not, we're just adding methods to the class.
-		if (nexttoken.value == '<')
+		if (nexttoken.value == '<' || nexttoken.value == ':')
 		{
-			advance('<')
-			var parentClassName = advance()
+			if (style == '@implementation')	advance(':')
+			else							advance('<')
+			var parentClassName = token
+			advance()
 			if (token.type != '(identifier)')	warningAt('Parent class name must be an identifier', token.line, token.from)
 		}
+		else
+		// Category
+		if (nexttoken.value == '(')
+		{
+			advance('(')
+			token.isObjCCategory = true
+			advance()
+			if (token.type != '(identifier)')	warningAt('Category name must be an identifier', token.line, token.from)
+			advance(')')
+		}
+		// Parse class params
+		if (style == '@implementation' && nexttoken.value == '{')	
+		{
+			advance('{')
+			token.isObjCVarList = true
+			// Pretty basic for now : skipping everything
+			while (nexttoken && nexttoken.value != '}')
+			{
+				if (nexttoken.id === '(end)')	return warningAt('Unexpected end of ObjC call "' + token.value + '"', token.line, token.from)
+				advance()
+			}
+			advance('}')
+		}
 
-		advance('{')
+		if (style != '@implementation')	advance('{')
 		
 		var validTokens = { '-' : true, '+' : true, 'IBOutlet' : true, 'IBAction' : true, 'swizzle' : true, 'Swizzle' : true, 'Key' : true, 'function' : true, 'ƒ' : true }
 
@@ -5183,9 +5218,11 @@ members)?
 //		alert(dumpHash(token))
 //		logClassStart(token)
 		
-		advance('}')
+		if (style == '@implementation')	advance('@'), advance('end')
+		else							advance('}')
 		parsingClass = false
-    });
+	}
+	stmt('class', parseObjJClass);
 
 
     reserve('void');
@@ -5201,7 +5238,8 @@ members)?
     reserve('goto');
     reserve('import');
     reserve('let');
-    reserve('super');
+	// ## We use this for ObjJ super call
+//    reserve('super');
 
     function jsonValue() {
         function jsonObject() {
@@ -5403,6 +5441,8 @@ members)?
                     jsonmode = true;
                     jsonValue();
                     break;*/
+/*
+	// ## Don't handle css classes as @implementation is valid ObjJ syntax
                 case '@':
                 case '*':
                 case '#':
@@ -5423,7 +5463,7 @@ members)?
                     advance(';');
                     styles();
                     break;
-
+*/
                 default:
                     if (option.adsafe && option.fragment) {
                         error("Expected '{a}' and instead saw '{b}'.",
